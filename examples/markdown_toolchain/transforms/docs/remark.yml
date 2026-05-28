@@ -1,0 +1,13 @@
+transforms:
+  - name: remark_markdown
+    type: command
+    runner: local.command
+    command: ["bin/run-remark-normalize"]
+    inputs:
+      - source: docs.raw_markdown
+    outputs:
+      - name: normalized_markdown
+        type: markdown_directory
+        path: target/artifacts/markdown/normalized/
+    policy: document_tool_scope
+    tags: ["document_toolchain", "remark"]

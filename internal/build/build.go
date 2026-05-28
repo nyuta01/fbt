@@ -202,23 +202,27 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 	}
 
 	startedAt := time.Now().UTC()
+	transformPayload := map[string]any{
+		"unique_id": transform.UniqueID,
+		"name":      transform.Name,
+		"type":      transform.TransformType,
+	}
+	if len(transform.Command) > 0 {
+		transformPayload["command"] = transform.Command
+	}
 	outcome, err := client.RunTransform(runCtx, protocol.RunTransformParams{
 		Mode:           "run",
 		InvocationID:   invocationID,
 		TransformRunID: transformRunID,
-		Transform: map[string]any{
-			"unique_id": transform.UniqueID,
-			"name":      transform.Name,
-			"type":      transform.TransformType,
-		},
-		Runner:  protocolRunner(transform, m, resolved),
-		Inputs:  protocolInputs(parseResult.ProjectDir, transform, m, *snapshot, artifactVersions),
-		Model:   transform.Model,
-		Tools:   protocolTools(transform),
-		Policy:  protocolPolicy(policyResource),
-		Outputs: protocolOutputs(transform),
-		Assets:  protocolAssets(parseResult.ProjectDir, transform, m),
-		State:   protocolState(transformID, transform, *snapshot, artifactVersions, node),
+		Transform:      transformPayload,
+		Runner:         protocolRunner(transform, m, resolved),
+		Inputs:         protocolInputs(parseResult.ProjectDir, transform, m, *snapshot, artifactVersions),
+		Model:          transform.Model,
+		Tools:          protocolTools(transform),
+		Policy:         protocolPolicy(policyResource),
+		Outputs:        protocolOutputs(transform),
+		Assets:         protocolAssets(parseResult.ProjectDir, transform, m),
+		State:          protocolState(transformID, transform, *snapshot, artifactVersions, node),
 		Work: map[string]any{
 			"root":    workRoot,
 			"temp":    workTemp,

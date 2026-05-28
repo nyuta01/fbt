@@ -1,0 +1,12 @@
+policies:
+  - name: document_tool_scope
+    read:
+      - data/docs/
+      - target/artifacts/
+    write:
+      - .fbt/work/
+      - target/artifacts/
+    network: false
+    limits:
+      timeout_seconds: 120
+      max_output_bytes: 10485760

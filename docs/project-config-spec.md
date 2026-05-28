@@ -215,6 +215,7 @@ Transform fields:
 | `name` | yes | Transform name |
 | `type` | yes | `command`, `extract`, `template`, `llm`, `agent`, or `compose` |
 | `runner` | yes | Runner reference |
+| `command` | yes for `type: command` | External command argv passed to the command runner |
 | `inputs` | yes | `source` or `ref` dependencies |
 | `outputs` | yes | Output artifact declarations |
 | `assets` | no | Transform assets |
@@ -226,6 +227,10 @@ Transform fields:
 | `contract` | no | Output contract |
 | `tags` | no | Selection and docs metadata |
 | `meta` | no | Arbitrary metadata |
+
+For `type: command`, fbt still does not execute shell logic in core. The
+configured command runner receives this argv and invokes the external tool from
+the runner process, writing output candidates under the assigned work directory.
 
 ### Inputs
 

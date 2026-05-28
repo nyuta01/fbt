@@ -1,0 +1,8 @@
+sources:
+  - name: docs
+    description: Raw author-maintained Markdown.
+    artifacts:
+      - name: raw_markdown
+        type: markdown_directory
+        path: data/docs/raw/
+        tags: ["docs", "raw"]

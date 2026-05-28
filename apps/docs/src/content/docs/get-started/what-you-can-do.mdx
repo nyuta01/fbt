@@ -21,6 +21,7 @@ visualization, export OpenLineage or OTel records into standard tools.
 | Prove the local control-plane loop | `fbt init knowledge_ops --template support` | A runnable support project with demo LLM and agent runners. |
 | See what will happen before running it | `fbt doctor`, `fbt plan` | Readiness checks plus run or blocked reasons. |
 | Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts`, an immutable copy in `.fbt/artifacts`, and a local receipt in `.fbt/state`. |
+| Wrap existing document tools | `examples/markdown_toolchain` | remark/Pandoc-style command wrappers produce artifacts while fbt records receipts and lineage. |
 | Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and policy state. |
 | Send lineage to existing tools | `fbt export openlineage` | OpenLineage RunEvent NDJSON for Marquez and OpenMetadata ingestion paths. |
 | Send execution telemetry to trace tools | `fbt export otel` | OTLP/JSON spans for OpenTelemetry-compatible trace backends. |

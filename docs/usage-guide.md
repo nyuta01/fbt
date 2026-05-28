@@ -127,7 +127,20 @@ such as "all expected files arrived", "batch marker exists", or "source export
 completed". fbt can tell that a file set changed; it does not decide when the
 business batch is complete.
 
-## 6. Review And Publishing Boundary
+## 6. Existing Tool Composition
+
+Use `type: command` transforms when an existing CLI already does the work.
+Examples include remark for Markdown normalization and Pandoc for document
+conversion. fbt's role is to pass the declared argv to a command runner, then
+commit the resulting files as versioned artifacts with receipts and lineage.
+
+```sh
+fbt plan --project-dir examples/markdown_toolchain --select tag:document_toolchain
+fbt build --project-dir examples/markdown_toolchain --select remark_markdown
+fbt build --project-dir examples/markdown_toolchain --select pandoc_handbook
+```
+
+## 7. Review And Publishing Boundary
 
 fbt deliberately does not implement `review`, `approve`, or `reject` commands.
 

@@ -98,6 +98,7 @@ type Transform struct {
 	Name     string         `yaml:"name"`
 	Type     string         `yaml:"type"`
 	Runner   string         `yaml:"runner"`
+	Command  []string       `yaml:"command"`
 	Model    map[string]any `yaml:"model"`
 	Agent    string         `yaml:"agent"`
 	Inputs   []Input        `yaml:"inputs"`

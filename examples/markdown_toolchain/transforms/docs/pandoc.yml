@@ -1,0 +1,13 @@
+transforms:
+  - name: pandoc_handbook
+    type: command
+    runner: local.command
+    command: ["bin/run-pandoc-handbook"]
+    inputs:
+      - ref: normalized_markdown
+    outputs:
+      - name: handbook_pdf
+        type: pdf
+        path: target/artifacts/documents/handbook.pdf
+    policy: document_tool_scope
+    tags: ["document_toolchain", "pandoc"]

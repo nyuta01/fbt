@@ -66,7 +66,33 @@ EOF
   grep -q "artifact.daily_qa_ops.manual_update" "$tmpdir/$name-manual-update.txt"
 }
 
+check_markdown_toolchain() {
+  local source_dir="examples/markdown_toolchain"
+  local name="markdown_toolchain"
+  local project="$tmpdir/$name"
+  cp -R "$source_dir" "$project"
+
+  perl -0pi -e 's/(command: bin\/fbt-command-runner\n)/$1    env:\n      - FBT_SOURCE_ROOT\n/g' "$project/fs_project.yml"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select tag:document_toolchain >"$tmpdir/$name-plan.txt"
+  grep -q "Plan: 2 selected, 1 run, 0 skipped, 1 blocked" "$tmpdir/$name-plan.txt"
+  grep -q "run transform.markdown_toolchain.remark_markdown" "$tmpdir/$name-plan.txt"
+  grep -q "blocked transform.markdown_toolchain.pandoc_handbook" "$tmpdir/$name-plan.txt"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select remark_markdown >"$tmpdir/$name-build-remark.txt"
+  grep -q "success transform.markdown_toolchain.remark_markdown" "$tmpdir/$name-build-remark.txt"
+  test -f "$project/target/artifacts/markdown/normalized/handbook.md"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select pandoc_handbook >"$tmpdir/$name-build-pandoc.txt"
+  grep -q "success transform.markdown_toolchain.pandoc_handbook" "$tmpdir/$name-build-pandoc.txt"
+  test -f "$project/target/artifacts/documents/handbook.pdf"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact show handbook_pdf --project-dir "$project" >"$tmpdir/$name-handbook.txt"
+  grep -q "type: fbt.artifact.pdf_document.v1" "$tmpdir/$name-handbook.txt"
+}
+
 check_daily_qa_ops
+check_markdown_toolchain
 check_example "examples/incident_response_runbook" "incident_response_runbook"
 check_example "examples/support_resolution_manual" "support_resolution_manual"
 

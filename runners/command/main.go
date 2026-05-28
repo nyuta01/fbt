@@ -45,7 +45,7 @@ func main() {
 				},
 				"capabilities": map[string]any{
 					"transform_types":   []string{"command"},
-					"artifact_types":    []string{"text", "markdown", "markdown_directory", "directory"},
+					"artifact_types":    []string{"text", "markdown", "markdown_directory", "directory", "pdf"},
 					"output_candidates": true,
 					"supports_cancel":   true,
 				},
@@ -78,6 +78,9 @@ func runCommand(req request) error {
 		return err
 	}
 	command := exec.Command(params.Transform.Command[0], params.Transform.Command[1:]...)
+	if dir := os.Getenv("FBT_COMMAND_WORKDIR"); dir != "" {
+		command.Dir = dir
+	}
 	command.Env = append(os.Environ(),
 		"FBT_WORK_ROOT="+params.Work.Root,
 		"FBT_WORK_TEMP="+params.Work.Temp,

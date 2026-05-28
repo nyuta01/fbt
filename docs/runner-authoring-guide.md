@@ -129,7 +129,42 @@ The external agent should not write directly to logical artifact paths,
 immutable artifact storage, `.fbt/state`, or source paths during the normal fbt
 build path.
 
-## 8. Conformance Check
+## 8. Existing CLI Tool Adapters
+
+For tools such as remark, Pandoc, converters, linters, and internal scripts,
+prefer a thin command runner over implementing document logic in fbt core.
+
+Project config points at the command runner:
+
+```yaml
+runners:
+  - name: local.command
+    type: command
+    protocol: stdio_jsonrpc
+    command: bin/fbt-command-runner
+```
+
+The transform declares the external argv:
+
+```yaml
+transforms:
+  - name: pandoc_handbook
+    type: command
+    runner: local.command
+    command: ["bin/run-pandoc-handbook"]
+```
+
+The command runner invokes that argv with `FBT_WORK_ROOT`, `FBT_WORK_TEMP`, and
+`FBT_WORK_OUTPUTS` set. Project-local wrappers can set `FBT_COMMAND_WORKDIR`
+when the runner process itself must start from another directory. The wrapper
+script calls the existing tool and writes declared output candidates under
+`FBT_WORK_OUTPUTS`; fbt records the artifact version, checks, and lineage after
+the runner returns.
+
+See `examples/markdown_toolchain` for remark-style Markdown normalization and a
+Pandoc-style document conversion wrapper.
+
+## 9. Conformance Check
 
 Run the default harness against the source fake runner:
 
@@ -157,7 +192,7 @@ The harness starts the runner, verifies `initialize`, sends a minimal
 `work.outputs`. `--strict` also requires at least one progress event and one
 `fbt/outputCandidate` notification.
 
-## 9. Discovery Packaging
+## 10. Discovery Packaging
 
 A runner can be referenced from project config, a plugin manifest, or a PATH
 command convention. Use `command`, optional ordered `args`, optional `cwd`, and

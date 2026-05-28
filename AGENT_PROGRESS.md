@@ -57,6 +57,11 @@ Repeated source growth uses stable source paths. External ingestion prepares
 new-items-only, cumulative, or partitioned windows; fbt fingerprints the
 resolved file set and content and rebuilds dependent artifacts when it changes.
 
+`examples/markdown_toolchain` demonstrates `type: command` transforms that
+wrap remark-style and Pandoc-style document tools through the external command
+runner. fbt records the resulting artifact versions and lineage; document
+processing remains outside core.
+
 The checked-in examples cover:
 
 - `examples/knowledge_ops`: offline support knowledge-loop fixture using demo
@@ -88,10 +93,9 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
-   Pandoc.
-2. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
+1. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
    source-of-truth specs.
+2. Run `FBT-UNIX-005` to add dbt and DataChain interoperability examples.
 3. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 4. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

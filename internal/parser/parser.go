@@ -488,6 +488,9 @@ func (r *Result) validateTransform(transform Transform, sourceIDs map[string]Sou
 	if _, ok := transformTypes[transform.Type]; !ok {
 		r.addError("TRANSFORM_TYPE_UNSUPPORTED", fmt.Sprintf("unsupported transform type %q", transform.Type), transform.File, transform.Name)
 	}
+	if transform.Type == "command" && len(transform.Command) == 0 {
+		r.addError("COMMAND_TRANSFORM_COMMAND_REQUIRED", fmt.Sprintf("command transform %q must declare command", transform.Name), transform.File, transform.Name)
+	}
 	if transform.Runner == "" {
 		r.addError("TRANSFORM_RUNNER_REQUIRED", fmt.Sprintf("transform %q must declare runner", transform.Name), transform.File, transform.Name)
 	} else if len(runners) > 0 {

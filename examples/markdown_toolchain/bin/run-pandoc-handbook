@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+set -eu
+
+src="target/artifacts/markdown/normalized/handbook.md"
+out="$FBT_WORK_OUTPUTS/handbook_pdf"
+
+test -f "$src"
+
+# Production replacement:
+#   pandoc "$src" -o "$out"
+{
+  printf '%%PDF-1.4\n'
+  printf '%% deterministic example output for %s\n' "$src"
+  printf '1 0 obj << /Type /Catalog >> endobj\n'
+  printf 'trailer << /Root 1 0 R >>\n'
+  printf '%%%%EOF\n'
+} >"$out"

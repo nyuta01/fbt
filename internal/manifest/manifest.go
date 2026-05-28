@@ -89,6 +89,7 @@ type TransformResource struct {
 	Name          string            `json:"name"`
 	TransformType string            `json:"transform_type"`
 	Runner        string            `json:"runner"`
+	Command       []string          `json:"command,omitempty"`
 	Inputs        []TransformInput  `json:"inputs"`
 	Outputs       []TransformOutput `json:"outputs"`
 	Assets        []string          `json:"assets,omitempty"`
@@ -457,6 +458,7 @@ func (b *manifestBuilder) addTransform(transform parser.Transform) {
 		Name:          transform.Name,
 		TransformType: transform.Type,
 		Runner:        runnerID,
+		Command:       append([]string(nil), transform.Command...),
 		Inputs:        inputs,
 		Outputs:       outputs,
 		Assets:        assets,

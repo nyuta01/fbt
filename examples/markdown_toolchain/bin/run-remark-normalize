@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+out="$FBT_WORK_OUTPUTS/normalized_markdown"
+mkdir -p "$out"
+
+# Production replacement:
+#   remark data/docs/raw --output "$out"
+{
+  printf '# Normalized Operations Handbook\n\n'
+  sed 's/[[:space:]]*$//' data/docs/raw/handbook.md
+  printf '\n<!-- normalized by remark-compatible wrapper -->\n'
+} >"$out/handbook.md"

@@ -1831,13 +1831,13 @@
       "id": "FBT-UNIX-004",
       "title": "Add existing-tool runner examples for remark and Pandoc",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-000",
         "FBT-RUNNER-005"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-004-plan.md",
       "paths": [
         "examples",
         "docs/runner-authoring-guide.md",
@@ -1849,7 +1849,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Show fbt composing with existing Unix-style document tools instead of reimplementing them: a remark example for Markdown lint/format/TOC and a Pandoc example for document conversion with fbt-owned artifact receipts and lineage."
+      "notes": "Adds command-transform argv support, a markdown_toolchain example wrapping remark-style and Pandoc-style scripts through the command runner, and practical smoke coverage. The example is deterministic offline while documenting where real remark and pandoc calls belong."
     },
     {
       "id": "FBT-UNIX-005",
