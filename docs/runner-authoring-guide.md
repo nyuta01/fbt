@@ -165,3 +165,6 @@ declared `env` names. Do not rely on fbt passing the full ambient environment.
 
 Provider SDKs, credentials, and heavyweight runtime dependencies belong in the
 runner package, not in fbt core.
+
+For recommended package names, plugin manifests, PATH conventions, and release
+metadata, see [Runner Adapter Packaging](runner-adapters.md).

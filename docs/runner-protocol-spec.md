@@ -689,7 +689,9 @@ core. Templates expose them as `demo.llm` and `demo.agent` through
 `bin/fbt-demo-*-runner` wrappers so they are visibly distinct from
 provider-backed runners. Real OpenAI, Anthropic, local-model, LangGraph, or
 other provider runners should be installed or invoked as separate external
-commands that satisfy the same protocol.
+commands that satisfy the same protocol. See
+[Runner Adapter Packaging](runner-adapters.md) for optional package and plugin
+manifest conventions.
 
 Use `make real-llm-smoke` with `FBT_REAL_LLM_RUNNER_COMMAND` to opt into a
 local smoke against one of those external commands. This target is intentionally

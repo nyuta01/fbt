@@ -14,6 +14,9 @@ MVP does not include an in-process plugin system or network package manager.
 Runners are ordinary executables discovered from project configuration, plugin
 manifests, or `PATH`.
 
+Optional provider and CLI-agent adapter package conventions are defined in
+[Runner Adapter Packaging](runner-adapters.md).
+
 ## 2. Runner Identity
 
 Transforms reference runners by logical name:
@@ -185,6 +188,10 @@ fbt runner list
 fbt runner doctor openai.responses
 fbt runner validate openai.responses
 ```
+
+Provider SDKs, CLI agent dependencies, and credential setup belong to those
+adapter packages, not to fbt core. Recommended package and manifest conventions
+are in [Runner Adapter Packaging](runner-adapters.md).
 
 ## 8. Diagnostics
 

@@ -120,6 +120,10 @@ selectors:
       value: support
 ```
 
+Provider and agent integrations are optional external runner packages, not fbt
+core dependencies. See [Runner Adapter Packaging](runner-adapters.md) for
+package naming, plugin manifests, credential handling, and conformance checks.
+
 Top-level fields:
 
 | Field | Required | Meaning |

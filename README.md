@@ -62,6 +62,7 @@ Specifications:
 | [State and Run Results Spec](docs/state-and-run-results-spec.md) | Local state, run results, artifact versions, approvals, eval and policy records |
 | [Runner Protocol Spec](docs/runner-protocol-spec.md) | JSON-RPC protocol between `fbt-core` and external runners |
 | [Runner Authoring Guide](docs/runner-authoring-guide.md) | Practical runner implementation checklist and protocol conformance harness |
+| [Runner Adapter Packaging](docs/runner-adapters.md) | Optional provider and CLI-agent adapter package conventions outside core |
 | [Schema and Versioning Spec](docs/schema-and-versioning-spec.md) | Config versioning, schema compatibility, artifact type registry, descriptor rules |
 | [Runner Discovery Spec](docs/runner-discovery-spec.md) | Runner resolution, plugin manifest shape, and diagnostics |
 | [Security and Conformance Spec](docs/security-and-conformance-spec.md) | Core security model and MVP conformance scenarios |

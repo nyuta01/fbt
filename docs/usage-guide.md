@@ -332,6 +332,10 @@ To switch to real execution:
    runner names.
 5. Run `fbt doctor`, then `fbt plan` before building.
 
+Adapter package conventions for OpenAI, Anthropic, Gemini, Codex CLI, Claude
+Code, and similar integrations are in
+[Runner Adapter Packaging](runner-adapters.md).
+
 ## 8. Parse
 
 ```sh

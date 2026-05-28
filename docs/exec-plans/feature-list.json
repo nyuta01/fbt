@@ -1324,21 +1324,25 @@
       "id": "FBT-RUNNER-007",
       "title": "Define optional provider adapter packaging outside core",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-005"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-007-plan.md",
       "paths": [
         "docs/runner-adapters.md",
         "docs/runner-discovery-spec.md",
-        "docs/project-config-spec.md"
+        "docs/project-config-spec.md",
+        "docs/runner-protocol-spec.md",
+        "docs/runner-authoring-guide.md",
+        "docs/usage-guide.md",
+        "README.md"
       ],
       "verification": {
-        "validate_docs": false
+        "validate_docs": true
       },
-      "notes": "Document package and plugin-manifest conventions for optional adapters such as `fbt-runner-openai`, `fbt-runner-anthropic`, `fbt-runner-gemini`, `fbt-runner-codex-cli`, and `fbt-runner-claude-code` without adding provider SDKs to fbt core."
+      "notes": "Documents optional provider and CLI-agent adapter package conventions, project config, plugin manifests, PATH behavior, credential boundaries, versioning, and conformance checks for `fbt-runner-openai`, `fbt-runner-anthropic`, `fbt-runner-gemini`, `fbt-runner-codex-cli`, and `fbt-runner-claude-code` without adding SDKs to fbt core."
     },
     {
       "id": "FBT-PDCA-001",

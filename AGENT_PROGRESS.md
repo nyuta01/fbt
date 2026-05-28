@@ -64,6 +64,11 @@ checked-in knowledge example now use `demo.llm`, `demo.agent`, and
 `bin/fbt-demo-*-runner`, CLI init prints a demo-runner replacement hint, and
 the docs describe the shortest path from demo wrappers to external runner
 commands.
+`FBT-RUNNER-007` is complete: optional provider and CLI-agent adapter package
+conventions are documented in `docs/runner-adapters.md`, including package
+names, project config, plugin manifests, PATH behavior, credential boundaries,
+versioning, and conformance checks while keeping SDKs and runtimes outside
+core.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -83,8 +88,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-The practical local MVP is complete. Remaining tracked work is release
-publication plus the newly captured external runner hardening backlog.
+The practical local MVP is complete. The external runner hardening backlog is
+complete. Remaining tracked work is maintainer-owned release publication.
 `FBT-REL-002` is blocked on maintainer release credentials and signing setup:
 no Git remote, signing config, or `v0.1.0` tag is present locally.
 `FBT-REL-003` is blocked until that signed release baseline exists.
@@ -116,8 +121,8 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Complete external runner hardening with `FBT-RUNNER-007` optional provider
-   adapter packaging.
+3. Complete maintainer-owned release tasks when credentials, signing setup, and
+   release baseline are available.
 4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
 5. Keep fbt-native state as the internal source of truth and delegate graph,
