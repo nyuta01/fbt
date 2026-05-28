@@ -141,6 +141,7 @@ Compare the current manifest with local state. A transform runs when sources,
 assets, policies, evals, runner identity, model parameters, upstream artifact
 versions, or declared outputs changed. A transform blocks when required upstream
 artifacts do not exist or do not meet configured confidence/eval requirements.
+Planning is read-only: it does not write fbt state or start runners.
 
 ### Build
 

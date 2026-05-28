@@ -160,7 +160,7 @@ func TestRunSelectNoMatchFails(t *testing.T) {
 	}
 }
 
-func TestRunPlanWritesManifest(t *testing.T) {
+func TestRunPlanIsReadOnly(t *testing.T) {
 	root := writeCLIProject(t)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -172,8 +172,8 @@ func TestRunPlanWritesManifest(t *testing.T) {
 	if !strings.Contains(stdout.String(), "Plan: 1 selected") {
 		t.Fatalf("expected plan output, got %q", stdout.String())
 	}
-	if _, err := os.Stat(filepath.Join(root, ".fbt", "state", "manifest.json")); err != nil {
-		t.Fatalf("manifest not written: %v", err)
+	if _, err := os.Stat(filepath.Join(root, ".fbt", "state", "manifest.json")); !os.IsNotExist(err) {
+		t.Fatalf("plan should not write manifest, stat err=%v", err)
 	}
 }
 

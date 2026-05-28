@@ -258,7 +258,7 @@
         "go_test": true,
         "cli_smoke": true
       },
-      "notes": "Turns planned plan/artifact commands into working inspection commands with human and JSON output, stable exit codes, manifest writes, and fixture-backed tests. Public parse/state commands were removed by FBT-UNIX-013."
+      "notes": "Turns planned plan/artifact commands into working inspection commands with human and JSON output, stable exit codes, and fixture-backed tests. Public parse/state commands were removed by FBT-UNIX-013, and plan was made read-only by FBT-UNIX-016."
     },
     {
       "id": "FBT-MVP-007",
@@ -2162,7 +2162,7 @@
         "cli_smoke": true,
         "make_verify": true
       },
-      "notes": "`fbt plan` currently writes the current manifest snapshot, which is useful but surprising for a command named plan. Decide whether to make plan read-only or document the manifest-write side effect explicitly, then align tests and smoke checks with the chosen behavior."
+      "notes": "Made `fbt plan` read-only by removing its manifest write. Manifest snapshots are written by `fbt build`; CLI tests, smoke checks, dist checks, and docs now assert or describe the read-only plan behavior."
     },
     {
       "id": "FBT-PDCA-001",

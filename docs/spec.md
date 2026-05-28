@@ -307,6 +307,9 @@ fbt export otel
 
 ## 15. Local State
 
+`fbt plan` is read-only. Local state files are written by `fbt build` and other
+explicit write operations.
+
 ```text
 .fbt/
   state/

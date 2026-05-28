@@ -106,7 +106,8 @@ for real provider-backed execution.
 
 ### 5.2 fbt plan
 
-Compare current manifest and state to show what will run.
+Compare current project definitions and state to show what will run. `plan` is
+read-only: it does not start runners, commit artifacts, or write fbt state.
 
 ```sh
 fbt plan [--select EXPR]

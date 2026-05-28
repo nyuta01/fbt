@@ -76,16 +76,14 @@ conformance, product conformance, and distribution smoke checks.
    source-of-truth specs.
 2. Run `FBT-UNIX-015` to converge README/docs/examples on the build-receipt
    value narrative.
-3. Run `FBT-UNIX-016` to decide whether `fbt plan` should be read-only or
-   explicitly documented as writing the manifest snapshot.
-4. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-5. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+3. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+4. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-6. Improve source-window ergonomics and artifact explanations without turning
+5. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-7. Keep graph, trace, and catalog visualization on standard-compatible exports
+6. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-8. Add CLI surface only when backed by a spec and verification.
+7. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

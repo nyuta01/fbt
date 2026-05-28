@@ -853,10 +853,6 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		return 2
 	}
 	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected})
-	if err := ctx.Store.WriteManifest(ctx.Manifest); err != nil {
-		printError("plan", err, stderr, opts.JSON)
-		return 5
-	}
 	if opts.JSON {
 		writeJSON(stdout, map[string]any{"command": "plan", "status": "success", "summary": plan.Summary, "nodes": plan.Nodes})
 		return 0

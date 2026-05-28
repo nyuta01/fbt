@@ -23,7 +23,7 @@ eval results, and policy decisions under `.fbt/state/`.
 
 | File | Meaning |
 |---|---|
-| `manifest.json` | Last parsed manifest snapshot |
+| `manifest.json` | Last manifest snapshot written by a build invocation |
 | `state.json` | Current artifact pointers and latest run pointers |
 | `run_results.jsonl` | Append-only invocation and transform run records |
 | `artifact_versions.json` | Immutable artifact version index |

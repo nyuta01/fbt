@@ -45,7 +45,7 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | Command | Purpose |
 |---|---|
 | `fbt doctor` | Check project config, local state, and runner readiness. |
-| `fbt plan` | Show run/skip/block decisions before a runner is called. |
+| `fbt plan` | Show run/skip/block decisions before a runner is called; does not write state. |
 | `fbt build` | Invoke external runners, run checks, commit artifacts, and write state. |
 | `fbt diff --against previous` | Compare generated versions. |
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |

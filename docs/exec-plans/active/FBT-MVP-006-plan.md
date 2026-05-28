@@ -2,7 +2,7 @@
 
 Superseded note: the public `fbt parse` and `fbt state` commands described
 here were removed by `FBT-UNIX-013`. Manifest writes now happen through
-`fbt plan`; state inspection happens through `fbt artifact`.
+`fbt build`; state inspection happens through `fbt artifact`.
 
 ## Observation
 
