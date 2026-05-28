@@ -233,10 +233,14 @@ does not build or host an interactive lineage graph UI.
 
 ## 9. Conformance Fixtures
 
-Later implementation tasks must add fixtures that assert:
+`tests/conformance/run.sh` includes generated fixtures that assert:
 
-- OpenLineage events validate against the selected schema version
+- OpenLineage events include the selected schema URL and required event keys
 - fbt custom facets use the `fbt_` prefix and immutable schema URLs
 - OTLP JSON payloads contain valid resource spans and required fbt attributes
 - redaction excludes raw content and secrets
 - outputs are deterministic for the same fbt state
+
+The default conformance gate checks the payload shape and redaction invariants
+without starting Marquez, an OTel collector, OpenMetadata, or any other
+backend service.

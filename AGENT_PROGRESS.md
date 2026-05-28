@@ -24,6 +24,8 @@ standard-compatible visualization, and `fbt export openlineage` now emits
 OpenLineage RunEvent NDJSON with fbt lineage facets for artifact versions.
 `fbt export otel` now emits local-first OTLP/JSON traces from run results,
 including invocation/transform spans, usage attributes, and safe runner events.
+The conformance suite now checks OpenLineage and OTel standard-export payload
+shape plus redaction of raw source content and marker secrets.
 `fbt doctor` now checks project readiness, state writability/lock acquisition,
 runner discovery, and runner protocol initialization. YAML authoring diagnostics
 now include line numbers where available and actionable hints for common parse
@@ -36,9 +38,9 @@ conformance scenarios.
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
 repository/release publication, opt-in real LLM smoke, command-surface cleanup,
-OpenMetadata evaluation, standard-export conformance fixtures,
-standard-compatible visualization recipes, expanded conformance, full
-policy-decision records, and semantic descriptors. `FBT-REL-002` is blocked on
+OpenMetadata evaluation, standard-compatible visualization recipes, expanded
+conformance, full policy-decision records, and semantic descriptors.
+`FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
 or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
 release baseline exists.
@@ -69,8 +71,7 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue with `FBT-STD-005` and `FBT-STD-006` if prioritizing standard
-   export conformance and visualization docs.
+3. Continue with `FBT-STD-006` if prioritizing standard visualization docs.
 4. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.

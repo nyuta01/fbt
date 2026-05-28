@@ -948,24 +948,25 @@
       "id": "FBT-STD-005",
       "title": "Add conformance fixtures for standard exports",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-002",
         "FBT-STD-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-005-plan.md",
       "paths": [
         "tests/conformance",
-        "scripts",
-        "docs/security-and-conformance-spec.md"
+        "tests/fixtures/standard-exports",
+        "docs/security-and-conformance-spec.md",
+        "docs/exec-plans/active/FBT-STD-005-plan.md"
       ],
       "verification": {
-        "conformance": false,
-        "go_test": false,
-        "validate_docs": false
+        "conformance": true,
+        "go_test": true,
+        "validate_docs": true
       },
-      "notes": "Add deterministic fixtures asserting exported OpenLineage/OTel-compatible records include expected lineage keys and exclude secrets, raw prompts, raw model responses, and undeclared file contents. Include lightweight schema/payload checks suitable for Marquez/OpenLineage and OTel-compatible consumers without starting heavyweight UI services in the default gate."
+      "notes": "Adds deterministic standard-export checks to `tests/conformance/run.sh`: generated OpenLineage and OTel payloads must contain expected standard keys, fbt facets/attributes, UUID-shaped OpenLineage run IDs, runner span events, and must exclude raw source content plus a redaction marker."
     },
     {
       "id": "FBT-STD-006",

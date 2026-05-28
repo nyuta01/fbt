@@ -133,6 +133,9 @@ scenario classes.
 | `CONF-REDACT-001` | redaction | runner reports env var names and values | values are not persisted |
 | `CONF-DIRTY-001` | planning | prompt, policy, or runner config changes | dependent transform is dirty |
 | `CONF-DOCS-001` | docs | docs are generated | lineage is shown; secret values are absent |
+| `CONF-STD-001` | standard export | OpenLineage export is generated from a reviewed support loop | events contain jobs, runs, datasets, fbt facets, schema URL, and UUID-shaped run IDs |
+| `CONF-STD-002` | standard export | OTel export is generated from run results | OTLP/JSON contains resource spans, invocation/transform spans, GenAI usage attributes, and runner span events |
+| `CONF-STD-003` | redaction | standard exports run on inputs/assets containing a marker secret | exported OpenLineage and OTel payloads do not contain raw source content or the marker secret |
 
 ## 9. Verification Target
 
@@ -147,6 +150,10 @@ Current executable coverage:
 - downstream build succeeds after approval
 - docs generation succeeds after the review/build loop
 - policy-denied output is not committed to the official artifact path
+- OpenLineage export contains standard event keys and fbt facets without raw
+  source content
+- OTel export contains OTLP/JSON resource spans, transform attributes, usage
+  attributes, and runner span events without raw source content
 
 LLM and agent scenarios should use fake runners for conformance. Real provider
 smoke tests belong behind explicit opt-in commands and must not be required for
