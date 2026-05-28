@@ -51,6 +51,8 @@ printf '\n- Do not export marker: %s\n' "$redaction_marker" >>"$happy/assets/sup
 printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redaction_marker" >>"$happy/data/support/tickets/2026-05-28.jsonl"
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case.txt"
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
+test -f "$happy/.fbt/state/policy_decisions.json"
+grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case-again.txt"
 grep -q "Build: 1 selected, 0 run, 1 skipped, 0 blocked" "$tmpdir/build-case-again.txt"
@@ -175,5 +177,7 @@ if [[ -e "$denied/target/artifacts/support/case_summaries/index.md" ]]; then
   echo "policy-denied output was committed" >&2
   exit 1
 fi
+test -f "$denied/.fbt/state/policy_decisions.json"
+grep -q '"status": "denied"' "$denied/.fbt/state/policy_decisions.json"
 
 echo "conformance: ok"

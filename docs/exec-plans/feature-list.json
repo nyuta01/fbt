@@ -1071,24 +1071,30 @@
       "id": "FBT-STATE-001",
       "title": "Emit full policy decision records during lifecycle",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-010",
         "FBT-MVP-011"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STATE-001-plan.md",
       "paths": [
         "internal/build",
+        "internal/docs",
         "internal/policy",
         "internal/state",
-        "docs/state-and-run-results-spec.md"
+        "internal/telemetry",
+        "tests/conformance",
+        "docs/state-and-run-results-spec.md",
+        "docs/usage-guide.md",
+        "docs/exec-plans/active/FBT-STATE-001-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Record policy_decisions consistently for allowed, denied, warning, and error outcomes so state, docs, and audit output match the state spec."
+      "notes": "Build now records policy decisions for allowed and denied commit checks, including check messages, candidate artifact version IDs, and decision timestamps. Generated docs include policy decisions, run results reference decision IDs, OTel export includes decision ID attributes, and conformance checks allowed/denied records."
     },
     {
       "id": "FBT-ARTIFACT-001",

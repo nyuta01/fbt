@@ -138,8 +138,9 @@ type PolicyDecision struct {
 }
 
 type PolicyCheck struct {
-	Name   string `json:"name"`
-	Status string `json:"status"`
+	Name    string `json:"name"`
+	Status  string `json:"status"`
+	Message string `json:"message,omitempty"`
 }
 
 type LockInfo struct {
@@ -321,6 +322,33 @@ func (s Store) WritePolicyDecisions(index PolicyDecisionsIndex) error {
 		index.PolicyDecisions = map[string]PolicyDecision{}
 	}
 	return s.atomicWriteJSON("policy_decisions.json", index)
+}
+
+func (s Store) ReadPolicyDecisions() (PolicyDecisionsIndex, error) {
+	var index PolicyDecisionsIndex
+	err := s.readJSON("policy_decisions.json", &index)
+	if errors.Is(err, os.ErrNotExist) {
+		return PolicyDecisionsIndex{
+			Metadata:        Metadata{FBTSchemaVersion: PolicyDecisionsSchemaVersion},
+			PolicyDecisions: map[string]PolicyDecision{},
+		}, nil
+	}
+	if err != nil {
+		return PolicyDecisionsIndex{}, err
+	}
+	if index.PolicyDecisions == nil {
+		index.PolicyDecisions = map[string]PolicyDecision{}
+	}
+	return index, nil
+}
+
+func (s Store) PutPolicyDecision(decision PolicyDecision) error {
+	index, err := s.ReadPolicyDecisions()
+	if err != nil {
+		return err
+	}
+	index.PolicyDecisions[decision.DecisionID] = decision
+	return s.WritePolicyDecisions(index)
 }
 
 func (s Store) AppendRunResult(record any) error {

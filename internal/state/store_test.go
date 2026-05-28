@@ -190,3 +190,30 @@ func TestPutApprovalAndEvaluationResult(t *testing.T) {
 		t.Fatalf("eval result not stored: %+v", results.EvaluationResults)
 	}
 }
+
+func TestPutPolicyDecision(t *testing.T) {
+	store := Open(filepath.Join(t.TempDir(), ".fbt", "state"))
+	decision := PolicyDecision{
+		DecisionID:        "policy_decision.knowledge_ops.report.1",
+		PolicyID:          "policy.knowledge_ops.scope",
+		TransformID:       "transform.knowledge_ops.report",
+		TransformRunID:    "transform_run.run_1",
+		ArtifactVersionID: "artifact_version.knowledge_ops.report.sha256_abc",
+		Status:            "denied",
+		Checks: []PolicyCheck{
+			{Name: "write_scope", Status: "fail", Message: "outside write scope"},
+		},
+		DecidedAt: "2026-05-28T00:00:00Z",
+	}
+	if err := store.PutPolicyDecision(decision); err != nil {
+		t.Fatalf("put policy decision: %v", err)
+	}
+	decisions, err := store.ReadPolicyDecisions()
+	if err != nil {
+		t.Fatalf("read policy decisions: %v", err)
+	}
+	got := decisions.PolicyDecisions[decision.DecisionID]
+	if got.Status != "denied" || len(got.Checks) != 1 || got.Checks[0].Message == "" {
+		t.Fatalf("policy decision not stored: %+v", decisions.PolicyDecisions)
+	}
+}

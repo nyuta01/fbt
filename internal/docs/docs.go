@@ -45,19 +45,23 @@ func Generate(projectDir string, m manifest.Manifest, store state.Store, options
 	if err != nil {
 		return Result{}, err
 	}
+	policies, err := store.ReadPolicyDecisions()
+	if err != nil {
+		return Result{}, err
+	}
 
 	if err := os.MkdirAll(outputDir, 0o755); err != nil {
 		return Result{}, err
 	}
 	indexPath := filepath.Join(outputDir, "index.md")
-	content := render(m, snapshot, versions, evals, approvals)
+	content := render(m, snapshot, versions, evals, approvals, policies)
 	if err := os.WriteFile(indexPath, []byte(content), 0o644); err != nil {
 		return Result{}, err
 	}
 	return Result{OutputDir: outputDir, IndexPath: indexPath}, nil
 }
 
-func render(m manifest.Manifest, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, evals state.EvaluationResultsIndex, approvals state.ApprovalIndex) string {
+func render(m manifest.Manifest, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, evals state.EvaluationResultsIndex, approvals state.ApprovalIndex, policies state.PolicyDecisionsIndex) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", m.Metadata.ProjectName)
 	fmt.Fprintf(&b, "- generated_manifest: `%s`\n", m.Metadata.GeneratedAt)
@@ -111,6 +115,18 @@ func render(m manifest.Manifest, snapshot state.Snapshot, versions state.Artifac
 			fmt.Fprintf(&b, " by `%s`", approval.ReviewGroup)
 		}
 		b.WriteString("\n")
+	}
+	b.WriteString("\n## Policy Decisions\n\n")
+	for _, id := range sortedPolicyDecisionIDs(policies.PolicyDecisions) {
+		decision := policies.PolicyDecisions[id]
+		fmt.Fprintf(&b, "- `%s`: `%s` for `%s`\n", id, decision.Status, decision.ArtifactVersionID)
+		for _, check := range decision.Checks {
+			fmt.Fprintf(&b, "  - `%s`: `%s`", check.Name, check.Status)
+			if check.Message != "" {
+				fmt.Fprintf(&b, " - %s", check.Message)
+			}
+			b.WriteString("\n")
+		}
 	}
 	return b.String()
 }
@@ -169,6 +185,15 @@ func sortedEvalResultIDs(values map[string]state.EvaluationResult) []string {
 }
 
 func sortedApprovalIDs(values map[string]state.Approval) []string {
+	ids := make([]string, 0, len(values))
+	for id := range values {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	return ids
+}
+
+func sortedPolicyDecisionIDs(values map[string]state.PolicyDecision) []string {
 	ids := make([]string, 0, len(values))
 	for id := range values {
 		ids = append(ids, id)

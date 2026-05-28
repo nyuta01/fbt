@@ -209,6 +209,7 @@ func transformSpans(input OTLPInput, invocation *invocationGroup) []Span {
 			"fbt.artifact.version_ids":  committedVersions,
 			"fbt.artifact.ids":          artifactIDs,
 			"fbt.evaluation.result_ids": stringSlice(record["evaluation_results"]),
+			"fbt.policy.decision_ids":   stringSlice(record["policy_decisions"]),
 			"fbt.policy.id":             transform.Policy,
 			"fbt.duration_ms":           record["duration_ms"],
 		}

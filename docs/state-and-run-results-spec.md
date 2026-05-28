@@ -322,6 +322,11 @@ Eval status values:
         {
           "name": "write_scope",
           "status": "pass"
+        },
+        {
+          "name": "max_output_bytes",
+          "status": "fail",
+          "message": "output size exceeds limit"
         }
       ],
       "decided_at": "2026-05-28T10:08:12Z"
@@ -336,6 +341,10 @@ Policy status values:
 - `denied`
 - `warn`
 - `error`
+
+The build lifecycle records policy decisions for allowed and denied commit
+checks. Denied decisions are persisted before the build returns an error so the
+audit trail explains why no official artifact pointer was updated.
 
 ## 9. Approvals
 

@@ -458,6 +458,7 @@ Docs show:
 - Artifact versions
 - Eval results
 - Review approvals
+- Policy decisions
 
 Export artifact lineage when you want to inspect it in OpenLineage-compatible
 tools:

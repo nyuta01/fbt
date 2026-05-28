@@ -56,6 +56,19 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+	if err := store.PutPolicyDecision(state.PolicyDecision{
+		DecisionID:        "policy_decision.knowledge_ops.report.1",
+		PolicyID:          "policy.knowledge_ops.scope",
+		TransformID:       "transform.knowledge_ops.report",
+		TransformRunID:    version.GeneratedBy,
+		ArtifactVersionID: version.VersionID,
+		Status:            "allowed",
+		Checks: []state.PolicyCheck{
+			{Name: "write_scope", Status: "pass"},
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
 	m := manifest.Manifest{
 		Metadata: manifest.Metadata{ProjectName: "knowledge_ops"},
 		Transforms: map[string]manifest.TransformResource{
@@ -83,7 +96,7 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 		t.Fatal(err)
 	}
 	content := string(data)
-	for _, want := range []string{"# knowledge_ops", "approval_status", "eval.knowledge_ops.required", "approved"} {
+	for _, want := range []string{"# knowledge_ops", "approval_status", "eval.knowledge_ops.required", "approved", "Policy Decisions", "write_scope"} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("expected %q in docs:\n%s", want, content)
 		}

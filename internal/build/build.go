@@ -45,6 +45,7 @@ type Run struct {
 	CompletedAt       string
 	CommittedVersions []string
 	EvaluationResults []string
+	PolicyDecisions   []string
 	Usage             map[string]any
 	Provenance        map[string]any
 	Events            []protocol.Event
@@ -244,13 +245,18 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		if err != nil {
 			return Run{}, err
 		}
-		decision := policy.EvaluateCommit(parseResult.ProjectDir, parseResult.Config.ArtifactPath, policyResource, output, descriptor)
-		if decision.Status != "allowed" {
-			return Run{}, fmt.Errorf("policy denied output %s: %s", output.Name, firstFailedCheck(decision))
-		}
 		versionID, err := artifact.VersionID(parseResult.Config.Name, output.Name, descriptor.Digest)
 		if err != nil {
 			return Run{}, err
+		}
+		decision := policy.EvaluateCommit(parseResult.ProjectDir, parseResult.Config.ArtifactPath, policyResource, output, descriptor)
+		policyDecision := buildPolicyDecision(parseResult.Config.Name, transformID, transformRunID, versionID, output.Name, policyResource, decision)
+		if err := store.PutPolicyDecision(policyDecision); err != nil {
+			return Run{}, err
+		}
+		run.PolicyDecisions = append(run.PolicyDecisions, policyDecision.DecisionID)
+		if decision.Status != "allowed" {
+			return Run{}, fmt.Errorf("policy denied output %s: %s", output.Name, firstFailedCheck(decision))
 		}
 		evalOutcome, evalErr := evalmgr.RunForCandidate(parseResult.ProjectDir, transform, m.Evals, versionID, transformRunID, candidate.Path)
 		for _, result := range evalOutcome.Results {
@@ -334,6 +340,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		"duration_ms":        completedAt.Sub(startedAt).Milliseconds(),
 		"committed_versions": run.CommittedVersions,
 		"evaluation_results": run.EvaluationResults,
+		"policy_decisions":   run.PolicyDecisions,
 		"usage":              run.Usage,
 		"provenance":         run.Provenance,
 		"events":             run.Events,
@@ -350,6 +357,31 @@ func redactedProtocolEvents(events []protocol.Event) []protocol.Event {
 		redacted = append(redacted, event)
 	}
 	return redacted
+}
+
+func buildPolicyDecision(projectName, transformID, transformRunID, artifactVersionID, outputName string, policyResource *manifest.PolicyResource, decision policy.Decision) state.PolicyDecision {
+	policyID := ""
+	if policyResource != nil {
+		policyID = policyResource.UniqueID
+	}
+	checks := make([]state.PolicyCheck, 0, len(decision.Checks))
+	for _, check := range decision.Checks {
+		checks = append(checks, state.PolicyCheck{
+			Name:    check.Name,
+			Status:  check.Status,
+			Message: check.Message,
+		})
+	}
+	return state.PolicyDecision{
+		DecisionID:        newID("policy_decision." + projectName + "." + outputName),
+		PolicyID:          policyID,
+		TransformID:       transformID,
+		TransformRunID:    transformRunID,
+		ArtifactVersionID: artifactVersionID,
+		Status:            decision.Status,
+		Checks:            checks,
+		DecidedAt:         time.Now().UTC().Format(time.RFC3339),
+	}
 }
 
 func policyForTransform(m manifest.Manifest, transform manifest.TransformResource) *manifest.PolicyResource {

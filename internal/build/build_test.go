@@ -26,6 +26,19 @@ func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); err != nil {
 		t.Fatalf("expected committed output: %v", err)
 	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	decisions, err := store.ReadPolicyDecisions()
+	if err != nil {
+		t.Fatalf("read policy decisions: %v", err)
+	}
+	if len(decisions.PolicyDecisions) != 1 {
+		t.Fatalf("expected one policy decision, got %+v", decisions.PolicyDecisions)
+	}
+	for _, decision := range decisions.PolicyDecisions {
+		if decision.Status != "allowed" || decision.ArtifactVersionID == "" || len(decision.Checks) == 0 {
+			t.Fatalf("unexpected policy decision: %+v", decision)
+		}
+	}
 
 	second, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
 	if err != nil {
@@ -50,6 +63,19 @@ func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 	}
 	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
 		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	decisions, readErr := store.ReadPolicyDecisions()
+	if readErr != nil {
+		t.Fatalf("read policy decisions: %v", readErr)
+	}
+	if len(decisions.PolicyDecisions) != 1 {
+		t.Fatalf("expected denied policy decision, got %+v", decisions.PolicyDecisions)
+	}
+	for _, decision := range decisions.PolicyDecisions {
+		if decision.Status != "denied" || len(decision.Checks) == 0 {
+			t.Fatalf("unexpected denied policy decision: %+v", decision)
+		}
 	}
 }
 
