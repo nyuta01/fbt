@@ -108,6 +108,6 @@ grep -q "committed:" "$tmpdir/build.txt"
 test -d "$project/target/artifacts/result"
 
 "$FBT_BIN" artifact show result --project-dir "$project" >"$tmpdir/artifact-show.txt"
-grep -q "artifact.real_llm_smoke.result" "$tmpdir/artifact-show.txt"
+grep -q "Artifact ID: artifact.real_llm_smoke.result" "$tmpdir/artifact-show.txt"
 
 echo "real-llm-smoke: ok"

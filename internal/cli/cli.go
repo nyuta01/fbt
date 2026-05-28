@@ -27,22 +27,8 @@ import (
 	"github.com/nyuta01/fbt/internal/telemetry"
 	"github.com/nyuta01/fbt/internal/templates"
 	versioninfo "github.com/nyuta01/fbt/internal/version"
+	"github.com/spf13/cobra"
 )
-
-type commandHelp struct {
-	Name        string
-	Description string
-}
-
-var primaryCommands = []commandHelp{
-	{"init", "Create a project"},
-	{"doctor", "Check project and runner readiness"},
-	{"plan", "Preview run, skip, and blocked transforms"},
-	{"build", "Build selected artifacts and write receipts"},
-	{"artifact", "Inspect artifact paths, versions, and lineage"},
-	{"diff", "Compare artifact versions"},
-	{"export", "Write standard lineage or trace records"},
-}
 
 type options struct {
 	ProjectDir string
@@ -52,63 +38,253 @@ type options struct {
 }
 
 func Run(args []string, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "help" || args[0] == "--help" || args[0] == "-h" {
-		printHelp(stdout)
-		return 0
-	}
-
-	opts, commandArgs, err := parseOptions(args)
-	if err != nil {
+	root := newRootCommand(stdout, stderr)
+	root.SetArgs(args)
+	if err := root.Execute(); err != nil {
+		var exitErr exitCodeError
+		if errors.As(err, &exitErr) {
+			return exitErr.code
+		}
 		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
-	if len(commandArgs) == 0 {
-		printHelp(stdout)
-		return 0
-	}
+	return 0
+}
 
-	switch commandArgs[0] {
-	case "version", "--version", "-v":
-		if err := rejectSelect("version", opts); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		if err := expectNoArgs("version", commandArgs[1:]); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		info := versioninfo.Current()
-		if opts.JSON {
-			writeJSON(stdout, map[string]any{
-				"command":    "version",
-				"status":     "success",
-				"version":    info.Version,
-				"commit":     info.Commit,
-				"build_date": info.BuildDate,
-			})
-			return 0
-		}
-		fmt.Fprintf(stdout, "fbt %s\n", info.Version)
-		return 0
-	case "init":
-		return runInit(opts, commandArgs[1:], stdout, stderr)
-	case "plan":
-		return runPlan(opts, commandArgs[1:], stdout, stderr)
-	case "build":
-		return runBuild(opts, commandArgs[1:], stdout, stderr)
-	case "diff":
-		return runDiff(opts, commandArgs[1:], stdout, stderr)
-	case "artifact":
-		return runArtifact(opts, commandArgs[1:], stdout, stderr)
-	case "doctor":
-		return runDoctor(opts, commandArgs[1:], stdout, stderr)
-	case "export":
-		return runExport(opts, commandArgs[1:], stdout, stderr)
-	default:
-		fmt.Fprintf(stderr, "unknown command: %s\n\n", commandArgs[0])
-		printHelp(stderr)
+type exitCodeError struct {
+	code int
+}
+
+func (e exitCodeError) Error() string {
+	return fmt.Sprintf("exit code %d", e.code)
+}
+
+func exitCode(code int) error {
+	if code == 0 {
+		return nil
+	}
+	return exitCodeError{code: code}
+}
+
+func newRootCommand(stdout io.Writer, stderr io.Writer) *cobra.Command {
+	opts := options{}
+	versionFlag := false
+	root := &cobra.Command{
+		Use:           "fbt",
+		Short:         "fbt - file build tool",
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) > 0 {
+				return fmt.Errorf("unknown command: %s", args[0])
+			}
+			if versionFlag {
+				return exitCode(runVersion(opts, stdout, stderr))
+			}
+			return cmd.Help()
+		},
+	}
+	root.SetOut(stdout)
+	root.SetErr(stderr)
+	root.CompletionOptions.DisableDefaultCmd = true
+	root.Flags().BoolVarP(&versionFlag, "version", "v", false, "Print version")
+	root.PersistentFlags().StringVar(&opts.ProjectDir, "project-dir", "", "Directory containing fs_project.yml")
+	root.PersistentFlags().StringVar(&opts.StateDir, "state-dir", "", "Local state directory")
+	root.PersistentFlags().StringVar(&opts.Select, "select", "", "Select transforms for plan and build")
+	root.PersistentFlags().BoolVar(&opts.JSON, "json", false, "Print machine-readable JSON")
+
+	root.AddCommand(newVersionCommand(&opts, stdout, stderr))
+	root.AddCommand(newInitCommand(&opts, stdout, stderr))
+	root.AddCommand(newDoctorCommand(&opts, stdout, stderr))
+	root.AddCommand(newPlanCommand(&opts, stdout, stderr))
+	root.AddCommand(newBuildCommand(&opts, stdout, stderr))
+	root.AddCommand(newDiffCommand(&opts, stdout, stderr))
+	root.AddCommand(newArtifactCommand(&opts, stdout, stderr))
+	root.AddCommand(newExportCommand(&opts, stdout, stderr))
+	return root
+}
+
+func newVersionCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print version",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return exitCode(runVersion(*opts, stdout, stderr))
+		},
+	}
+}
+
+func runVersion(opts options, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("version", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
+	info := versioninfo.Current()
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{
+			"command":    "version",
+			"status":     "success",
+			"version":    info.Version,
+			"commit":     info.Commit,
+			"build_date": info.BuildDate,
+		})
+		return 0
+	}
+	fmt.Fprintf(stdout, "fbt %s\n", info.Version)
+	return 0
+}
+
+func newInitCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	var template string
+	var force bool
+	cmd := &cobra.Command{
+		Use:   "init [PROJECT_NAME]",
+		Short: "Create a project",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			callArgs := append([]string{}, args...)
+			if template != "" {
+				callArgs = append(callArgs, "--template", template)
+			}
+			if force {
+				callArgs = append(callArgs, "--force")
+			}
+			return exitCode(runInit(*opts, callArgs, stdout, stderr))
+		},
+	}
+	cmd.Flags().StringVar(&template, "template", "blank", "Project template")
+	cmd.Flags().BoolVar(&force, "force", false, "Allow overwriting existing files")
+	return cmd
+}
+
+func newDoctorCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	return &cobra.Command{
+		Use:   "doctor",
+		Short: "Check project and runner readiness",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return exitCode(runDoctor(*opts, args, stdout, stderr))
+		},
+	}
+}
+
+func newPlanCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	var force bool
+	cmd := &cobra.Command{
+		Use:   "plan",
+		Short: "Preview run, skip, and blocked transforms",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return exitCode(runPlan(*opts, boolFlagArgs("force", force), stdout, stderr))
+		},
+	}
+	cmd.Flags().BoolVar(&force, "force", false, "Preview a deliberate rebuild")
+	return cmd
+}
+
+func newBuildCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	var force bool
+	cmd := &cobra.Command{
+		Use:   "build",
+		Short: "Build selected artifacts and write receipts",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return exitCode(runBuild(*opts, boolFlagArgs("force", force), stdout, stderr))
+		},
+	}
+	cmd.Flags().BoolVar(&force, "force", false, "Run selected clean transforms too")
+	return cmd
+}
+
+func newDiffCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	var against string
+	cmd := &cobra.Command{
+		Use:   "diff TARGET",
+		Short: "Compare artifact versions",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			callArgs := append([]string{}, args...)
+			if against != "" {
+				callArgs = append(callArgs, "--against", against)
+			}
+			return exitCode(runDiff(*opts, callArgs, stdout, stderr))
+		},
+	}
+	cmd.Flags().StringVar(&against, "against", "", "Version to compare against")
+	return cmd
+}
+
+func newArtifactCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "artifact",
+		Short: "Inspect artifact paths, versions, and lineage",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return exitCode(runArtifact(*opts, []string{"ls"}, stdout, stderr))
+		},
+	}
+	cmd.AddCommand(newArtifactSubcommand("ls", "", cobra.NoArgs, opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("path", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("show", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("explain", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("history", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
+	return cmd
+}
+
+func newArtifactSubcommand(name, useArgs string, args cobra.PositionalArgs, opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	use := name
+	if useArgs != "" {
+		use += " " + useArgs
+	}
+	return &cobra.Command{
+		Use:   use,
+		Short: "Inspect artifacts",
+		Args:  args,
+		RunE: func(cmd *cobra.Command, cmdArgs []string) error {
+			callArgs := append([]string{name}, cmdArgs...)
+			return exitCode(runArtifact(*opts, callArgs, stdout, stderr))
+		},
+	}
+}
+
+func newExportCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "export",
+		Short: "Write standard lineage or trace records",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
+		},
+	}
+	cmd.AddCommand(newExportFormatCommand("openlineage", opts, stdout, stderr))
+	cmd.AddCommand(newExportFormatCommand("otel", opts, stdout, stderr))
+	return cmd
+}
+
+func newExportFormatCommand(format string, opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+	var output string
+	cmd := &cobra.Command{
+		Use:   format,
+		Short: "Export " + format,
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			callArgs := []string{format}
+			if output != "" {
+				callArgs = append(callArgs, "--output", output)
+			}
+			return exitCode(runExport(*opts, callArgs, stdout, stderr))
+		},
+	}
+	cmd.Flags().StringVar(&output, "output", "", "Output file path")
+	return cmd
+}
+
+func boolFlagArgs(name string, value bool) []string {
+	if !value {
+		return nil
+	}
+	return []string{"--" + name}
 }
 
 func expectNoArgs(command string, args []string) error {
@@ -549,12 +725,17 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		}
 		return 0
 	}
-	fmt.Fprintf(stdout, "Build: %d selected, %d run, %d skipped, %d blocked\n", result.Plan.Summary.Selected, result.Plan.Summary.Run, result.Plan.Summary.Skipped, result.Plan.Summary.Blocked)
+	printSummary(stdout, "Build", result.Plan.Summary)
+	runNames := planNodeNames(result.Plan.Nodes)
 	for _, run := range result.Runs {
-		fmt.Fprintf(stdout, "%s %s\n", run.Status, run.TransformID)
-		for _, version := range run.CommittedVersions {
-			fmt.Fprintf(stdout, "  committed: %s\n", version)
+		fmt.Fprintf(stdout, "%-7s %s\n", strings.ToUpper(run.Status), displayTransformName(run.TransformID, runNames))
+		if run.TransformRunID != "" {
+			fmt.Fprintf(stdout, "        run: %s\n", shortenResourceID(run.TransformRunID))
 		}
+		for _, version := range run.CommittedVersions {
+			fmt.Fprintf(stdout, "        committed: %s\n", shortVersionID(version))
+		}
+		fmt.Fprintln(stdout)
 	}
 	for _, node := range result.Plan.Nodes {
 		if node.Action == planner.ActionRun {
@@ -772,59 +953,6 @@ func doctorHasErrors(checks []doctorCheck) bool {
 	return false
 }
 
-func printHelp(w io.Writer) {
-	fmt.Fprintln(w, "fbt - file build tool")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  fbt <command> [flags]")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Primary commands:")
-	for _, command := range primaryCommands {
-		fmt.Fprintf(w, "  %-10s %s\n", command.Name, command.Description)
-	}
-	fmt.Fprintln(w, "  version    Print version")
-	fmt.Fprintln(w, "  help       Show this help")
-}
-
-func parseOptions(args []string) (options, []string, error) {
-	var opts options
-	var commandArgs []string
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		switch {
-		case arg == "--json":
-			opts.JSON = true
-		case arg == "--project-dir":
-			i++
-			if i >= len(args) {
-				return opts, nil, fmt.Errorf("--project-dir requires a value")
-			}
-			opts.ProjectDir = args[i]
-		case strings.HasPrefix(arg, "--project-dir="):
-			opts.ProjectDir = strings.TrimPrefix(arg, "--project-dir=")
-		case arg == "--state-dir":
-			i++
-			if i >= len(args) {
-				return opts, nil, fmt.Errorf("--state-dir requires a value")
-			}
-			opts.StateDir = args[i]
-		case strings.HasPrefix(arg, "--state-dir="):
-			opts.StateDir = strings.TrimPrefix(arg, "--state-dir=")
-		case arg == "--select":
-			i++
-			if i >= len(args) {
-				return opts, nil, fmt.Errorf("--select requires a value")
-			}
-			opts.Select = args[i]
-		case strings.HasPrefix(arg, "--select="):
-			opts.Select = strings.TrimPrefix(arg, "--select=")
-		default:
-			commandArgs = append(commandArgs, arg)
-		}
-	}
-	return opts, commandArgs, nil
-}
-
 type projectContext struct {
 	ParseResult parser.Result
 	Manifest    manifest.Manifest
@@ -880,7 +1008,7 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		writeJSON(stdout, map[string]any{"command": "plan", "status": "success", "summary": plan.Summary, "nodes": plan.Nodes})
 		return 0
 	}
-	fmt.Fprintf(stdout, "Plan: %d selected, %d run, %d skipped, %d blocked\n", plan.Summary.Selected, plan.Summary.Run, plan.Summary.Skipped, plan.Summary.Blocked)
+	printSummary(stdout, "Plan", plan.Summary)
 	for _, node := range plan.Nodes {
 		printPlanNode(stdout, node)
 	}
@@ -908,15 +1036,132 @@ func parsePlanArgs(args []string) (planOptions, error) {
 }
 
 func printPlanNode(stdout io.Writer, node planner.Node) {
-	fmt.Fprintf(stdout, "%s %s\n", node.Action, node.TransformID)
+	fmt.Fprintf(stdout, "%-7s %s\n", actionLabel(node.Action), node.Name)
 	for _, reason := range node.DirtyReasons {
-		fmt.Fprintf(stdout, "  reason: %s\n", reason)
+		fmt.Fprintf(stdout, "        because: %s\n", humanizeResourceIDs(reason))
 	}
 	for _, reason := range node.BlockedReasons {
-		fmt.Fprintf(stdout, "  blocked: %s\n", reason)
+		fmt.Fprintf(stdout, "        blocked: %s\n", humanizeResourceIDs(reason))
+	}
+	if len(node.Outputs) > 0 {
+		fmt.Fprintf(stdout, "        output: %s\n", strings.Join(shortResourceIDs(node.Outputs), ", "))
 	}
 	for _, step := range node.NextSteps {
-		fmt.Fprintf(stdout, "  next: %s\n", step)
+		fmt.Fprintf(stdout, "        next: %s\n", step)
+	}
+	fmt.Fprintln(stdout)
+}
+
+func printSummary(stdout io.Writer, title string, summary planner.Summary) {
+	fmt.Fprintf(stdout, "%s\n", title)
+	fmt.Fprintf(stdout, "  selected: %d  run: %d  skipped: %d  blocked: %d\n\n", summary.Selected, summary.Run, summary.Skipped, summary.Blocked)
+}
+
+func actionLabel(action planner.Action) string {
+	switch action {
+	case planner.ActionRun:
+		return "RUN"
+	case planner.ActionSkip:
+		return "SKIP"
+	case planner.ActionBlocked:
+		return "BLOCK"
+	default:
+		return strings.ToUpper(string(action))
+	}
+}
+
+func planNodeNames(nodes []planner.Node) map[string]string {
+	names := make(map[string]string, len(nodes))
+	for _, node := range nodes {
+		names[node.TransformID] = node.Name
+	}
+	return names
+}
+
+func displayTransformName(transformID string, names map[string]string) string {
+	if name := names[transformID]; name != "" {
+		return name
+	}
+	return shortenResourceID(transformID)
+}
+
+func shortResourceIDs(ids []string) []string {
+	shortened := make([]string, 0, len(ids))
+	for _, id := range ids {
+		shortened = append(shortened, shortenResourceID(id))
+	}
+	return shortened
+}
+
+func humanizeResourceIDs(text string) string {
+	parts := strings.Fields(text)
+	for i, part := range parts {
+		core := strings.TrimRight(part, ".,;:")
+		suffix := strings.TrimPrefix(part, core)
+		parts[i] = shortenResourceID(core) + suffix
+	}
+	return strings.Join(parts, " ")
+}
+
+func shortenResourceID(id string) string {
+	if strings.HasPrefix(id, "artifact_version.") {
+		return shortVersionID(id)
+	}
+	parts := strings.Split(id, ".")
+	if len(parts) >= 3 {
+		switch parts[0] {
+		case "source", "runner":
+			return strings.Join(parts[2:], ".")
+		case "artifact", "transform", "policy", "eval", "transform_asset":
+			return parts[len(parts)-1]
+		case "transform_run":
+			return parts[len(parts)-1]
+		}
+	}
+	return id
+}
+
+func shortVersionID(versionID string) string {
+	parts := strings.Split(versionID, ".")
+	if len(parts) >= 4 && parts[0] == "artifact_version" {
+		hash := parts[len(parts)-1]
+		artifactName := parts[len(parts)-2]
+		if strings.HasPrefix(hash, "sha256_") {
+			hash = "sha256:" + strings.TrimPrefix(hash, "sha256_")
+		}
+		return artifactName + "@" + shortDigest(hash)
+	}
+	return shortenLongToken(versionID)
+}
+
+func shortDigest(digest string) string {
+	switch {
+	case strings.HasPrefix(digest, "sha256:"):
+		return "sha256:" + shortenLongToken(strings.TrimPrefix(digest, "sha256:"))
+	case strings.HasPrefix(digest, "sha256_"):
+		return "sha256:" + shortenLongToken(strings.TrimPrefix(digest, "sha256_"))
+	default:
+		return shortenLongToken(digest)
+	}
+}
+
+func shortenLongToken(value string) string {
+	if len(value) <= 12 {
+		return value
+	}
+	return value[:12]
+}
+
+func formatModel(model map[string]any) string {
+	provider, _ := model["provider"].(string)
+	name, _ := model["name"].(string)
+	switch {
+	case provider != "" && name != "":
+		return provider + "/" + name
+	case name != "":
+		return name
+	default:
+		return compactJSON(model)
 	}
 }
 
@@ -950,8 +1195,13 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			writeJSON(stdout, map[string]any{"command": "artifact ls", "status": "success", "artifacts": ids})
 			return 0
 		}
+		fmt.Fprintln(stdout, "Artifacts")
+		if len(ids) == 0 {
+			fmt.Fprintln(stdout, "  none")
+			return 0
+		}
 		for _, id := range ids {
-			fmt.Fprintln(stdout, id)
+			fmt.Fprintf(stdout, "  %s\n", shortenResourceID(id))
 		}
 		return 0
 	case "show":
@@ -1424,67 +1674,79 @@ func absoluteProjectPath(root, path string) string {
 }
 
 func printArtifactPath(stdout io.Writer, record artifactRecord) {
-	fmt.Fprintf(stdout, "logical_path: %s\n", record.LogicalPath)
+	fmt.Fprintf(stdout, "Artifact path: %s\n", shortenResourceID(record.ArtifactID))
+	fmt.Fprintf(stdout, "  Logical path: %s\n", record.LogicalPath)
 	if record.StoragePath != "" {
-		fmt.Fprintf(stdout, "storage_path: %s\n", record.StoragePath)
+		fmt.Fprintf(stdout, "  Immutable path: %s\n", record.StoragePath)
 	}
 	if record.VersionID != "" {
-		fmt.Fprintf(stdout, "version: %s\n", record.VersionID)
+		fmt.Fprintf(stdout, "  Version: %s\n", shortVersionID(record.VersionID))
 	} else {
-		fmt.Fprintln(stdout, "version: none")
+		fmt.Fprintln(stdout, "  Version: none")
 	}
 }
 
 func printArtifactRecord(stdout io.Writer, record artifactRecord) {
-	if record.VersionID != "" {
-		fmt.Fprintf(stdout, "%s\n", record.VersionID)
-	} else {
-		fmt.Fprintf(stdout, "%s\n", record.ArtifactID)
-	}
-	fmt.Fprintf(stdout, "  artifact: %s\n", record.ArtifactID)
+	fmt.Fprintf(stdout, "Artifact: %s\n", shortenResourceID(record.ArtifactID))
 	if record.Current {
-		fmt.Fprintln(stdout, "  current: true")
-	}
-	if record.Digest != "" {
-		fmt.Fprintf(stdout, "  digest: %s\n", record.Digest)
-	}
-	if record.ArtifactType != "" {
-		fmt.Fprintf(stdout, "  type: %s\n", record.ArtifactType)
+		fmt.Fprintln(stdout, "  Status: current")
+	} else if record.VersionID != "" {
+		fmt.Fprintln(stdout, "  Status: historical")
 	}
 	if record.LogicalPath != "" {
-		fmt.Fprintf(stdout, "  logical_path: %s\n", record.LogicalPath)
+		fmt.Fprintf(stdout, "  Path: %s\n", record.LogicalPath)
 	}
-	if record.StoragePath != "" {
-		fmt.Fprintf(stdout, "  storage_path: %s\n", record.StoragePath)
-	}
-	if record.Runner != "" {
-		fmt.Fprintf(stdout, "  runner: %s\n", record.Runner)
-	}
-	if len(record.Model) > 0 {
-		fmt.Fprintf(stdout, "  model: %s\n", compactJSON(record.Model))
-	}
-	if record.GeneratedBy != "" {
-		fmt.Fprintf(stdout, "  generated_by: %s\n", record.GeneratedBy)
-	}
-	if len(record.SemanticDescriptor) > 0 {
-		fmt.Fprintf(stdout, "  semantic_descriptor: %s\n", compactJSON(record.SemanticDescriptor))
+	if record.VersionID != "" {
+		fmt.Fprintf(stdout, "  Version: %s\n", shortVersionID(record.VersionID))
 	}
 	if record.Confidence != "" {
-		fmt.Fprintf(stdout, "  confidence: %s\n", record.Confidence)
+		fmt.Fprintf(stdout, "  Confidence: %s\n", record.Confidence)
+	}
+
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Build")
+	if record.Runner != "" {
+		fmt.Fprintf(stdout, "  Runner: %s\n", shortenResourceID(record.Runner))
+	}
+	if len(record.Model) > 0 {
+		fmt.Fprintf(stdout, "  Model: %s\n", formatModel(record.Model))
+	}
+	if record.GeneratedBy != "" {
+		fmt.Fprintf(stdout, "  Run: %s\n", shortenResourceID(record.GeneratedBy))
 	}
 	if record.CommittedAt != "" {
-		fmt.Fprintf(stdout, "  committed_at: %s\n", record.CommittedAt)
+		fmt.Fprintf(stdout, "  Committed: %s\n", record.CommittedAt)
+	}
+
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Details")
+	fmt.Fprintf(stdout, "  Artifact ID: %s\n", record.ArtifactID)
+	if record.VersionID != "" {
+		fmt.Fprintf(stdout, "  Version ID: %s\n", record.VersionID)
+	}
+	if record.Digest != "" {
+		fmt.Fprintf(stdout, "  Digest: %s\n", record.Digest)
+	}
+	if record.ArtifactType != "" {
+		fmt.Fprintf(stdout, "  Type: %s\n", record.ArtifactType)
+	}
+	if record.StoragePath != "" {
+		fmt.Fprintf(stdout, "  Immutable path: %s\n", record.StoragePath)
+	}
+	if len(record.SemanticDescriptor) > 0 {
+		fmt.Fprintf(stdout, "  Semantic descriptor: %s\n", compactJSON(record.SemanticDescriptor))
 	}
 	for _, material := range record.Materials {
-		fmt.Fprintf(stdout, "  material: %s", material.ResourceID)
+		fmt.Fprintf(stdout, "  Material: %s", humanizeResourceIDs(material.ResourceID))
 		if material.ArtifactVersion != "" {
-			fmt.Fprintf(stdout, " %s", material.ArtifactVersion)
+			fmt.Fprintf(stdout, " %s", shortVersionID(material.ArtifactVersion))
 		}
 		if material.Digest != "" {
 			fmt.Fprintf(stdout, " %s", material.Digest)
 		}
 		fmt.Fprintln(stdout)
 	}
+	fmt.Fprintln(stdout)
 }
 
 func compactJSON(value any) string {
@@ -1496,71 +1758,104 @@ func compactJSON(value any) string {
 }
 
 func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation) {
-	fmt.Fprintf(stdout, "%s\n", explanation.ArtifactID)
-	fmt.Fprintf(stdout, "  transform: %s\n", explanation.TransformID)
-	fmt.Fprintf(stdout, "  action: %s\n", explanation.Action)
+	fmt.Fprintf(stdout, "Artifact: %s\n", shortenResourceID(explanation.ArtifactID))
+	fmt.Fprintf(stdout, "Decision: %s\n", actionLabel(explanation.Action))
 	if explanation.Decision != "" {
-		fmt.Fprintf(stdout, "  decision: %s\n", explanation.Decision)
+		fmt.Fprintf(stdout, "  Reason: %s\n", humanizeResourceIDs(shortDecisionReason(explanation.Decision)))
 	}
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Producer")
+	fmt.Fprintf(stdout, "  Transform: %s\n", explanation.TransformName)
 	if explanation.Current != nil {
-		fmt.Fprintf(stdout, "  current_version: %s\n", explanation.Current.CurrentVersionID)
-		fmt.Fprintf(stdout, "  confidence: %s\n", explanation.Current.Confidence)
+		fmt.Fprintf(stdout, "  Current version: %s\n", shortVersionID(explanation.Current.CurrentVersionID))
+		fmt.Fprintf(stdout, "  Confidence: %s\n", explanation.Current.Confidence)
 	} else {
-		fmt.Fprintln(stdout, "  current_version: none")
+		fmt.Fprintln(stdout, "  Current version: none")
 	}
 	if explanation.PreviousRun != nil {
-		fmt.Fprintf(stdout, "  previous_run: %s %s\n", explanation.PreviousRun.LatestRunID, explanation.PreviousRun.LatestStatus)
+		fmt.Fprintf(stdout, "  Previous run: %s %s\n", shortenResourceID(explanation.PreviousRun.LatestRunID), explanation.PreviousRun.LatestStatus)
 	} else {
-		fmt.Fprintln(stdout, "  previous_run: none")
+		fmt.Fprintln(stdout, "  Previous run: none")
 	}
-	for _, dep := range explanation.Dependencies {
-		printExplanationDependency(stdout, dep)
+	if len(explanation.Dependencies) > 0 {
+		fmt.Fprintln(stdout)
+		fmt.Fprintln(stdout, "Inputs")
+		for _, dep := range explanation.Dependencies {
+			printExplanationDependency(stdout, dep)
+		}
 	}
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Outputs")
 	for _, output := range explanation.Outputs {
-		fmt.Fprintf(stdout, "  output: %s", output.UniqueID)
+		fmt.Fprintf(stdout, "  %s", shortenResourceID(output.UniqueID))
 		if output.DeclaredPath != "" {
-			fmt.Fprintf(stdout, " path=%s", output.DeclaredPath)
+			fmt.Fprintf(stdout, " -> %s", output.DeclaredPath)
 		}
 		fmt.Fprintln(stdout)
 	}
+	if len(explanation.DirtyReasons) > 0 || len(explanation.BlockedReasons) > 0 {
+		fmt.Fprintln(stdout)
+		fmt.Fprintln(stdout, "Reasons")
+	}
 	for _, reason := range explanation.DirtyReasons {
-		fmt.Fprintf(stdout, "  reason: %s\n", reason)
+		fmt.Fprintf(stdout, "  %s\n", humanizeResourceIDs(reason))
 	}
 	for _, reason := range explanation.BlockedReasons {
-		fmt.Fprintf(stdout, "  blocked: %s\n", reason)
+		fmt.Fprintf(stdout, "  %s\n", humanizeResourceIDs(reason))
+	}
+	if len(explanation.NextSteps) > 0 {
+		fmt.Fprintln(stdout)
+		fmt.Fprintln(stdout, "Next")
 	}
 	for _, step := range explanation.NextSteps {
-		fmt.Fprintf(stdout, "  next: %s\n", step)
+		fmt.Fprintf(stdout, "  %s\n", step)
 	}
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "Details")
+	fmt.Fprintf(stdout, "  Artifact ID: %s\n", explanation.ArtifactID)
+	fmt.Fprintf(stdout, "  Transform ID: %s\n", explanation.TransformID)
 }
 
 func printExplanationDependency(stdout io.Writer, dep explanationDependency) {
-	fmt.Fprintf(stdout, "  %s: %s", dep.Role, dep.ResourceID)
-	if dep.Name != "" {
-		fmt.Fprintf(stdout, " name=%s", dep.Name)
+	status := "ok"
+	if dep.Changed != nil && *dep.Changed {
+		status = "changed"
+	}
+	if dep.Role == "input" && strings.HasPrefix(dep.ResourceID, "artifact.") && dep.CurrentVersionID == "" {
+		status = "missing"
+	}
+	fmt.Fprintf(stdout, "  %-7s %s %s", status, dep.Role, shortenResourceID(dep.ResourceID))
+	if dep.Name != "" && dep.Name != shortenResourceID(dep.ResourceID) {
+		fmt.Fprintf(stdout, " (%s)", dep.Name)
 	}
 	if dep.Path != "" {
 		fmt.Fprintf(stdout, " path=%s", dep.Path)
 	}
-	if dep.Fingerprint != "" {
-		fmt.Fprintf(stdout, " fingerprint=%s", dep.Fingerprint)
-	}
-	if dep.PreviousFingerprint != "" {
-		fmt.Fprintf(stdout, " previous_fingerprint=%s", dep.PreviousFingerprint)
-	}
-	if dep.Changed != nil {
-		fmt.Fprintf(stdout, " changed=%t", *dep.Changed)
-	}
 	if dep.CurrentVersionID != "" {
-		fmt.Fprintf(stdout, " current_version=%s", dep.CurrentVersionID)
+		fmt.Fprintf(stdout, " version=%s", shortVersionID(dep.CurrentVersionID))
 	}
 	if dep.Confidence != "" {
 		fmt.Fprintf(stdout, " confidence=%s", dep.Confidence)
 	}
 	if dep.RequiredConfidence != "" {
-		fmt.Fprintf(stdout, " required_confidence=%s", dep.RequiredConfidence)
+		fmt.Fprintf(stdout, " requires=%s", dep.RequiredConfidence)
+	}
+	if dep.Fingerprint != "" {
+		fmt.Fprintf(stdout, " fingerprint=%s", shortDigest(dep.Fingerprint))
 	}
 	fmt.Fprintln(stdout)
+}
+
+func shortDecisionReason(decision string) string {
+	for _, prefix := range []string{
+		"will build because ",
+		"blocked because ",
+	} {
+		if strings.HasPrefix(decision, prefix) {
+			return strings.TrimPrefix(decision, prefix)
+		}
+	}
+	return decision
 }
 
 func resolveArtifactID(m manifest.Manifest, target string) (string, bool) {

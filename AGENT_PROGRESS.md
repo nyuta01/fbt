@@ -27,6 +27,12 @@ The primary command surface is now centered on:
 - `fbt export openlineage`
 - `fbt export otel`
 
+The CLI command tree and flag handling are implemented with Cobra. Default
+human output is intentionally not the JSON/state shape: `plan`, `build`, and
+`artifact` lead with short names, aligned status labels, summary counts, paths,
+confidence, and next commands. Full resource IDs remain available in `Details`
+sections and in `--json` output for automation.
+
 The public CLI no longer exposes `parse`, `eval`, `docs`, `state`, or `runner`
 subcommands. `doctor` handles readiness diagnostics, `plan` previews without
 writes, and `build` handles runner execution, evals, state writes, and artifact

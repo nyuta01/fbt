@@ -31,11 +31,19 @@ fbt plan --select tag:support
 Expected shape:
 
 ```text
-Plan: 2 selected, 1 run, 0 skipped, 1 blocked
-run transform.knowledge_ops.case_summaries
-blocked transform.knowledge_ops.weekly_support_insights
-  blocked: requires artifact.knowledge_ops.case_summaries current artifact
-  next: fbt build --select case_summaries
+Plan
+  selected: 2  run: 1  skipped: 0  blocked: 1
+
+RUN     case_summaries
+        because: no previous successful run
+        because: output missing
+        output: case_summaries
+        next: fbt build --select case_summaries
+
+BLOCK   weekly_support_insights
+        blocked: requires case_summaries current artifact
+        output: weekly_support_insights
+        next: fbt build --select case_summaries
 ```
 
 Build and inspect the first artifact:

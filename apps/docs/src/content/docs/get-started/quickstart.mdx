@@ -50,13 +50,19 @@ ok STATE_LOCK_OK: state lock can be acquired and released
 ok RUNNER_PROTOCOL_OK: runner protocol initialize succeeded
 ok RUNNER_CAPABILITIES_OK: runner capabilities satisfy configured transforms
 
-Plan: 2 selected, 1 run, 0 skipped, 1 blocked
-run transform.knowledge_ops.case_summaries
-  reason: no previous successful run
-  reason: output missing
-blocked transform.knowledge_ops.weekly_support_insights
-  blocked: requires artifact.knowledge_ops.case_summaries current artifact
-  next: fbt build --select case_summaries
+Plan
+  selected: 2  run: 1  skipped: 0  blocked: 1
+
+RUN     case_summaries
+        because: no previous successful run
+        because: output missing
+        output: case_summaries
+        next: fbt build --select case_summaries
+
+BLOCK   weekly_support_insights
+        blocked: requires case_summaries current artifact
+        output: weekly_support_insights
+        next: fbt build --select case_summaries
 ```
 
 The plan is telling you that the first transform can run immediately, but the
@@ -74,9 +80,12 @@ fbt build --project-dir knowledge_ops --select case_summaries
 Expected output:
 
 ```text
-Build: 1 selected, 1 run, 0 skipped, 0 blocked
-success transform.knowledge_ops.case_summaries
-  committed: artifact_version.knowledge_ops.case_summaries.sha256_a5b4...
+Build
+  selected: 1  run: 1  skipped: 0  blocked: 0
+
+SUCCESS case_summaries
+        run: transform_run.run_...
+        committed: case_summaries@sha256:a5b4dfd91df7
 ```
 
 The current artifact is written to:
@@ -115,9 +124,12 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 Expected output:
 
 ```text
-Build: 1 selected, 1 run, 0 skipped, 0 blocked
-success transform.knowledge_ops.weekly_support_insights
-  committed: artifact_version.knowledge_ops.weekly_support_insights.sha256_49f...
+Build
+  selected: 1  run: 1  skipped: 0  blocked: 0
+
+SUCCESS weekly_support_insights
+        run: transform_run.run_...
+        committed: weekly_support_insights@sha256:49fdb22a332c
 ```
 
 The second output is:
@@ -153,18 +165,25 @@ fbt artifact explain weekly_support_insights --project-dir knowledge_ops
 Expected output:
 
 ```text
-logical_path: target/artifacts/support/case_summaries
-storage_path: .fbt/artifacts/artifact_version.knowledge_ops.case_summaries.sha256_a5b4.../content
-version: artifact_version.knowledge_ops.case_summaries.sha256_a5b4...
+Artifact path: case_summaries
+  Logical path: target/artifacts/support/case_summaries
+  Immutable path: .fbt/artifacts/artifact_version.knowledge_ops.case_summaries.sha256_a5b4.../content
+  Version: case_summaries@sha256:a5b4dfd91df7
 
-artifact.knowledge_ops.weekly_support_insights
-  transform: transform.knowledge_ops.weekly_support_insights
-  action: skip
-  input: ref artifact.knowledge_ops.case_summaries
-  current_version: artifact_version.knowledge_ops.weekly_support_insights.sha256_49f...
-  confidence: structural
-  previous_run: transform_run.run_... success
-  next: fbt artifact show weekly_support_insights
+Artifact: weekly_support_insights
+Decision: SKIP
+  Reason: up to date; inspect the current artifact version
+
+Producer
+  Transform: weekly_support_insights
+  Current version: weekly_support_insights@sha256:49fdb22a332c
+  Confidence: structural
+
+Inputs
+  ok      input case_summaries version=case_summaries@sha256:a5b4dfd91df7 confidence=structural requires=structural
+
+Next
+  fbt artifact show weekly_support_insights
 ```
 
 ## 5. Export Standard Records

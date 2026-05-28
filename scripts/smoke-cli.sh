@@ -95,8 +95,8 @@ grep -q "Doctor: ok" "$tmpdir/doctor.txt"
 grep -q "RUNNER_PROTOCOL_OK" "$tmpdir/doctor.txt"
 
 go run ./cmd/fbt plan --project-dir "$project" --select tag:support >"$tmpdir/plan.txt"
-grep -q "Plan: 1 selected" "$tmpdir/plan.txt"
-grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan.txt"
+grep -q "selected: 1" "$tmpdir/plan.txt"
+grep -q "RUN     case_summaries" "$tmpdir/plan.txt"
 test ! -f "$project/.fbt/state/manifest.json"
 
 go run ./cmd/fbt artifact ls --project-dir "$project" >"$tmpdir/artifact-ls.txt"
@@ -106,7 +106,7 @@ grep -q "committed:" "$tmpdir/build.txt"
 test -f "$project/.fbt/state/manifest.json"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
 go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
-grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
+grep -q "Semantic descriptor:" "$tmpdir/artifact-show.txt"
 
 go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
@@ -124,13 +124,13 @@ for command in parse eval docs state runner review; do
     echo "$command should not be part of the fbt command surface" >&2
     exit 1
   fi
-  grep -q "unknown command: $command" "$tmpdir/$command.err"
+  grep -q "unknown command \"$command\"" "$tmpdir/$command.err"
 done
 
 if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
   echo "expected fbt run to be outside the MVP command surface" >&2
   exit 1
 fi
-grep -q "unknown command: run" "$tmpdir/run.err"
+grep -q "unknown command \"run\"" "$tmpdir/run.err"
 
 echo "cli-smoke: ok"

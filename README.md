@@ -113,10 +113,14 @@ The commands are checkpoints, not a script to memorize:
    Actual output from this repository:
 
    ```text
-   Plan: 1 selected, 1 run, 0 skipped, 0 blocked
-   run transform.incident_response_runbook.incident_response_runbook
-     reason: no previous successful run
-     reason: output missing
+   Plan
+     selected: 1  run: 1  skipped: 0  blocked: 0
+
+   RUN     incident_response_runbook
+           because: no previous successful run
+           because: output missing
+           output: incident_response_runbook
+           next: fbt build --select incident_response_runbook
    ```
 
 2. Generate the runbook.
@@ -138,15 +142,7 @@ The commands are checkpoints, not a script to memorize:
    You get the exact artifact version, digest, path, runner, model metadata,
    semantic descriptor, and generating run.
 
-4. Compare with the previous generated version when one exists.
-
-   ```bash
-   fbt diff incident_response_runbook \
-     --project-dir examples/incident_response_runbook \
-     --against previous
-   ```
-
-5. Explain where the current runbook came from.
+4. Explain where the current runbook came from.
 
    ```bash
    fbt artifact history incident_response_runbook --project-dir examples/incident_response_runbook
@@ -162,14 +158,8 @@ credentials. The quickstart below uses demo runners and works offline.
 
 ## Other Fit Cases
 
-The same shape applies to:
-
-| Source files | Artifact |
-|---|---|
-| incident logs plus response notes | incident response runbook |
-| investigation notes | standard operating procedure |
-| raw case records | summaries and weekly insights |
-| daily user questions and answers | FAQ candidates and manual update |
+The same shape applies to investigation notes into procedures, raw case records
+into summaries, and daily questions and answers into FAQ or manual updates.
 
 ## Try It Locally
 
@@ -187,17 +177,24 @@ fbt artifact history case_summaries --project-dir knowledge_ops
 The output includes the same lifecycle signals, shortened here:
 
 ```text
-Plan: 2 selected, 1 run, 0 skipped, 1 blocked
-Build: 1 selected, 1 run, 0 skipped, 0 blocked
-success transform.knowledge_ops.case_summaries
-  committed: artifact_version...sha256_a5b4...
+Plan
+  selected: 2  run: 1  skipped: 0  blocked: 1
 
-artifact_version...sha256_a5b4...
-  artifact: artifact.knowledge_ops.case_summaries
-  current: true
-  runner: runner.knowledge_ops.demo.llm
-  generated_by: transform_run.run_...
-  confidence: structural
+RUN     case_summaries
+        because: no previous successful run
+        because: output missing
+
+Build
+  selected: 1  run: 1  skipped: 0  blocked: 0
+
+SUCCESS case_summaries
+        committed: case_summaries@sha256:a5b4dfd91df7
+
+Artifact: case_summaries
+  Status: current
+  Path: target/artifacts/support/case_summaries
+  Version: case_summaries@sha256:a5b4dfd91df7
+  Confidence: structural
 ```
 
 The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx); standard backend recipes are in [examples/standard_visualization](examples/standard_visualization/).

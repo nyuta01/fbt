@@ -71,7 +71,7 @@ func TestRunFormerPlaceholderCommandIsUnknown(t *testing.T) {
 	if code != 2 {
 		t.Fatalf("expected exit code 2, got %d", code)
 	}
-	if !strings.Contains(stderr.String(), "unknown command: run") {
+	if !strings.Contains(stderr.String(), `unknown command "run"`) {
 		t.Fatalf("expected unknown command message, got %q", stderr.String())
 	}
 }
@@ -84,7 +84,7 @@ func TestRunUnknownCommand(t *testing.T) {
 	if code != 2 {
 		t.Fatalf("expected exit code 2, got %d", code)
 	}
-	if !strings.Contains(stderr.String(), "unknown command: wat") {
+	if !strings.Contains(stderr.String(), `unknown command "wat"`) {
 		t.Fatalf("expected unknown command message, got %q", stderr.String())
 	}
 }
@@ -100,27 +100,27 @@ func TestRunRejectsUnknownAndExtraArguments(t *testing.T) {
 		{
 			name:     "plan unknown flag",
 			args:     []string{"plan", "--bogus", "--project-dir", root},
-			expected: "unknown plan flag: --bogus",
+			expected: "unknown flag: --bogus",
 		},
 		{
 			name:     "build extra arg",
 			args:     []string{"build", "case_summaries", "--project-dir", root},
-			expected: "build accepts no arguments",
+			expected: `unknown command "case_summaries"`,
 		},
 		{
 			name:     "artifact extra flag",
 			args:     []string{"artifact", "show", "case_summaries", "--bogus", "--project-dir", root},
-			expected: "unknown artifact show flag: --bogus",
+			expected: "unknown flag: --bogus",
 		},
 		{
 			name:     "artifact history extra arg",
 			args:     []string{"artifact", "history", "case_summaries", "extra", "--project-dir", root},
-			expected: "artifact history accepts 2 argument(s)",
+			expected: "accepts 1 arg(s), received 2",
 		},
 		{
 			name:     "export extra arg",
 			args:     []string{"export", "openlineage", "extra", "--project-dir", root},
-			expected: "export accepts one format",
+			expected: `unknown command "extra"`,
 		},
 	}
 
@@ -169,7 +169,7 @@ func TestRunPlanIsReadOnly(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "Plan: 1 selected") {
+	if !strings.Contains(stdout.String(), "Plan\n") || !strings.Contains(stdout.String(), "selected: 1") {
 		t.Fatalf("expected plan output, got %q", stdout.String())
 	}
 	if _, err := os.Stat(filepath.Join(root, ".fbt", "state", "manifest.json")); !os.IsNotExist(err) {
@@ -210,16 +210,16 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if code := Run([]string{"artifact", "explain", "weekly_support_insights", "--project-dir", root}, &explainOut, &explainErr); code != 0 {
 		t.Fatalf("generated project should explain artifact: code=%d stderr=%q", code, explainErr.String())
 	}
-	if !strings.Contains(explainOut.String(), "action: blocked") {
+	if !strings.Contains(explainOut.String(), "Decision: BLOCK") {
 		t.Fatalf("expected blocked explanation, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "decision: blocked because") {
+	if !strings.Contains(explainOut.String(), "Reason: requires case_summaries current artifact") {
 		t.Fatalf("expected decision explanation, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "input: artifact.knowledge_ops.case_summaries") {
+	if !strings.Contains(explainOut.String(), "missing input case_summaries") {
 		t.Fatalf("expected upstream artifact input detail, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "next: fbt build --select case_summaries") {
+	if !strings.Contains(explainOut.String(), "fbt build --select case_summaries") {
 		t.Fatalf("expected explanation next step, got %q", explainOut.String())
 	}
 
@@ -259,7 +259,7 @@ func TestRunPlanForceShowsForcedRebuild(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "reason: forced rebuild") {
+	if !strings.Contains(stdout.String(), "because: forced rebuild") {
 		t.Fatalf("expected forced rebuild reason, got %q", stdout.String())
 	}
 }
@@ -310,7 +310,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "path", "case_summaries", "--project-dir", root}, &pathOut, &pathErr); code != 0 {
 		t.Fatalf("artifact path failed: code=%d stderr=%q", code, pathErr.String())
 	}
-	if !strings.Contains(pathOut.String(), "logical_path: target/artifacts/support/case_summaries/") || !strings.Contains(pathOut.String(), "storage_path: target/artifacts/support/case_summaries/") {
+	if !strings.Contains(pathOut.String(), "Logical path: target/artifacts/support/case_summaries/") || !strings.Contains(pathOut.String(), "Immutable path: target/artifacts/support/case_summaries/") {
 		t.Fatalf("unexpected artifact path output: %q", pathOut.String())
 	}
 
@@ -319,7 +319,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
 		t.Fatalf("artifact show failed: code=%d stderr=%q", code, showErr.String())
 	}
-	if !strings.Contains(showOut.String(), "generated_by: transform_run.run_1") || !strings.Contains(showOut.String(), "runner: runner.knowledge_ops.openai.responses") {
+	if !strings.Contains(showOut.String(), "Run: transform_run.run_1") || !strings.Contains(showOut.String(), "Runner: openai.responses") {
 		t.Fatalf("unexpected artifact show output: %q", showOut.String())
 	}
 
@@ -328,7 +328,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "history", "case_summaries", "--project-dir", root}, &historyOut, &historyErr); code != 0 {
 		t.Fatalf("artifact history failed: code=%d stderr=%q", code, historyErr.String())
 	}
-	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "committed_at: 2026-05-28T00:00:00Z") {
+	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "Committed: 2026-05-28T00:00:00Z") {
 		t.Fatalf("unexpected artifact history output: %q", historyOut.String())
 	}
 
@@ -337,7 +337,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "versions", "case_summaries", "--project-dir", root}, &versionsOut, &versionsErr); code != 2 {
 		t.Fatalf("artifact versions should be pruned: code=%d stdout=%q stderr=%q", code, versionsOut.String(), versionsErr.String())
 	}
-	if !strings.Contains(versionsErr.String(), "unknown artifact command: versions") {
+	if !strings.Contains(versionsErr.String(), `unknown command "versions"`) {
 		t.Fatalf("expected unknown artifact command, got %q", versionsErr.String())
 	}
 }
@@ -467,7 +467,7 @@ func TestRunPrunedCommandsAreUnknown(t *testing.T) {
 			if code := Run([]string{command, "--project-dir", root}, &stdout, &stderr); code != 2 {
 				t.Fatalf("%s should be unknown: code=%d stdout=%q stderr=%q", command, code, stdout.String(), stderr.String())
 			}
-			if !strings.Contains(stderr.String(), "unknown command: "+command) {
+			if !strings.Contains(stderr.String(), `unknown command "`+command+`"`) {
 				t.Fatalf("expected unknown command message, got %q", stderr.String())
 			}
 		})

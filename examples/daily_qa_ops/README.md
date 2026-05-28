@@ -59,10 +59,17 @@ fbt plan --project-dir examples/daily_qa_ops --select tag:daily_qa
 Expected first-run shape:
 
 ```text
-Plan: 2 selected, 1 run, 0 skipped, 1 blocked
-run transform.daily_qa_ops.daily_qa_candidates
-blocked transform.daily_qa_ops.promote_manual_update
-  blocked: requires artifact.daily_qa_ops.manual_patch_candidates current artifact
+Plan
+  selected: 2  run: 1  skipped: 0  blocked: 1
+
+RUN     daily_qa_candidates
+        because: no previous successful run
+        because: output missing
+        output: faq_candidates, manual_patch_candidates, unresolved_questions
+
+BLOCK   promote_manual_update
+        blocked: requires manual_patch_candidates current artifact
+        output: manual_update
 ```
 
 Build the daily candidates:

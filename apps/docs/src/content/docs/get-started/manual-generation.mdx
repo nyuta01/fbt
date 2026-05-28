@@ -62,10 +62,14 @@ fbt plan --project-dir examples/support_resolution_manual --select support_resol
 Plan output before the first build:
 
 ```text
-Plan: 1 selected, 1 run, 0 skipped, 0 blocked
-run transform.support_resolution_manual.support_resolution_manual
-  reason: no previous successful run
-  reason: output missing
+Plan
+  selected: 1  run: 1  skipped: 0  blocked: 0
+
+RUN     support_resolution_manual
+        because: no previous successful run
+        because: output missing
+        output: support_resolution_manual
+        next: fbt build --select support_resolution_manual
 ```
 
 Build and inspect:

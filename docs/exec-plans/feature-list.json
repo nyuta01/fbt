@@ -806,6 +806,41 @@
       "notes": "Strengthen project validation output with line-oriented, actionable YAML diagnostics in `fbt doctor`, `fbt plan`, and `fbt build`; consider narrow scaffolding for new transforms. User research analogs: Terraform validate, kubectl explain, and dbt parse/debug reduce config-authoring ambiguity before execution."
     },
     {
+      "id": "FBT-UX-007",
+      "title": "Improve CLI command framework and human output",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-001",
+        "FBT-UX-002",
+        "FBT-UX-003",
+        "FBT-UNIX-015"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UX-007-plan.md",
+      "paths": [
+        "go.mod",
+        "go.sum",
+        "internal/cli",
+        "scripts",
+        "tests/conformance",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "README.md",
+        "apps/docs/src/content/docs/get-started/quickstart.mdx",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "knowledge_loop_smoke": true,
+        "product_conformance": true,
+        "make_verify": true
+      },
+      "notes": "Migrates command/flag/help handling to Cobra while preserving fbt's strict command surface. Human output for plan/build/artifact now uses concise status labels, aligned summaries, short resource names, and explicit Details sections instead of leading with full internal IDs."
+    },
+    {
       "id": "FBT-STD-000",
       "title": "Capture lineage standard export backlog",
       "priority": "P0",

@@ -52,12 +52,12 @@ printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redac
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case.txt"
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
 "$FBT_BIN" artifact show case_summaries --project-dir "$happy" >"$tmpdir/artifact-show.txt"
-grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
+grep -q "Semantic descriptor:" "$tmpdir/artifact-show.txt"
 test -f "$happy/.fbt/state/policy_decisions.json"
 grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case-again.txt"
-grep -q "Build: 1 selected, 0 run, 1 skipped, 0 blocked" "$tmpdir/build-case-again.txt"
+grep -q "selected: 1  run: 0  skipped: 1  blocked: 0" "$tmpdir/build-case-again.txt"
 
 "$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
 test -f "$happy/target/artifacts/support/weekly_insights.md"
@@ -174,7 +174,7 @@ PY
 
 printf '\n- Dirty propagation fixture\n' >>"$happy/assets/support_style_guide.md"
 "$FBT_BIN" plan --project-dir "$happy" --select case_summaries >"$tmpdir/plan-dirty.txt"
-grep -Eq "run transform\\..*\\.case_summaries" "$tmpdir/plan-dirty.txt"
+grep -q "RUN     case_summaries" "$tmpdir/plan-dirty.txt"
 
 denied="$tmpdir/denied"
 "$FBT_BIN" init "$denied" --template support >"$tmpdir/init-denied.txt"

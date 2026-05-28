@@ -28,7 +28,7 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 "$binary" init "$tmpdir/blank" --template blank >"$tmpdir/init.txt"
 "$binary" plan --project-dir "$tmpdir/blank" >"$tmpdir/plan.txt"
-grep -q "Plan:" "$tmpdir/plan.txt"
+grep -q "^Plan$" "$tmpdir/plan.txt"
 test ! -f "$tmpdir/blank/.fbt/state/manifest.json"
 
 echo "dist-check: ok"
