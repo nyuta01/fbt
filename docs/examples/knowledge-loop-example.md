@@ -154,6 +154,26 @@ selectors:
       value: support
 ```
 
+For local MVP development without provider accounts, those runner commands can
+be replaced by the bundled protocol examples:
+
+```yaml
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: go run ../../runners/llm
+
+  - name: langgraph.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: go run ../../runners/agent
+```
+
+The bundled examples are deterministic external processes. They emit usage,
+cost, provenance, and agent tool-call events for testing the control-plane flow,
+but they do not call real model providers.
+
 ## 5. Sources
 
 `sources/support.yml`:

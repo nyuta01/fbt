@@ -1,0 +1,289 @@
+package main
+
+import (
+	"bufio"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+type request struct {
+	JSONRPC string          `json:"jsonrpc"`
+	ID      string          `json:"id"`
+	Method  string          `json:"method"`
+	Params  json.RawMessage `json:"params"`
+}
+
+type runParams struct {
+	Mode           string         `json:"mode"`
+	TransformRunID string         `json:"transform_run_id"`
+	Transform      transformInfo  `json:"transform"`
+	Model          map[string]any `json:"model"`
+	Outputs        []declaredOut  `json:"outputs"`
+	Work           workInfo       `json:"work"`
+}
+
+type transformInfo struct {
+	UniqueID string `json:"unique_id"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+}
+
+type declaredOut struct {
+	Name         string `json:"name"`
+	ArtifactType string `json:"artifact_type"`
+	DeclaredPath string `json:"declared_path"`
+}
+
+type workInfo struct {
+	Outputs string `json:"outputs"`
+}
+
+func main() {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		var req request
+		if err := json.Unmarshal(scanner.Bytes(), &req); err != nil {
+			writeError("", -32700, err.Error())
+			continue
+		}
+		switch req.Method {
+		case "initialize":
+			writeResponse(req.ID, initializeResult())
+		case "initialized":
+		case "fbt/runTransform":
+			if err := runLLM(req); err != nil {
+				writeError(req.ID, -32099, err.Error())
+			}
+		case "$/cancelRequest":
+			os.Exit(0)
+		default:
+			writeError(req.ID, -32601, "method not found")
+		}
+	}
+}
+
+func initializeResult() map[string]any {
+	return map[string]any{
+		"runner": map[string]any{
+			"name":     "fbt-local-llm-runner",
+			"version":  "0.1.0",
+			"language": "go",
+		},
+		"protocol": map[string]any{
+			"version": "0.1",
+			"framing": "jsonl",
+		},
+		"capabilities": map[string]any{
+			"transform_types":   []string{"llm"},
+			"artifact_types":    []string{"markdown", "markdown_directory", "text", "directory"},
+			"stream_events":     true,
+			"tool_call_log":     false,
+			"usage_reporting":   true,
+			"cost_estimation":   true,
+			"output_candidates": true,
+			"supports_dry_run":  true,
+			"supports_cancel":   true,
+		},
+	}
+}
+
+func runLLM(req request) error {
+	var params runParams
+	if err := json.Unmarshal(req.Params, &params); err != nil {
+		return err
+	}
+	if params.Transform.Name == "" {
+		params.Transform.Name = "llm_transform"
+	}
+	outputs := params.Outputs
+	if len(outputs) == 0 {
+		outputs = []declaredOut{{Name: "output", ArtifactType: "markdown"}}
+	}
+	provider, model := modelIdentity(params.Model)
+	usage := usageFor(params.Transform.Name, model, len(outputs))
+	provenance := provenanceFor(provider, model, params.Model)
+
+	writeNotification("fbt/event", map[string]any{
+		"request_id":       req.ID,
+		"transform_run_id": params.TransformRunID,
+		"time":             time.Now().UTC().Format(time.RFC3339),
+		"event_type":       "usage",
+		"level":            "info",
+		"message":          "local LLM runner completed deterministic generation",
+		"attributes": map[string]any{
+			"gen_ai.provider.name":         provider,
+			"gen_ai.request.model":         model,
+			"gen_ai.usage.input_tokens":    usage["gen_ai.usage.input_tokens"],
+			"gen_ai.usage.output_tokens":   usage["gen_ai.usage.output_tokens"],
+			"fbt.usage.total_tokens":       usage["fbt.usage.total_tokens"],
+			"fbt.estimated_cost_usd":       usage["fbt.estimated_cost_usd"],
+			"fbt.runner.local_example":     true,
+			"fbt.runner.external_process":  true,
+			"fbt.runner.provider_sdk_free": true,
+		},
+	})
+
+	if params.Mode == "plan" || params.Mode == "dry_run" {
+		writeResponse(req.ID, map[string]any{
+			"status":           "success",
+			"transform_run_id": params.TransformRunID,
+			"usage":            usage,
+			"provenance":       provenance,
+			"warnings":         []string{"dry run only; no output candidates written"},
+		})
+		return nil
+	}
+	if params.Work.Outputs == "" {
+		return fmt.Errorf("work.outputs is required")
+	}
+	if err := os.MkdirAll(params.Work.Outputs, 0o755); err != nil {
+		return err
+	}
+
+	var candidates []map[string]any
+	for _, output := range outputs {
+		candidate, err := writeOutput(params.Work.Outputs, output, llmContent(params.Transform, provider, model))
+		if err != nil {
+			return err
+		}
+		candidates = append(candidates, candidate)
+	}
+	writeNotification("fbt/outputCandidate", map[string]any{
+		"request_id":       req.ID,
+		"transform_run_id": params.TransformRunID,
+		"outputs":          candidates,
+	})
+	writeResponse(req.ID, map[string]any{
+		"status":           "success",
+		"transform_run_id": params.TransformRunID,
+		"outputs":          candidates,
+		"usage":            usage,
+		"provenance":       provenance,
+		"warnings":         []string{},
+	})
+	return nil
+}
+
+func llmContent(transform transformInfo, provider, model string) string {
+	return fmt.Sprintf("# %s\n\nGenerated by the local FBT LLM runner.\n\n- transform: %s\n- provider: %s\n- model: %s\n- mode: deterministic local example\n", title(transform.Name), transform.Name, provider, model)
+}
+
+func writeOutput(root string, output declaredOut, content string) (map[string]any, error) {
+	name := output.Name
+	if name == "" {
+		name = "output"
+	}
+	artifactType := output.ArtifactType
+	if artifactType == "" {
+		artifactType = "markdown"
+	}
+	path := filepath.Join(root, name)
+	if isDirectoryType(artifactType) {
+		if err := os.MkdirAll(path, 0o755); err != nil {
+			return nil, err
+		}
+		if err := os.WriteFile(filepath.Join(path, "index.md"), []byte(content), 0o644); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			return nil, err
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			return nil, err
+		}
+	}
+	return map[string]any{
+		"name":          name,
+		"artifact_type": artifactType,
+		"path":          path,
+		"declared_path": output.DeclaredPath,
+	}, nil
+}
+
+func modelIdentity(model map[string]any) (string, string) {
+	provider := stringValue(model, "provider", "local")
+	name := stringValue(model, "name", "mock-llm")
+	return provider, name
+}
+
+func provenanceFor(provider, model string, raw map[string]any) map[string]any {
+	return map[string]any{
+		"runner":                "fbt-local-llm-runner",
+		"runner_version":        "0.1.0",
+		"model_provider":        provider,
+		"model":                 model,
+		"model_parameters_hash": hashJSON(raw),
+		"materials":             []any{},
+	}
+}
+
+func usageFor(transformName, model string, outputs int) map[string]any {
+	inputTokens := 120 + len(transformName) + len(model)
+	outputTokens := 80 + outputs*30
+	total := inputTokens + outputTokens
+	return map[string]any{
+		"gen_ai.usage.input_tokens":  inputTokens,
+		"gen_ai.usage.output_tokens": outputTokens,
+		"fbt.usage.total_tokens":     total,
+		"fbt.estimated_cost_usd":     float64(total) * 0.000001,
+	}
+}
+
+func stringValue(values map[string]any, key, fallback string) string {
+	if value, ok := values[key].(string); ok && value != "" {
+		return value
+	}
+	return fallback
+}
+
+func hashJSON(value any) string {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return "sha256:"
+	}
+	sum := sha256.Sum256(data)
+	return "sha256:" + hex.EncodeToString(sum[:])
+}
+
+func title(value string) string {
+	parts := strings.Fields(strings.ReplaceAll(value, "_", " "))
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+		parts[i] = strings.ToUpper(part[:1]) + part[1:]
+	}
+	return strings.Join(parts, " ")
+}
+
+func isDirectoryType(artifactType string) bool {
+	return artifactType == "directory" || strings.HasSuffix(artifactType, "_directory")
+}
+
+func writeResponse(id string, result any) {
+	write(map[string]any{"jsonrpc": "2.0", "id": id, "result": result})
+}
+
+func writeNotification(method string, params any) {
+	write(map[string]any{"jsonrpc": "2.0", "method": method, "params": params})
+}
+
+func writeError(id string, code int, message string) {
+	write(map[string]any{"jsonrpc": "2.0", "id": id, "error": map[string]any{"code": code, "message": message}})
+}
+
+func write(value any) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "marshal response: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("%s\n", data)
+}

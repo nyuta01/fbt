@@ -42,6 +42,8 @@ type Run struct {
 	Status            string
 	CommittedVersions []string
 	EvaluationResults []string
+	Usage             map[string]any
+	Provenance        map[string]any
 }
 
 type outputCandidate struct {
@@ -194,6 +196,9 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			"name":      transform.Name,
 			"type":      transform.TransformType,
 		},
+		Model:   transform.Model,
+		Tools:   protocolTools(transform),
+		Policy:  protocolPolicy(policyResource),
 		Outputs: protocolOutputs(transform),
 		Work: map[string]any{
 			"root":    workRoot,
@@ -209,7 +214,13 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 	declared := declaredOutputs(transform)
-	run := Run{TransformID: transformID, TransformRunID: transformRunID, Status: outcome.Result.Status}
+	run := Run{
+		TransformID:    transformID,
+		TransformRunID: transformRunID,
+		Status:         outcome.Result.Status,
+		Usage:          outcome.Result.Usage,
+		Provenance:     outcome.Result.Provenance,
+	}
 	for _, candidate := range candidates {
 		if err := security.RequireWithin(workOutputs, candidate.Path); err != nil {
 			return Run{}, fmt.Errorf("output candidate outside work outputs: %w", err)
@@ -306,6 +317,8 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		"status":             outcome.Result.Status,
 		"committed_versions": run.CommittedVersions,
 		"evaluation_results": run.EvaluationResults,
+		"usage":              run.Usage,
+		"provenance":         run.Provenance,
 	}); err != nil {
 		return Run{}, err
 	}
@@ -342,6 +355,32 @@ func protocolOutputs(transform manifest.TransformResource) []any {
 		})
 	}
 	return outputs
+}
+
+func protocolTools(transform manifest.TransformResource) []any {
+	tools := make([]any, 0, len(transform.Tools))
+	for _, tool := range transform.Tools {
+		tools = append(tools, map[string]any{"name": tool})
+	}
+	return tools
+}
+
+func protocolPolicy(policyResource *manifest.PolicyResource) map[string]any {
+	if policyResource == nil {
+		return nil
+	}
+	return map[string]any{
+		"unique_id":     policyResource.UniqueID,
+		"name":          policyResource.Name,
+		"read_scope":    policyResource.ReadScope,
+		"write_scope":   policyResource.WriteScope,
+		"network":       policyResource.Network,
+		"tools":         policyResource.Tools,
+		"limits":        policyResource.Limits,
+		"review":        policyResource.Review,
+		"fingerprint":   policyResource.Fingerprint,
+		"resource_type": policyResource.ResourceType,
+	}
 }
 
 func declaredOutputs(transform manifest.TransformResource) map[string]manifest.TransformOutput {

@@ -409,14 +409,14 @@
       "id": "FBT-MVP-013",
       "title": "Implement AI-native runner experience",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-008",
         "FBT-MVP-010",
         "FBT-MVP-012"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-013-plan.md",
       "paths": [
         "runners/llm",
         "runners/agent",
@@ -424,11 +424,12 @@
         "docs/examples/knowledge-loop-example.md"
       ],
       "verification": {
-        "go_test": false,
+        "go_test": true,
         "conformance": false,
         "manual_opt_in_smoke": false
       },
-      "notes": "Provide optional out-of-process LLM and simple agent runner examples, protocol compatibility tests, usage/cost/tool-call reporting, and no base-runtime dependency on provider SDKs."
+      "verification_override_reason": "No conformance target or real-provider opt-in smoke exists yet; optional local LLM/agent runner behavior is covered by protocol Go tests and a local build test until broader suites are added in FBT-MVP-016.",
+      "notes": "Adds optional out-of-process local LLM and agent runner examples with usage/cost/provenance and redacted tool-call reporting, passes model/tools through build, records usage/provenance in run results, and keeps provider SDKs outside the base runtime."
     },
     {
       "id": "FBT-MVP-014",

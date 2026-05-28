@@ -135,6 +135,52 @@ func TestRunBuildEvalFailureDoesNotCommitOutput(t *testing.T) {
 	}
 }
 
+func TestRunBuildWithLocalLLMRunnerRecordsUsageAndProvenance(t *testing.T) {
+	root := writeBuildProject(t)
+	repoRoot := repoRoot(t)
+	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "llm"))+"\n")
+	if err := os.Chmod(filepath.Join(root, "bin", "fbt-local-llm-runner"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: bin/fbt-fake-runner", "command: bin/fbt-local-llm-runner"))
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Case Summaries"]
+    grants_confidence: structural
+`)
+	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "transforms", "case.yml")), `    runner: openai.responses
+`, `    runner: openai.responses
+    model:
+      provider: local
+      name: build-mock-gpt
+`))
+
+	if _, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"}); err != nil {
+		t.Fatalf("run build: %v", err)
+	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	records, err := store.ReadRunResults()
+	if err != nil {
+		t.Fatalf("read run results: %v", err)
+	}
+	var found bool
+	for _, record := range records {
+		if record["record_type"] != "transform_run" {
+			continue
+		}
+		usage, usageOK := record["usage"].(map[string]any)
+		provenance, provenanceOK := record["provenance"].(map[string]any)
+		if usageOK && usage["fbt.usage.total_tokens"] != nil && provenanceOK && provenance["model"] == "build-mock-gpt" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("expected usage/provenance transform run record, got %+v", records)
+	}
+}
+
 func writeBuildProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
