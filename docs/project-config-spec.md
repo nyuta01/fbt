@@ -137,6 +137,12 @@ For local file, directory, and glob paths, fbt fingerprints the resolved file
 set and file contents. Adding a new file under a declared glob or directory
 source changes the source fingerprint and makes dependent transforms dirty.
 
+For daily or streaming-style operations, keep the source path stable and let an
+external ingestion step decide which files are present in that path before fbt
+runs. fbt does not store watermarks, own date partitioning, or schedule source
+readiness checks. It only records the resolved file set and content fingerprint
+used for the build receipt.
+
 ## 5. Artifacts
 
 Artifacts are logical outputs managed by the project. They are often created

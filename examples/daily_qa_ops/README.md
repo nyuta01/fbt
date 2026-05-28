@@ -99,8 +99,25 @@ For a "new items only" run, replace or refresh the inbox with today's batch
 before running fbt. For a cumulative knowledge base, keep adding files to the
 same inbox and let fbt rebuild when the resolved file set changes.
 
+The stable-path contract is the important part:
+
+```text
+data/qa/inbox/questions/
+data/qa/inbox/answers/
+```
+
+fbt watches those declared paths by fingerprinting their resolved file set and
+content. If an external ingestion step replaces the contents with today's
+batch, or appends another Markdown file, the next `fbt plan --select
+daily_qa_candidates` marks the transform dirty with `source descriptor
+changed`.
+
 fbt intentionally does not include a scheduler, daemon, or date partition
 engine. Use cron, CI, Airflow, Dagster, or another orchestrator to prepare the
 input window and run `fbt plan` and `fbt build` once a day. fbt records each
 run as artifact versions, so the logical `latest` files can change while older
 versions remain in `.fbt/artifacts/`.
+
+Use source-readiness checks outside fbt as well. For example, have ingestion
+write a `_READY` marker, validate expected counts, or fail the external job
+before calling fbt. fbt's job starts after the files are ready.

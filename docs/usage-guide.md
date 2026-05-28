@@ -114,6 +114,19 @@ fbt fingerprints the resolved source file set and content. New or changed files
 make dependent transforms dirty. fbt intentionally does not include a daemon,
 scheduler, watermark store, or built-in per-file partition engine.
 
+Use one of these source-window patterns:
+
+| Pattern | How it works | When to use it |
+|---|---|---|
+| Latest window | Replace the files under a stable inbox before each run. | Process only today's or this hour's new records. |
+| Cumulative window | Keep appending files under the same source directory. | Rebuild an artifact from all known evidence. |
+| External partition | Put dates, service names, or customer IDs in the upstream ingestion path, then point fbt at the prepared current directory. | Need retention, watermarks, or parallel scheduling without putting that logic in fbt. |
+
+Before running fbt, let the external ingestion step perform readiness checks
+such as "all expected files arrived", "batch marker exists", or "source export
+completed". fbt can tell that a file set changed; it does not decide when the
+business batch is complete.
+
 ## 6. Review And Publishing Boundary
 
 fbt deliberately does not implement `review`, `approve`, or `reject` commands.

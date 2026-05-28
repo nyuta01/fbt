@@ -47,6 +47,14 @@ contents. New or changed source files make dependent transforms dirty, so the
 next `fbt build` creates a new artifact version and leaves the older version in
 `.fbt/artifacts/`.
 
+Use stable source paths for the fbt project and keep windowing outside fbt:
+
+| Operation | Keep stable in fbt | Change outside fbt |
+|---|---|---|
+| New-items-only daily batch | `data/qa/inbox/questions/` and `data/qa/inbox/answers/` | Replace those directories with today's prepared files before running fbt. |
+| Cumulative evidence base | The same source directories | Append new files and let fbt detect the changed file set. |
+| Date/service/customer partitions | The currently selected source directory | Use cron, CI, Airflow, Dagster, or another orchestrator to prepare that directory. |
+
 ## Common Commands
 
 ```sh

@@ -44,6 +44,20 @@ check_daily_qa_ops() {
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact history faq_candidates --project-dir "$project" >"$tmpdir/$name-history-faq.txt"
   grep -q "confidence: structural" "$tmpdir/$name-history-faq.txt"
 
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select daily_qa_candidates >"$tmpdir/$name-plan-clean.txt"
+  grep -q "Plan: 1 selected, 0 run, 1 skipped, 0 blocked" "$tmpdir/$name-plan-clean.txt"
+
+  cat >"$project/data/qa/inbox/questions/Q-1044.md" <<'EOF'
+# Q-1044: Admin export timezone
+
+Customer asks whether scheduled admin exports use the workspace timezone or UTC.
+EOF
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select daily_qa_candidates >"$tmpdir/$name-plan-new-window.txt"
+  grep -q "Plan: 1 selected, 1 run, 0 skipped, 0 blocked" "$tmpdir/$name-plan-new-window.txt"
+  grep -q "reason: source descriptor changed" "$tmpdir/$name-plan-new-window.txt"
+  grep -q "next: fbt build --select daily_qa_candidates" "$tmpdir/$name-plan-new-window.txt"
+
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select promote_manual_update >"$tmpdir/$name-build-promotion.txt"
   grep -q "success transform.daily_qa_ops.promote_manual_update" "$tmpdir/$name-build-promotion.txt"
   test -f "$project/target/artifacts/manual/latest/manual_update.md"

@@ -1807,13 +1807,13 @@
       "id": "FBT-UNIX-003",
       "title": "Define stable source-window operations",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-000",
         "FBT-EXAMPLES-UX-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-003-plan.md",
       "paths": [
         "docs/usage-guide.md",
         "docs/project-config-spec.md",
@@ -1825,7 +1825,7 @@
         "practical_examples_smoke": true,
         "make_verify": true
       },
-      "notes": "Document and guard the recommended daily-operation patterns: stable inbox/latest paths, external scheduler responsibility, cumulative versus new-items-only source windows, partitioning by date/service/customer outside core, and source-readiness checks that do not become a scheduler."
+      "notes": "Documents stable inbox/latest paths, cumulative versus new-items-only windows, external partitioning and readiness checks, and keeps scheduling outside core. Practical examples smoke appends a new Markdown question under the stable inbox and asserts the dependent transform becomes dirty."
     },
     {
       "id": "FBT-UNIX-004",

@@ -53,6 +53,10 @@ provider SDKs, artifact stores, and catalogs, but does not replace them.
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
 
+Repeated source growth uses stable source paths. External ingestion prepares
+new-items-only, cumulative, or partitioned windows; fbt fingerprints the
+resolved file set and content and rebuilds dependent artifacts when it changes.
+
 The checked-in examples cover:
 
 - `examples/knowledge_ops`: offline support knowledge-loop fixture using demo
@@ -84,19 +88,18 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-003` to define stable source-window operations.
-2. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
+1. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
    Pandoc.
-3. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
+2. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
    source-of-truth specs.
-4. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-5. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+3. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+4. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-6. Improve source-window ergonomics and artifact explanations without turning
+5. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-7. Keep graph, trace, and catalog visualization on standard-compatible exports
+6. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-8. Add CLI surface only when backed by a spec and verification.
+7. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 
