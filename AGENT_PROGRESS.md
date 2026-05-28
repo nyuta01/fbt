@@ -14,8 +14,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-008` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-009` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-009` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-010` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -37,9 +37,9 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-009` with a plan for fake and command runners.
-2. Provide local runner executables for deterministic conformance and command
-   transforms without adding heavy dependencies to the base CLI.
+1. Start `FBT-MVP-010` with a plan for build lifecycle and idempotent commit.
+2. Wire parser, planner, state, descriptor, runner discovery, protocol client,
+   and local runners into `fbt build`.
 3. Expand the Go CLI only when `FBT-MVP-006` has a spec-backed acceptance
    criterion.
 4. Keep `make verify` green after each bounded MVP task.

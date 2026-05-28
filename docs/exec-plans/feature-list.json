@@ -309,22 +309,23 @@
       "id": "FBT-MVP-009",
       "title": "Implement fake and command runners for local MVP",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-008"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-009-plan.md",
       "paths": [
         "runners/fake",
         "runners/command",
         "tests/fixtures"
       ],
       "verification": {
-        "go_test": false,
+        "go_test": true,
         "conformance": false
       },
-      "notes": "Provide no-service fake runners for conformance and a command runner for deterministic local transforms without adding heavy dependencies to the base CLI."
+      "verification_override_reason": "No conformance target exists yet; fake and command runner behavior is covered by process-level Go tests until the suite is added in FBT-MVP-016.",
+      "notes": "Provides no-service fake runner and command runner protocol executables for deterministic local transforms without adding heavy dependencies to the base CLI."
     },
     {
       "id": "FBT-MVP-010",

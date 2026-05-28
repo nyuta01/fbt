@@ -9,7 +9,8 @@ state store. The planner baseline can compare manifests and state snapshots to
 classify transforms as run, skip, or blocked. The CLI now exposes the first
 product inspection commands for parse, plan, state, and artifact records, plus
 runner discovery diagnostics. The protocol package can start JSON-RPC stdio
-runners and collect events/output candidates.
+runners and collect events/output candidates. Local fake and command runners
+live outside `internal/` under `runners/`.
 
 Planned package boundaries:
 
