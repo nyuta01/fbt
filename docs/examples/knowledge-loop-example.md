@@ -8,6 +8,10 @@ Audience: users applying `fbt` to customer support, incident response, and agile
 
 A core `fbt` use case is turning primary operational documents into reusable, reviewed knowledge artifacts. The goal is a feedback loop for knowledge management and continuous improvement, not a domain-specific support or incident-response product.
 
+A runnable local version of the support flow is committed under
+`examples/knowledge_ops`. It uses the bundled local protocol runners and can be
+used without provider accounts.
+
 Primary documents:
 
 - Tickets

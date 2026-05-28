@@ -86,6 +86,29 @@ func TestRunParseWritesManifest(t *testing.T) {
 	}
 }
 
+func TestRunInitSupportTemplate(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "knowledge_ops")
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := Run([]string{"init", root, "--template", "support"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Initialized support project") {
+		t.Fatalf("unexpected init output: %q", stdout.String())
+	}
+	if _, err := os.Stat(filepath.Join(root, "fs_project.yml")); err != nil {
+		t.Fatalf("expected project config: %v", err)
+	}
+
+	var parseOut bytes.Buffer
+	var parseErr bytes.Buffer
+	if code := Run([]string{"parse", "--project-dir", root}, &parseOut, &parseErr); code != 0 {
+		t.Fatalf("generated project should parse: code=%d stderr=%q", code, parseErr.String())
+	}
+}
+
 func TestRunPlanJSON(t *testing.T) {
 	root := writeCLIProject(t)
 	var stdout bytes.Buffer

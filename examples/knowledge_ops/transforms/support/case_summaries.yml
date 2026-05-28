@@ -1,0 +1,22 @@
+transforms:
+  - name: case_summaries
+    type: llm
+    runner: local.llm
+    model:
+      provider: local
+      name: mock-gpt
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+    assets:
+      - ref: support_style_guide
+    policy: support_agent_scope
+    evals:
+      - required_case_sections
+    review:
+      required: true
+      group: support_leads
+    tags: ["support", "knowledge"]

@@ -8,14 +8,15 @@ The repository contains the English design/specification set for `fbt`, a
 baseline AI-first engineering harness, repo governance files, a Go CLI, parser,
 manifest graph, planner, descriptor/state primitives, runner discovery,
 protocol client, local fake/command/LLM/agent runners, the first build
-lifecycle, deterministic evals, review approvals, and confidence promotion.
+lifecycle, deterministic evals, review approvals, confidence promotion, init
+templates, and a runnable local knowledge-loop example.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-013` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-014` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-014` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-015` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -34,11 +35,11 @@ This runs:
 - `make fmt-check`
 - `make go-test`
 - `make cli-smoke`
+- `make e2e-smoke`
 
 ## Next Steps
 
-1. Start `FBT-MVP-014` with `fbt init` templates and a runnable local
-   knowledge-loop example.
+1. Start `FBT-MVP-015` with raw text/Markdown diff and static docs generation.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.

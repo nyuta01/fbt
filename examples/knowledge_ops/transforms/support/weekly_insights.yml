@@ -1,0 +1,24 @@
+transforms:
+  - name: weekly_support_insights
+    type: agent
+    runner: local.agent
+    model:
+      provider: local
+      name: mock-agent
+    inputs:
+      - ref: case_summaries
+        require:
+          confidence: reviewed
+          review:
+            status: approved
+    outputs:
+      - name: weekly_support_insights
+        type: markdown
+        path: target/artifacts/support/weekly_insights.md
+    assets:
+      - ref: support_style_guide
+    tools: ["read_artifact", "write_artifact"]
+    policy: support_agent_scope
+    evals:
+      - required_agent_sections
+    tags: ["support", "weekly"]

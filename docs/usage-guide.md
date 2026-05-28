@@ -24,6 +24,11 @@ fbt init knowledge_ops --template support
 cd knowledge_ops
 ```
 
+The MVP CLI implements `blank`, `support`, `knowledge_ops`, and `incident`
+templates. The `support` and `knowledge_ops` templates include local runner
+wrappers so the build/review loop can run without external services from a
+source checkout.
+
 Generated layout:
 
 ```text

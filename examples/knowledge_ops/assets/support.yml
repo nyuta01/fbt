@@ -1,0 +1,4 @@
+assets:
+  - name: support_style_guide
+    type: style_guide
+    path: assets/support_style_guide.md

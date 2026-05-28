@@ -20,12 +20,14 @@ import (
 	"github.com/nyuta01/fbt/internal/planner"
 	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/state"
+	"github.com/nyuta01/fbt/internal/templates"
 )
 
 const Version = "0.0.0-dev"
 
 var implementedCommands = []string{
 	"parse",
+	"init",
 	"plan",
 	"build",
 	"eval",
@@ -36,7 +38,6 @@ var implementedCommands = []string{
 }
 
 var plannedCommands = []string{
-	"init",
 	"run",
 	"diff",
 	"docs",
@@ -70,6 +71,8 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 	case "version", "--version", "-v":
 		fmt.Fprintf(stdout, "fbt %s\n", Version)
 		return 0
+	case "init":
+		return runInit(opts, commandArgs[1:], stdout, stderr)
 	case "parse":
 		return runParse(opts, stdout, stderr)
 	case "plan":
@@ -95,6 +98,70 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		printHelp(stderr)
 		return 2
 	}
+}
+
+func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	initOpts, err := parseInitArgs(args)
+	if err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	destination := opts.ProjectDir
+	if destination == "" {
+		destination = initOpts.ProjectName
+	}
+	result, err := templates.CreateProject(templates.Options{
+		ProjectName: initOpts.ProjectName,
+		Destination: destination,
+		Template:    initOpts.Template,
+		Force:       initOpts.Force,
+	})
+	if err != nil {
+		printError("init", err, stderr, opts.JSON)
+		return 2
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "init", "status": "success", "project": result})
+		return 0
+	}
+	fmt.Fprintf(stdout, "Initialized %s project at %s\n", result.Template, result.ProjectDir)
+	fmt.Fprintf(stdout, "Files: %d\n", len(result.Files))
+	return 0
+}
+
+type initOptions struct {
+	ProjectName string
+	Template    string
+	Force       bool
+}
+
+func parseInitArgs(args []string) (initOptions, error) {
+	opts := initOptions{ProjectName: "fbt_project", Template: "blank"}
+	seenProjectName := false
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--template":
+			i++
+			if i >= len(args) {
+				return initOptions{}, fmt.Errorf("--template requires a value")
+			}
+			opts.Template = args[i]
+		case strings.HasPrefix(arg, "--template="):
+			opts.Template = strings.TrimPrefix(arg, "--template=")
+		case arg == "--force":
+			opts.Force = true
+		case strings.HasPrefix(arg, "--"):
+			return initOptions{}, fmt.Errorf("unknown init flag: %s", arg)
+		default:
+			if seenProjectName {
+				return initOptions{}, fmt.Errorf("init accepts at most one project name")
+			}
+			opts.ProjectName = arg
+			seenProjectName = true
+		}
+	}
+	return opts, nil
 }
 
 func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) int {

@@ -1,0 +1,12 @@
+evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Case Summaries"]
+    grants_confidence: structural
+
+  - name: required_agent_sections
+    type: deterministic
+    config:
+      sections: ["Result"]
+    grants_confidence: structural

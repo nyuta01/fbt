@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+project="$tmpdir/knowledge_ops"
+
+go run ./cmd/fbt init "$project" --template support >"$tmpdir/init.txt"
+grep -q "Initialized support project" "$tmpdir/init.txt"
+
+go run ./cmd/fbt parse --project-dir "$project" >"$tmpdir/parse.txt"
+grep -q "Manifest written" "$tmpdir/parse.txt"
+
+go run ./cmd/fbt plan --project-dir "$project" --select case_summaries >"$tmpdir/plan-case.txt"
+grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan-case.txt"
+
+go run ./cmd/fbt build --project-dir "$project" --select case_summaries >"$tmpdir/build-case.txt"
+grep -q "committed:" "$tmpdir/build-case.txt"
+test -f "$project/target/artifacts/support/case_summaries/index.md"
+
+go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
+grep -q "status: pending" "$tmpdir/review-status.txt"
+
+go run ./cmd/fbt review approve case_summaries --project-dir "$project" --comment "smoke" >"$tmpdir/review-approve.txt"
+grep -q "status: approved" "$tmpdir/review-approve.txt"
+
+go run ./cmd/fbt build --project-dir "$project" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
+grep -q "committed:" "$tmpdir/build-weekly.txt"
+test -f "$project/target/artifacts/support/weekly_insights.md"
+
+echo "knowledge-loop-smoke: ok"

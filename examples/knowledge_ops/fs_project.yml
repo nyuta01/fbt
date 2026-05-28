@@ -1,0 +1,26 @@
+name: knowledge_ops
+config_version: 1
+version: 0.1.0
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: .fbt/state
+runners:
+  - name: local.llm
+    type: llm
+    protocol: stdio_jsonrpc
+    command: bin/fbt-local-llm-runner
+  - name: local.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: bin/fbt-local-agent-runner
+selectors:
+  - name: support_daily
+    definition:
+      method: tag
+      value: support

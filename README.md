@@ -30,10 +30,11 @@ discovery diagnostics (`runner list`, `runner doctor`, `runner validate`), and
 the first `build` lifecycle through protocol runners. Local fake and command
 runners are available for tests and local MVP wiring. Baseline policy checks are
 wired into build commit. Deterministic evals, pending review gates, approval
-state, and confidence promotion are wired into build and CLI flows. Optional
-local LLM and agent runner examples are available under `runners/` without
-provider SDK dependencies. Diff, init, runnable examples, docs generation, and
-conformance packaging are still pending.
+state, confidence promotion, `fbt init` templates, and a runnable local
+knowledge-loop example are wired into build and CLI flows. Optional local LLM
+and agent runner examples are available under `runners/` without provider SDK
+dependencies. Diff, docs generation, and conformance packaging are still
+pending.
 
 The base runtime should work with only the local filesystem.
 
@@ -160,7 +161,8 @@ manifest graph generation, descriptor and state primitives, dirty-state
 planning, initial CLI inspection commands, and runner discovery diagnostics.
 The first build lifecycle can invoke protocol runners, apply baseline policy
 checks, run deterministic evals, commit pending-review outputs, update local
-state, and promote reviewed artifacts through `fbt review approve`. Optional
-local fake, command, LLM, and agent runners exist for deterministic protocol and
-build tests. Diff, init, docs generation, and conformance packaging are still
-pending.
+state, promote reviewed artifacts through `fbt review approve`, and scaffold
+blank/support/incident projects through `fbt init`. Optional local fake,
+command, LLM, and agent runners exist for deterministic protocol and build
+tests, and `examples/knowledge_ops` exercises the local review loop. Diff, docs
+generation, and conformance packaging are still pending.

@@ -1,0 +1,7 @@
+sources:
+  - name: support
+    artifacts:
+      - name: raw_tickets
+        type: jsonl_directory
+        path: data/support/tickets/*.jsonl
+        tags: ["support", "raw"]

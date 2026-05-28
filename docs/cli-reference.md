@@ -89,6 +89,10 @@ Flags:
 | `--template NAME` | `blank`, `knowledge_ops`, `support`, or `incident` |
 | `--force` | Allow overwriting existing files |
 
+The `support` and `knowledge_ops` templates include local runner wrappers for
+the bundled LLM and agent examples. They are suitable for local smoke runs from
+a source checkout without provider credentials.
+
 ### 5.2 fbt parse
 
 Parse project files and generate a manifest. Does not start runners.

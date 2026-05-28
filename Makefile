@@ -35,11 +35,11 @@ validate-docs: ## Validate docs-local links and language/file-name invariants.
 
 .PHONY: fmt
 fmt: ## Format Go source.
-	@$(GOFMT) -w cmd internal
+	@$(GOFMT) -w cmd internal runners
 
 .PHONY: fmt-check
 fmt-check: ## Verify Go source formatting.
-	@test -z "$$($(GOFMT) -l cmd internal)"
+	@test -z "$$($(GOFMT) -l cmd internal runners)"
 
 .PHONY: go-test
 go-test: ## Run Go unit tests.
@@ -54,6 +54,10 @@ build: ## Build the fbt CLI into bin/fbt.
 cli-smoke: ## Run a deterministic fbt CLI smoke.
 	@bash scripts/smoke-cli.sh
 
+.PHONY: e2e-smoke
+e2e-smoke: ## Run the local knowledge-loop smoke.
+	@bash scripts/smoke-knowledge-loop.sh
+
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke ## Run the current single verification gate.
 	@echo "verify: ok"
