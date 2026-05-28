@@ -575,13 +575,13 @@
       "id": "FBT-REL-003",
       "title": "Publish MVP release artifacts and checksums",
       "priority": "P0",
-      "status": "todo",
+      "status": "blocked",
       "owner": "agent",
       "depends": [
         "FBT-REL-001",
         "FBT-REL-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-REL-003-plan.md",
       "paths": [
         ".github/workflows",
         "scripts",
@@ -593,7 +593,7 @@
         "dist_check": false,
         "checksum_check": false
       },
-      "notes": "Add or document the release workflow for darwin/linux binaries, produce checksums, smoke the released binary, and attach artifacts to the MVP release."
+      "notes": "Blocked until FBT-REL-002 provides a public remote, maintainer signing setup, and signed v0.1.0 tag; artifacts and checksums should not be published from the current unsigned local-only state."
     },
     {
       "id": "FBT-DOCS-001",

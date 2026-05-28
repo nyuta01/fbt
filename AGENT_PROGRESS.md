@@ -28,7 +28,8 @@ command-surface cleanup, OpenLineage/OpenTelemetry/OpenMetadata export planning,
 standard-compatible visualization recipes, expanded conformance, full
 policy-decision records, and semantic descriptors. `FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
-or `v0.1.0` tag is present locally.
+or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
+release baseline exists.
 
 ## Verification
 
