@@ -20,7 +20,9 @@ one artifact's plan decision. Artifact inspection now includes `artifact path`,
 enriched `artifact show`, and `artifact history`. Review inspection now
 includes `review show` and pending review guidance before approval. Standard
 export contracts are defined for OpenLineage, OpenTelemetry, OpenMetadata, and
-standard-compatible visualization.
+standard-compatible visualization. `fbt doctor` now checks project readiness,
+state writability/lock acquisition, runner discovery, and runner protocol
+initialization.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
@@ -28,9 +30,9 @@ conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication, project-level doctor checks, stronger YAML
-diagnostics, opt-in real LLM smoke, command-surface cleanup, OpenLineage and
-OpenTelemetry export implementation, OpenMetadata evaluation,
+repository/release publication, stronger YAML diagnostics, opt-in real LLM
+smoke, command-surface cleanup, OpenLineage and OpenTelemetry export
+implementation, OpenMetadata evaluation,
 standard-compatible visualization recipes, expanded conformance, full
 policy-decision records, and semantic descriptors. `FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
@@ -63,8 +65,9 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue with `FBT-STD-002` and `FBT-STD-003` if prioritizing standard
-   lineage/telemetry export implementation.
+3. Continue with `FBT-UX-006` for YAML authoring diagnostics, or `FBT-STD-002`
+   and `FBT-STD-003` if prioritizing standard lineage/telemetry export
+   implementation.
 4. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
    keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where possible.

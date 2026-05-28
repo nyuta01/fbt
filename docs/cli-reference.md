@@ -14,6 +14,7 @@ Basic workflow:
 fbt init
 fbt parse
 fbt plan
+fbt doctor
 fbt build
 fbt review status
 fbt review approve case_summaries
@@ -333,13 +334,32 @@ run `fbt runner doctor`.
 ### 5.13 fbt debug
 
 Reserved for project diagnostics. MVP returns a not-implemented error; use
-`fbt parse`, `fbt state status`, and `fbt runner doctor` for current checks.
+`fbt doctor`, `fbt parse`, `fbt state status`, and `fbt runner doctor` for
+current checks.
 
 ```sh
 fbt debug
 ```
 
-### 5.14 Standard exports
+### 5.14 fbt doctor
+
+Run a project readiness check.
+
+```sh
+fbt doctor
+```
+
+Checks:
+
+- project config parsing
+- state directory writability and lock acquisition
+- runner discovery and executable availability
+- runner protocol `initialize`
+
+The command exits `0` when all checks pass and `6` when dependency or runner
+readiness checks fail. Use `--json` for machine-readable check records.
+
+### 5.15 Standard exports
 
 The standard export command surface is reserved by
 [Standard Export Spec](standard-export-spec.md):
@@ -419,6 +439,7 @@ The main user-facing path stays small:
 
 - `fbt parse`
 - `fbt plan`
+- `fbt doctor`
 - `fbt build`
 - `fbt eval`
 - `fbt diff`

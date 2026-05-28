@@ -147,6 +147,15 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(explainOut.String(), "next: fbt build --select case_summaries") {
 		t.Fatalf("expected explanation next step, got %q", explainOut.String())
 	}
+
+	var doctorOut bytes.Buffer
+	var doctorErr bytes.Buffer
+	if code := Run([]string{"doctor", "--project-dir", root}, &doctorOut, &doctorErr); code != 0 {
+		t.Fatalf("generated project doctor failed: code=%d stdout=%q stderr=%q", code, doctorOut.String(), doctorErr.String())
+	}
+	if !strings.Contains(doctorOut.String(), "Doctor: ok") || !strings.Contains(doctorOut.String(), "RUNNER_PROTOCOL_OK") {
+		t.Fatalf("expected doctor readiness output, got %q", doctorOut.String())
+	}
 }
 
 func TestRunPlanJSON(t *testing.T) {
@@ -385,6 +394,15 @@ func TestRunRunnerListAndDoctor(t *testing.T) {
 	}
 	if !strings.Contains(doctorOut.String(), "RUNNER_COMMAND_NOT_FOUND") {
 		t.Fatalf("expected missing command diagnostic, got %q", doctorOut.String())
+	}
+
+	var projectDoctorOut bytes.Buffer
+	var projectDoctorErr bytes.Buffer
+	if code := Run([]string{"doctor", "--project-dir", root}, &projectDoctorOut, &projectDoctorErr); code != 6 {
+		t.Fatalf("expected project doctor exit code 6, got %d; stdout=%q stderr=%q", code, projectDoctorOut.String(), projectDoctorErr.String())
+	}
+	if !strings.Contains(projectDoctorOut.String(), "RUNNER_COMMAND_NOT_FOUND") {
+		t.Fatalf("expected project doctor runner diagnostic, got %q", projectDoctorOut.String())
 	}
 }
 

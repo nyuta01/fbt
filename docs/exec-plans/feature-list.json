@@ -756,7 +756,7 @@
       "id": "FBT-UX-005",
       "title": "Add top-level project doctor command",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-006",
@@ -764,19 +764,20 @@
         "FBT-MVP-008",
         "FBT-MVP-011"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-005-plan.md",
       "paths": [
         "internal/cli",
         "internal/runner",
         "internal/project",
         "internal/security",
+        "scripts/smoke-cli.sh",
         "docs/cli-reference.md",
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
       "notes": "Add `fbt doctor` as a single readiness check for project config, runner discovery, runner protocol initialization, target/state writability, and policy-relevant path constraints. User research analog: dbt debug checks project setup, local configuration, system environment, dependencies, and connection readiness."
     },

@@ -25,6 +25,7 @@ Runnable local loop from a source checkout:
 ```sh
 fbt init knowledge_ops --template support
 fbt parse --project-dir knowledge_ops
+fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
@@ -305,6 +306,7 @@ The downstream transform requires the current `case_summaries` artifact version 
 
 ```sh
 fbt parse
+fbt doctor
 ```
 
 Expected output:
@@ -315,6 +317,10 @@ Manifest written to <project>/.fbt/state/manifest.json
 ```
 
 Parse errors exit with code `2`.
+
+`fbt doctor` checks project parsing, state directory writability, state lock
+acquisition, runner discovery, and runner protocol initialization. It exits
+with code `6` when a runner or dependency readiness check fails.
 
 ## 8. Plan
 

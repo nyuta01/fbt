@@ -10,10 +10,12 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/nyuta01/fbt/internal/approval"
 	"github.com/nyuta01/fbt/internal/artifact"
 	buildmgr "github.com/nyuta01/fbt/internal/build"
+	"github.com/nyuta01/fbt/internal/config"
 	diffmgr "github.com/nyuta01/fbt/internal/diff"
 	docsgen "github.com/nyuta01/fbt/internal/docs"
 	evalmgr "github.com/nyuta01/fbt/internal/eval"
@@ -21,6 +23,7 @@ import (
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
+	"github.com/nyuta01/fbt/internal/protocol"
 	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/state"
 	"github.com/nyuta01/fbt/internal/templates"
@@ -39,6 +42,7 @@ var implementedCommands = []string{
 	"state",
 	"artifact",
 	"runner",
+	"doctor",
 }
 
 var plannedCommands = []string{
@@ -106,6 +110,8 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runArtifact(opts, commandArgs[1:], stdout, stderr)
 	case "runner":
 		return runRunner(opts, commandArgs[1:], stdout, stderr)
+	case "doctor":
+		return runDoctor(opts, stdout, stderr)
 	default:
 		if isPlannedCommand(commandArgs[0]) {
 			fmt.Fprintf(stderr, "fbt %s: not implemented yet\n", commandArgs[0])
@@ -655,6 +661,134 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		fmt.Fprintf(stderr, "unknown runner command: %s\n", subcommand)
 		return 2
 	}
+}
+
+type doctorCheck struct {
+	Name     string `json:"name"`
+	Status   string `json:"status"`
+	Code     string `json:"code"`
+	Message  string `json:"message"`
+	Severity string `json:"severity"`
+}
+
+func runDoctor(opts options, stdout io.Writer, stderr io.Writer) int {
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	checks := []doctorCheck{
+		{Name: "project_config", Status: "ok", Code: "PROJECT_CONFIG_OK", Severity: "info", Message: "project config parsed"},
+	}
+	checks = append(checks, stateDoctorChecks(ctx.Store)...)
+	checks = append(checks, runnerDoctorChecks(ctx.ParseResult.ProjectDir, ctx.ParseResult.Config)...)
+	status := "ok"
+	code := 0
+	if doctorHasErrors(checks) {
+		status = "error"
+		code = 6
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "doctor", "status": status, "project_dir": ctx.ParseResult.ProjectDir, "state_dir": ctx.Store.Dir, "checks": checks})
+		return code
+	}
+	fmt.Fprintf(stdout, "Doctor: %s\n", status)
+	fmt.Fprintf(stdout, "Project: %s\n", ctx.ParseResult.ProjectDir)
+	fmt.Fprintf(stdout, "State: %s\n", ctx.Store.Dir)
+	for _, check := range checks {
+		fmt.Fprintf(stdout, "%s %s: %s\n", check.Status, check.Code, check.Message)
+	}
+	return code
+}
+
+func stateDoctorChecks(store state.Store) []doctorCheck {
+	var checks []doctorCheck
+	lock, err := store.AcquireLock("doctor", time.Minute)
+	if err != nil {
+		return append(checks, doctorError("state_lock", "STATE_LOCK_ERROR", err.Error()))
+	}
+	if err := lock.Release(); err != nil {
+		checks = append(checks, doctorError("state_lock", "STATE_LOCK_RELEASE_ERROR", err.Error()))
+	} else {
+		checks = append(checks, doctorOK("state_lock", "STATE_LOCK_OK", "state lock can be acquired and released"))
+	}
+	tmp, err := os.CreateTemp(store.Dir, ".doctor-*.tmp")
+	if err != nil {
+		return append(checks, doctorError("state_writable", "STATE_WRITABLE_ERROR", err.Error()))
+	}
+	tmpPath := tmp.Name()
+	if err := tmp.Close(); err != nil {
+		checks = append(checks, doctorError("state_writable", "STATE_WRITABLE_ERROR", err.Error()))
+	} else if err := os.Remove(tmpPath); err != nil {
+		checks = append(checks, doctorError("state_writable", "STATE_CLEANUP_ERROR", err.Error()))
+	} else {
+		checks = append(checks, doctorOK("state_writable", "STATE_WRITABLE_OK", "state directory is writable"))
+	}
+	return checks
+}
+
+func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig) []doctorCheck {
+	discovery := runnermgr.NewDiscovery(projectDir, cfg)
+	resolved, err := discovery.List()
+	if err != nil {
+		return []doctorCheck{doctorError("runner_discovery", "RUNNER_DISCOVERY_ERROR", err.Error())}
+	}
+	if len(resolved) == 0 {
+		return []doctorCheck{doctorOK("runner_discovery", "RUNNER_DISCOVERY_EMPTY", "no runners configured")}
+	}
+	var checks []doctorCheck
+	for _, runner := range resolved {
+		diagnostics := runnermgr.Diagnose(runner)
+		if runnermgr.HasErrors(diagnostics) {
+			for _, diagnostic := range diagnostics {
+				checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: "error", Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
+			}
+			continue
+		}
+		for _, diagnostic := range diagnostics {
+			checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: "ok", Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
+		}
+		checks = append(checks, runnerProtocolDoctorCheck(runner))
+	}
+	return checks
+}
+
+func runnerProtocolDoctorCheck(resolved runnermgr.Resolved) doctorCheck {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	client, err := runnermgr.StartProtocolClient(ctx, resolved)
+	if err != nil {
+		return doctorError("runner."+resolved.Name, "RUNNER_PROTOCOL_START_ERROR", err.Error())
+	}
+	defer client.Close()
+	if _, err := client.Initialize(ctx, protocol.InitializeParams{
+		Core: map[string]string{"name": "fbt-core", "version": versioninfo.Version},
+		Protocol: map[string]any{
+			"versions": []string{"0.1"},
+			"framing":  "jsonl",
+		},
+		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
+	}); err != nil {
+		return doctorError("runner."+resolved.Name, "RUNNER_PROTOCOL_INIT_ERROR", err.Error())
+	}
+	return doctorOK("runner."+resolved.Name, "RUNNER_PROTOCOL_OK", "runner protocol initialize succeeded")
+}
+
+func doctorOK(name, code, message string) doctorCheck {
+	return doctorCheck{Name: name, Status: "ok", Code: code, Severity: "info", Message: message}
+}
+
+func doctorError(name, code, message string) doctorCheck {
+	return doctorCheck{Name: name, Status: "error", Code: code, Severity: "error", Message: message}
+}
+
+func doctorHasErrors(checks []doctorCheck) bool {
+	for _, check := range checks {
+		if check.Status == "error" || check.Severity == "error" {
+			return true
+		}
+	}
+	return false
 }
 
 func printHelp(w io.Writer) {

@@ -94,6 +94,10 @@ go run ./cmd/fbt parse --project-dir "$project" >"$tmpdir/parse.txt"
 grep -q "Manifest written" "$tmpdir/parse.txt"
 test -f "$project/.fbt/state/manifest.json"
 
+go run ./cmd/fbt doctor --project-dir "$project" >"$tmpdir/doctor.txt"
+grep -q "Doctor: ok" "$tmpdir/doctor.txt"
+grep -q "RUNNER_PROTOCOL_OK" "$tmpdir/doctor.txt"
+
 go run ./cmd/fbt plan --project-dir "$project" --select tag:support >"$tmpdir/plan.txt"
 grep -q "Plan: 1 selected" "$tmpdir/plan.txt"
 grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan.txt"
