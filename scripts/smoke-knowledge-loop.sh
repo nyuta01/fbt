@@ -22,9 +22,19 @@ grep -q "Doctor: ok" "$tmpdir/doctor.txt"
 "$fbt_bin" plan --project-dir "$project" --select case_summaries >"$tmpdir/plan-case.txt"
 grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan-case.txt"
 
+"$fbt_bin" plan --project-dir "$project" --select +weekly_support_insights >"$tmpdir/plan-upstream.txt"
+grep -q "Plan: 2 selected, 1 run, 0 skipped, 1 blocked" "$tmpdir/plan-upstream.txt"
+grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan-upstream.txt"
+grep -q "blocked transform.knowledge_ops.weekly_support_insights" "$tmpdir/plan-upstream.txt"
+
 "$fbt_bin" build --project-dir "$project" --select case_summaries >"$tmpdir/build-case.txt"
 grep -q "committed:" "$tmpdir/build-case.txt"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
+
+"$fbt_bin" plan --project-dir "$project" --select case_summaries+ >"$tmpdir/plan-downstream.txt"
+grep -q "Plan: 2 selected, 1 run, 1 skipped, 0 blocked" "$tmpdir/plan-downstream.txt"
+grep -q "skip transform.knowledge_ops.case_summaries" "$tmpdir/plan-downstream.txt"
+grep -q "run transform.knowledge_ops.weekly_support_insights" "$tmpdir/plan-downstream.txt"
 
 "$fbt_bin" artifact path case_summaries --project-dir "$project" >"$tmpdir/artifact-path.txt"
 grep -q "logical_path: target/artifacts/support/case_summaries" "$tmpdir/artifact-path.txt"

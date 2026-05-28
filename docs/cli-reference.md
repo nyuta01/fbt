@@ -61,12 +61,20 @@ build.
 | `path:transforms/support/` | Path selector |
 | `resource_type:transform` | Resource type selector |
 | `selector:support_daily` | Named project selector |
+| `+weekly_support_insights` | Selected transform plus upstream transforms |
+| `case_summaries+` | Selected transform plus downstream transforms |
+| `+case_summaries+` | Selected transform plus upstream and downstream transforms |
+
+Graph operators can wrap any selector expression. fbt expands through the
+resource graph but returns only transform IDs to `plan` and `build`.
 
 Examples:
 
 ```sh
 fbt plan --select tag:support
 fbt build --select case_summaries
+fbt plan --select +weekly_support_insights
+fbt build --select case_summaries+
 fbt build --select selector:support_daily
 ```
 

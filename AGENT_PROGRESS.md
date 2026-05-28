@@ -31,7 +31,9 @@ The public CLI no longer exposes `parse`, `eval`, `docs`, `state`, or `runner`
 subcommands. `doctor` handles readiness diagnostics, `plan` previews without
 writes, and `build` handles runner execution, evals, state writes, and artifact
 receipts. CLI argument handling is strict: unknown flags, extra arguments, and
-selectors that match no transforms fail instead of being ignored.
+selectors that match no transforms fail instead of being ignored. Graph
+selectors support `+target`, `target+`, and `+target+` around normal selector
+expressions.
 
 Docs and examples are aligned with the simpler model:
 
@@ -70,6 +72,10 @@ remain outside core.
 `examples/runner_adapter_scaffold` provides a dependency-free Python stdio
 JSON-RPC runner skeleton plus `fbt_plugin.yml`. `make verify` now includes a
 strict conformance check for that scaffold.
+
+Graph selection now supports `+target`, `target+`, and `+target+` for
+upstream, downstream, and bidirectional transform expansion. Both `plan` and
+`build` share the same graph selection path.
 
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
@@ -111,7 +117,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-007` to complete composable graph selection UX.
+1. Run `FBT-UNIX-008` to define explicit rebuild and cache controls.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

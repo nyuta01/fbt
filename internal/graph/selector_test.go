@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -66,6 +67,52 @@ func TestSelectParentChildAndUnionDefinition(t *testing.T) {
 	assertContains(t, selected, sourceID)
 }
 
+func TestSelectTransformsGraphOperators(t *testing.T) {
+	m := selectorManifest(t)
+	caseID := manifest.TransformID("knowledge_ops", "case_summaries")
+	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
+	sourceID := manifest.SourceID("knowledge_ops", "support", "raw_tickets")
+	artifactID := manifest.ArtifactID("knowledge_ops", "case_summaries")
+
+	downstream, err := SelectTransforms(m, "case_summaries+")
+	if err != nil {
+		t.Fatalf("select downstream: %v", err)
+	}
+	assertMapContains(t, downstream, caseID)
+	assertMapContains(t, downstream, weeklyID)
+	assertMapNotContains(t, downstream, sourceID)
+	assertMapNotContains(t, downstream, artifactID)
+
+	upstream, err := SelectTransforms(m, "+weekly_support_insights")
+	if err != nil {
+		t.Fatalf("select upstream: %v", err)
+	}
+	assertMapContains(t, upstream, caseID)
+	assertMapContains(t, upstream, weeklyID)
+	assertMapNotContains(t, upstream, sourceID)
+	assertMapNotContains(t, upstream, artifactID)
+
+	both, err := SelectTransforms(m, "+case_summaries+")
+	if err != nil {
+		t.Fatalf("select both directions: %v", err)
+	}
+	assertMapContains(t, both, caseID)
+	assertMapContains(t, both, weeklyID)
+}
+
+func TestSelectTransformsRejectsAmbiguousName(t *testing.T) {
+	m := manifest.Manifest{
+		Transforms: map[string]manifest.TransformResource{
+			"transform.test.first":  {UniqueID: "transform.test.first", ResourceType: "transform", Name: "duplicate"},
+			"transform.test.second": {UniqueID: "transform.test.second", ResourceType: "transform", Name: "duplicate"},
+		},
+	}
+	_, err := SelectTransforms(m, "duplicate")
+	if err == nil || !strings.Contains(err.Error(), "ambiguous selector") {
+		t.Fatalf("expected ambiguous selector error, got %v", err)
+	}
+}
+
 func selectorManifest(t *testing.T) manifest.Manifest {
 	t.Helper()
 	root := manifestFixture(t)
@@ -86,6 +133,20 @@ func assertContains(t *testing.T, values []string, want string) {
 	t.Helper()
 	if !slices.Contains(values, want) {
 		t.Fatalf("expected %s in %v", want, values)
+	}
+}
+
+func assertMapContains(t *testing.T, values map[string]struct{}, want string) {
+	t.Helper()
+	if _, ok := values[want]; !ok {
+		t.Fatalf("expected %s in %v", want, values)
+	}
+}
+
+func assertMapNotContains(t *testing.T, values map[string]struct{}, unwanted string) {
+	t.Helper()
+	if _, ok := values[unwanted]; ok {
+		t.Fatalf("did not expect %s in %v", unwanted, values)
 	}
 }
 
@@ -149,6 +210,19 @@ runners:
     evals:
       - required_case_sections
     tags: ["support", "knowledge"]
+  - name: weekly_support_insights
+    type: llm
+    runner: openai.responses
+    inputs:
+      - ref: case_summaries
+        require:
+          confidence: structural
+    outputs:
+      - name: weekly_support_insights
+        type: markdown
+        path: target/artifacts/support/weekly_insights.md
+    policy: support_agent_scope
+    tags: ["insights"]
 `)
 	return root
 }

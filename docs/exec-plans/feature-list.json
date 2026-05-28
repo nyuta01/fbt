@@ -1903,13 +1903,13 @@
       "id": "FBT-UNIX-007",
       "title": "Complete composable graph selection UX",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-002",
         "FBT-UNIX-000"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-007-plan.md",
       "paths": [
         "internal/graph",
         "internal/planner",
@@ -1921,7 +1921,7 @@
         "cli_smoke": true,
         "make_verify": true
       },
-      "notes": "Finish the reserved graph-selection behavior that users expect from CLI DAG tools: ancestor and descendant expansion for `+target`, `target+`, `+target+`, plus clear error messages when a selector is ambiguous."
+      "notes": "Implemented shared transform selection for `+target`, `target+`, and `+target+`; plan/build now expand through the resource graph and return transform IDs only. Added graph tests, ambiguity errors, CLI docs, and knowledge-loop smoke coverage."
     },
     {
       "id": "FBT-UNIX-008",

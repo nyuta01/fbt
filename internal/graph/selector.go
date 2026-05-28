@@ -14,6 +14,109 @@ type Selector struct {
 	Value  string
 }
 
+func SelectTransforms(m manifest.Manifest, expr string) (map[string]struct{}, error) {
+	expr = strings.TrimSpace(expr)
+	if expr == "" {
+		return nil, nil
+	}
+	selection, err := parseTransformSelection(expr)
+	if err != nil {
+		return nil, err
+	}
+	ids, err := selectBase(m, selection.Base)
+	if err != nil {
+		return nil, err
+	}
+	selected := map[string]struct{}{}
+	for _, id := range ids {
+		if _, ok := m.Transforms[id]; ok {
+			selected[id] = struct{}{}
+		}
+	}
+	if selection.NameSelector && len(selected) > 1 {
+		return nil, fmt.Errorf("ambiguous selector %q matched multiple transforms: %s", expr, strings.Join(sortedIDs(selected), ", "))
+	}
+	if len(selected) == 0 {
+		return nil, fmt.Errorf("selector matched no transforms: %s", expr)
+	}
+	seeds := sortedIDs(selected)
+	if selection.Upstream {
+		addRelatedTransforms(m, seeds, m.ParentMap, selected)
+	}
+	if selection.Downstream {
+		addRelatedTransforms(m, seeds, m.ChildMap, selected)
+	}
+	return selected, nil
+}
+
+type transformSelection struct {
+	Base         string
+	Upstream     bool
+	Downstream   bool
+	NameSelector bool
+}
+
+func parseTransformSelection(expr string) (transformSelection, error) {
+	selection := transformSelection{
+		Base:       expr,
+		Upstream:   strings.HasPrefix(expr, "+"),
+		Downstream: strings.HasSuffix(expr, "+"),
+	}
+	if selection.Upstream {
+		selection.Base = strings.TrimPrefix(selection.Base, "+")
+	}
+	if selection.Downstream {
+		selection.Base = strings.TrimSuffix(selection.Base, "+")
+	}
+	if selection.Base == "" || strings.HasPrefix(selection.Base, "+") || strings.HasSuffix(selection.Base, "+") {
+		return transformSelection{}, fmt.Errorf("invalid graph selector %q: use +target, target+, or +target+", expr)
+	}
+	selection.NameSelector = !strings.Contains(selection.Base, ":")
+	return selection, nil
+}
+
+func selectBase(m manifest.Manifest, expr string) ([]string, error) {
+	switch {
+	case strings.HasPrefix(expr, "selector:"):
+		name := strings.TrimPrefix(expr, "selector:")
+		definition, ok := m.Selectors[name]
+		if !ok {
+			return nil, fmt.Errorf("unknown selector: %s", name)
+		}
+		return SelectDefinition(m, definition)
+	case strings.HasPrefix(expr, "tag:"):
+		return Select(m, Selector{Method: "tag", Value: strings.TrimPrefix(expr, "tag:")})
+	case strings.HasPrefix(expr, "path:"):
+		return Select(m, Selector{Method: "path", Value: strings.TrimPrefix(expr, "path:")})
+	case strings.HasPrefix(expr, "resource_type:"):
+		return Select(m, Selector{Method: "resource_type", Value: strings.TrimPrefix(expr, "resource_type:")})
+	default:
+		return Select(m, Selector{Method: "name", Value: expr})
+	}
+}
+
+func addRelatedTransforms(m manifest.Manifest, seeds []string, relationMap map[string][]string, selected map[string]struct{}) {
+	seen := map[string]struct{}{}
+	queue := append([]string(nil), seeds...)
+	for _, seed := range seeds {
+		seen[seed] = struct{}{}
+	}
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		for _, related := range relationMap[id] {
+			if _, ok := seen[related]; ok {
+				continue
+			}
+			seen[related] = struct{}{}
+			if _, ok := m.Transforms[related]; ok {
+				selected[related] = struct{}{}
+			}
+			queue = append(queue, related)
+		}
+	}
+}
+
 func Select(m manifest.Manifest, selector Selector) ([]string, error) {
 	switch selector.Method {
 	case "name":
