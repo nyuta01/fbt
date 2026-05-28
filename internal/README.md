@@ -6,7 +6,8 @@ task. The current codebase includes the CLI scaffold, project/config/resource
 parser baseline, manifest resource generation, selector helpers, artifact
 descriptor computation, reusable path-safety helpers, and a local filesystem
 state store. The planner baseline can compare manifests and state snapshots to
-classify transforms as run, skip, or blocked.
+classify transforms as run, skip, or blocked. The CLI now exposes the first
+product inspection commands for parse, plan, state, and artifact records.
 
 Planned package boundaries:
 

@@ -240,7 +240,7 @@
       "id": "FBT-MVP-006",
       "title": "Implement parse, plan, state, and artifact CLI surfaces",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-001",
@@ -248,17 +248,17 @@
         "FBT-MVP-004",
         "FBT-MVP-005"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-006-plan.md",
       "paths": [
         "internal/cli",
         "cmd/fbt",
         "docs/cli-reference.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false
+        "go_test": true,
+        "cli_smoke": true
       },
-      "notes": "Turn planned commands into working parse/plan/state/artifact commands with human and JSON output, stable exit codes, and fixture-backed tests."
+      "notes": "Turns planned parse/plan/state/artifact commands into working inspection commands with human and JSON output, stable exit codes, manifest writes, and fixture-backed tests."
     },
     {
       "id": "FBT-MVP-007",

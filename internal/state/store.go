@@ -173,6 +173,36 @@ func (s Store) WriteState(snapshot Snapshot) error {
 	return s.atomicWriteJSON("state.json", snapshot)
 }
 
+func (s Store) ReadState() (Snapshot, error) {
+	var snapshot Snapshot
+	err := s.readJSON("state.json", &snapshot)
+	if errors.Is(err, os.ErrNotExist) {
+		return Snapshot{
+			CurrentArtifacts: map[string]ArtifactPointer{},
+			LatestRuns:       map[string]LatestRun{},
+		}, nil
+	}
+	if err != nil {
+		return Snapshot{}, err
+	}
+	if snapshot.CurrentArtifacts == nil {
+		snapshot.CurrentArtifacts = map[string]ArtifactPointer{}
+	}
+	if snapshot.LatestRuns == nil {
+		snapshot.LatestRuns = map[string]LatestRun{}
+	}
+	return snapshot, nil
+}
+
+func (s Store) ReadManifest() (manifest.Manifest, error) {
+	var m manifest.Manifest
+	err := s.readJSON("manifest.json", &m)
+	if err != nil {
+		return manifest.Manifest{}, err
+	}
+	return m, nil
+}
+
 func (s Store) WriteArtifactVersions(index ArtifactVersionsIndex) error {
 	if index.ArtifactVersions == nil {
 		index.ArtifactVersions = map[string]ArtifactVersion{}
