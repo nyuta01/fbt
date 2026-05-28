@@ -49,7 +49,9 @@ tool remains a local binary that can operate on the filesystem.
 
 Use fbt with tools such as dbt, DataChain, DVC, Snakemake, remark, and Pandoc;
 do not use fbt as a replacement for them. fbt records the generated artifact
-lifecycle around those tools.
+lifecycle around those tools. For example, dbt and DataChain can write their
+normal output files, and fbt can treat those files as sources for a generated
+Markdown brief with a receipt and lineage.
 
 ## When to use it
 

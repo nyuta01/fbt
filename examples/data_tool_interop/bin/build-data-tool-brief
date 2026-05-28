@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+set -eu
+
+out="$FBT_WORK_OUTPUTS/data_tool_brief"
+
+dbt_results="data/dbt/target/run_results.json"
+dbt_manifest="data/dbt/target/manifest.json"
+datachain_records="data/datachain/materialized_records.json"
+datachain_stats="data/datachain/stats.json"
+
+{
+  printf '# Data Tool Brief\n\n'
+  printf '## Inputs\n\n'
+  printf '%s\n' "- dbt run results: \`$dbt_results\`"
+  printf '%s\n' "- dbt manifest: \`$dbt_manifest\`"
+  printf '%s\n' "- DataChain materialized records: \`$datachain_records\`"
+  printf '%s\n\n' "- DataChain job stats: \`$datachain_stats\`"
+  printf '## Summary\n\n'
+  printf '%s\n' '- dbt owned warehouse transformation and test execution.'
+  printf '%s\n' '- DataChain owned dataset materialization and record selection.'
+  printf '%s\n\n' '- fbt consumed their output files and produced this versioned human brief.'
+  printf '## Evidence Snapshot\n\n'
+  printf '%s\n\n' '- dbt status excerpt:'
+  printf '```json\n'
+  sed -n '1,24p' "$dbt_results"
+  printf '\n```\n\n'
+  printf '%s\n\n' '- DataChain stats excerpt:'
+  printf '```json\n'
+  sed -n '1,24p' "$datachain_stats"
+  printf '\n```\n\n'
+  printf '## Follow-up\n\n'
+  printf '%s\n' '- Inspect dbt failures before publishing downstream operational notes.'
+  printf '%s\n' '- Re-run fbt after dbt or DataChain writes new output files.'
+} >"$out"

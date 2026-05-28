@@ -1,0 +1,24 @@
+name: data_tool_interop
+config_version: 1
+version: 0.1.0
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+policy_paths: ["policies"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: .fbt/state
+execution:
+  mode: local
+  max_workers: 1
+runners:
+  - name: local.command
+    type: command
+    protocol: stdio_jsonrpc
+    command: bin/fbt-command-runner
+    cwd: .
+selectors:
+  - name: data_tool_interop
+    definition:
+      method: tag
+      value: data_tool_interop

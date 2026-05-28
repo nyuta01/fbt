@@ -1,0 +1,23 @@
+sources:
+  - name: dbt
+    description: Outputs written by dbt Core.
+    artifacts:
+      - name: run_results
+        type: json
+        path: data/dbt/target/run_results.json
+        tags: ["dbt", "data_tool"]
+      - name: manifest
+        type: json
+        path: data/dbt/target/manifest.json
+        tags: ["dbt", "data_tool"]
+  - name: datachain
+    description: Outputs written by a DataChain job.
+    artifacts:
+      - name: materialized_records
+        type: json
+        path: data/datachain/materialized_records.json
+        tags: ["datachain", "data_tool"]
+      - name: stats
+        type: json
+        path: data/datachain/stats.json
+        tags: ["datachain", "data_tool"]

@@ -1,0 +1,15 @@
+{
+  "dataset": "support_cases_enriched",
+  "rows": [
+    {
+      "case_id": "C-1001",
+      "topic": "exports",
+      "severity": "normal"
+    },
+    {
+      "case_id": "C-1002",
+      "topic": "invitations",
+      "severity": "low"
+    }
+  ]
+}

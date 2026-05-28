@@ -1855,13 +1855,13 @@
       "id": "FBT-UNIX-005",
       "title": "Add dbt and DataChain interoperability examples",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-000",
         "FBT-RUNNER-005"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-005-plan.md",
       "paths": [
         "examples",
         "docs/usage-guide.md",
@@ -1872,7 +1872,7 @@
         "practical_examples_smoke": true,
         "make_verify": true
       },
-      "notes": "Demonstrate fbt as a complement to dbt and DataChain: consume their outputs or run-result artifacts as sources, then produce versioned knowledge artifacts without trying to become a warehouse transformer or typed dataset database."
+      "notes": "Added examples/data_tool_interop, a runnable command-transform example that consumes dbt run artifacts and DataChain job outputs as fbt sources, produces a versioned Markdown brief, and is covered by practical examples smoke."
     },
     {
       "id": "FBT-UNIX-006",

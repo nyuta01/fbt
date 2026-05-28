@@ -7,6 +7,7 @@ Use these examples in this order.
 | [`knowledge_ops`](knowledge_ops/) | Verify the local fbt control plane end to end. | Demo runners, no credentials. | `fbt init knowledge_ops --template support` |
 | [`daily_qa_ops`](daily_qa_ops/) | See a daily batch workflow with Markdown sources and multiple outputs. | Demo runners, no credentials. | `fbt plan --project-dir examples/daily_qa_ops --select tag:daily_qa` |
 | [`markdown_toolchain`](markdown_toolchain/) | See fbt wrap remark/Pandoc-style CLI tools without owning document processing. | Command runner, no credentials. | `fbt plan --project-dir examples/markdown_toolchain --select tag:document_toolchain` |
+| [`data_tool_interop`](data_tool_interop/) | See fbt consume dbt/DataChain output files and turn them into a versioned human brief. | Command runner, no credentials. | `fbt plan --project-dir examples/data_tool_interop --select data_tool_brief` |
 | [`incident_response_runbook`](incident_response_runbook/) | See the most direct practical workflow: incident evidence to a runbook. | OpenAI runner, `OPENAI_API_KEY` required for `build`. | `fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook` |
 | [`support_resolution_manual`](support_resolution_manual/) | See a support-ops workflow: tickets and response notes to a support manual. | OpenAI runner, `OPENAI_API_KEY` required for `build`. | `fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual` |
 

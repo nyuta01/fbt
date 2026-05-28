@@ -1,0 +1,16 @@
+transforms:
+  - name: data_tool_brief
+    type: command
+    runner: local.command
+    command: ["bin/build-data-tool-brief"]
+    inputs:
+      - source: dbt.run_results
+      - source: dbt.manifest
+      - source: datachain.materialized_records
+      - source: datachain.stats
+    outputs:
+      - name: data_tool_brief
+        type: markdown
+        path: target/artifacts/data/data_tool_brief.md
+    policy: data_tool_brief_scope
+    tags: ["data_tool_interop", "dbt", "datachain"]

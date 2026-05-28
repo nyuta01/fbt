@@ -62,6 +62,11 @@ wrap remark-style and Pandoc-style document tools through the external command
 runner. fbt records the resulting artifact versions and lineage; document
 processing remains outside core.
 
+`examples/data_tool_interop` demonstrates dbt/DataChain interoperability by
+treating dbt run artifacts and DataChain job outputs as fbt sources for a
+versioned Markdown brief. Warehouse transformations and dataset materialization
+remain outside core.
+
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
 OpenLineage/OTel export language. Remaining review/approval command references
@@ -73,6 +78,8 @@ The checked-in examples cover:
   runners.
 - `examples/daily_qa_ops`: daily source-growth workflow with stable inbox
   directories and multiple outputs.
+- `examples/data_tool_interop`: dbt/DataChain output files to a versioned
+  operational brief through a command transform.
 - `examples/incident_response_runbook`: optional OpenAI runner flow for turning
   incident evidence into a runbook.
 - `examples/support_resolution_manual`: optional OpenAI runner flow for turning
@@ -98,7 +105,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-005` to add dbt and DataChain interoperability examples.
+1. Run `FBT-UNIX-006` to provide a minimal runner adapter scaffold.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

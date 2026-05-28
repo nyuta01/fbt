@@ -1,0 +1,12 @@
+policies:
+  - name: data_tool_brief_scope
+    read:
+      - data/dbt/
+      - data/datachain/
+    write:
+      - .fbt/work/
+      - target/artifacts/
+    network: false
+    limits:
+      timeout_seconds: 120
+      max_output_bytes: 1048576

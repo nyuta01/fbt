@@ -140,6 +140,19 @@ fbt build --project-dir examples/markdown_toolchain --select remark_markdown
 fbt build --project-dir examples/markdown_toolchain --select pandoc_handbook
 ```
 
+Use the same pattern when the existing tool writes files that fbt should treat
+as sources. The dbt/DataChain interoperability example consumes dbt run
+artifacts and DataChain job outputs, then builds a Markdown brief:
+
+```sh
+fbt plan --project-dir examples/data_tool_interop --select data_tool_brief
+fbt build --project-dir examples/data_tool_interop --select data_tool_brief
+fbt artifact explain data_tool_brief --project-dir examples/data_tool_interop
+```
+
+dbt still owns warehouse transformation. DataChain still owns dataset
+materialization. fbt owns the generated file artifact receipt.
+
 ## 7. Review And Publishing Boundary
 
 fbt deliberately does not implement `review`, `approve`, or `reject` commands.

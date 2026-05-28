@@ -91,8 +91,32 @@ check_markdown_toolchain() {
   grep -q "type: fbt.artifact.pdf_document.v1" "$tmpdir/$name-handbook.txt"
 }
 
+check_data_tool_interop() {
+  local source_dir="examples/data_tool_interop"
+  local name="data_tool_interop"
+  local project="$tmpdir/$name"
+  cp -R "$source_dir" "$project"
+
+  perl -0pi -e 's/(command: bin\/fbt-command-runner\n)/$1    env:\n      - FBT_SOURCE_ROOT\n/g' "$project/fs_project.yml"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select data_tool_brief >"$tmpdir/$name-plan.txt"
+  grep -q "Plan: 1 selected, 1 run, 0 skipped, 0 blocked" "$tmpdir/$name-plan.txt"
+  grep -q "run transform.data_tool_interop.data_tool_brief" "$tmpdir/$name-plan.txt"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select data_tool_brief >"$tmpdir/$name-build.txt"
+  grep -q "success transform.data_tool_interop.data_tool_brief" "$tmpdir/$name-build.txt"
+  test -f "$project/target/artifacts/data/data_tool_brief.md"
+  grep -q "dbt owned warehouse transformation" "$project/target/artifacts/data/data_tool_brief.md"
+  grep -q "DataChain owned dataset materialization" "$project/target/artifacts/data/data_tool_brief.md"
+
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact explain data_tool_brief --project-dir "$project" >"$tmpdir/$name-explain.txt"
+  grep -q "input: source.data_tool_interop.dbt.run_results" "$tmpdir/$name-explain.txt"
+  grep -q "input: source.data_tool_interop.datachain.materialized_records" "$tmpdir/$name-explain.txt"
+}
+
 check_daily_qa_ops
 check_markdown_toolchain
+check_data_tool_interop
 check_example "examples/incident_response_runbook" "incident_response_runbook"
 check_example "examples/support_resolution_manual" "support_resolution_manual"
 
