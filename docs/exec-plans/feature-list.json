@@ -1422,6 +1422,30 @@
       "notes": "Adds an Astro/Starlight documentation site modeled after Folio's docs structure, with intro, get-started, CLI, runners, lineage/standards, and reference sections. GitHub Pages deployment and docs-site build are wired into the verification gate."
     },
     {
+      "id": "FBT-README-001",
+      "title": "Refresh README using Folio structure",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCSITE-001",
+        "FBT-REL-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-README-001-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-README-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Reworks the top-level README after Folio's public README pattern: centered identity, badges, short product definition, surfaces, docs, quickstart, install table, examples, lineage, releases, and repository harness."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

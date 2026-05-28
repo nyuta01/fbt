@@ -1,174 +1,197 @@
-# fbt
+<p align="center">
+  <img src="https://raw.githubusercontent.com/nyuta01/fbt/main/apps/docs/public/favicon.svg" alt="fbt" width="96" height="96" />
+</p>
 
-Status: MVP v0.1.0 released
-Created: 2026-05-28  
-Service name: `fbt`  
-Scope: a filesystem transformation control plane for unstructured and semi-structured documents
+<h1 align="center">fbt</h1>
 
-`fbt` stands for **file build tool**. It is designed as a lightweight, local-first control plane for transforming filesystem artifacts such as Markdown, Word, Excel, PDF, logs, chats, tickets, investigation notes, and generated reports.
+<p align="center">
+<a href="https://github.com/nyuta01/fbt/releases/tag/v0.1.0"><img alt="Release" src="https://img.shields.io/github/v/release/nyuta01/fbt?label=fbt"></a>
+<a href="https://nyuta01.github.io/fbt/"><img alt="Docs" src="https://img.shields.io/badge/docs-GitHub%20Pages-0f766e"></a>
+<a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue.svg"></a>
+<a href="https://github.com/nyuta01/fbt/actions/workflows/verify.yml"><img alt="verify" src="https://img.shields.io/github/actions/workflow/status/nyuta01/fbt/verify.yml?branch=main&label=verify"></a>
+</p>
 
-`fbt` does not implement document conversion, OCR, LLM calls, or agent runtimes inside the core. Transform execution is delegated to external runners and plugins. The core manages project definitions, dependency graphs, state, artifact versions, evals, review and approval state, lineage, and the runner protocol.
+Local-first file build tool for knowledge artifacts.
 
-## Quick Start
+`fbt` is a lightweight control plane for transforming filesystem artifacts:
+logs, tickets, Markdown, Word, Excel, PDFs, prompts, rubrics, investigation
+notes, generated runbooks, reports, and manuals.
 
-Runnable local MVP flow from a source checkout:
-
-```sh
-fbt init knowledge_ops --template support
-fbt parse --project-dir knowledge_ops
-fbt plan --project-dir knowledge_ops --select tag:support
-fbt build --project-dir knowledge_ops --select case_summaries
-fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
-fbt build --project-dir knowledge_ops --select weekly_support_insights
-fbt docs generate --project-dir knowledge_ops
-```
-
-Implementation status: the CLI implements `help`, `version`, `init`, `parse`,
-`plan`, `build`, `eval`, `review`, `diff`, `docs`, `state`, `artifact`, and
-`runner` diagnostics. The local MVP includes protocol runners, deterministic
-evals, pending review gates, approval state, confidence promotion, immutable
-artifact versions, artifact diffing, static docs generation, runnable templates,
-and conformance plus local release-binary checks. Optional deterministic demo
-LLM and agent runner examples live under `runners/` without provider SDK
-dependencies. The optional `runners/openai` adapter is an out-of-core external
-runner used by the practical examples when `OPENAI_API_KEY` is provided.
-
-The base runtime works with only the local filesystem.
-
-- No daemon
-- No scheduler
-- No required metadata database
-- No required web server
-- No required cloud account
-- Runners and plugins are externalized only as needed
-
-## Documentation Map
-
-Start here:
-
-| Document | Purpose |
-|---|---|
-| [Usage Guide](docs/usage-guide.md) | End-to-end workflow from project initialization to build, review, and docs generation |
-| [Docs Site Source](apps/docs/README.md) | Folio-inspired Astro/Starlight documentation site for GitHub Pages |
-| [Knowledge Loop Example](docs/examples/knowledge-loop-example.md) | Customer support, incident response, and agile management examples |
-| [Practical Manual Generation Examples](docs/examples/practical-manual-generation-examples.md) | External-runner examples for incident runbooks and support manuals |
-| [Design Doc](docs/design-doc.md) | Background, principles, architecture, roadmap, and remaining decisions |
-
-Specifications:
-
-| Document | Purpose |
-|---|---|
-| [Core Spec](docs/spec.md) | Overall `fbt` semantics |
-| [Project Config Spec](docs/project-config-spec.md) | `fs_project.yml` and resource YAML definitions |
-| [CLI Reference](docs/cli-reference.md) | Commands, flags, selection syntax, exit codes |
-| [Manifest Spec](docs/manifest-spec.md) | Canonical graph metadata produced by parsing |
-| [State and Run Results Spec](docs/state-and-run-results-spec.md) | Local state, run results, artifact versions, approvals, eval and policy records |
-| [Runner Protocol Spec](docs/runner-protocol-spec.md) | JSON-RPC protocol between `fbt-core` and external runners |
-| [Runner Authoring Guide](docs/runner-authoring-guide.md) | Practical runner implementation checklist and protocol conformance harness |
-| [Runner Adapter Packaging](docs/runner-adapters.md) | Optional provider and CLI-agent adapter package conventions outside core |
-| [Schema and Versioning Spec](docs/schema-and-versioning-spec.md) | Config versioning, schema compatibility, artifact type registry, descriptor rules |
-| [Runner Discovery Spec](docs/runner-discovery-spec.md) | Runner resolution, plugin manifest shape, and diagnostics |
-| [Security and Conformance Spec](docs/security-and-conformance-spec.md) | Core security model and MVP conformance scenarios |
-| [Standard Export Spec](docs/standard-export-spec.md) | OpenLineage, OpenTelemetry, OpenMetadata, and visualization export contracts |
-| [Standard Visualization Guide](docs/standard-visualization-guide.md) | Marquez/OpenLineage and OTel backend visualization recipes |
-
-Research:
-
-| Document | Purpose |
-|---|---|
-| [dbt Core Overview Report](docs/research/dbt-core-overview-report.md) | dbt-core architecture and sources of advantage |
-| [Related Landscape Report](docs/research/related-landscape-report.md) | Similar tools, adjacent categories, and differentiation |
-| [Naming and Standards Research](docs/research/fbt-naming-and-spec-standards-research.md) | Naming, standards, lineage/provenance, runner protocol research |
-| [OpenMetadata Catalog Export Evaluation](docs/research/openmetadata-catalog-export-evaluation.md) | Decision on OpenMetadata integration through OpenLineage ingestion |
-
-## Core Concepts
-
-| Concept | Meaning |
-|---|---|
-| `source` | External input file or directory |
-| `artifact` | Logical output managed by the project |
-| `artifact_version` | Immutable content snapshot identified by `descriptor.digest` |
-| `transform` | Contract that turns input artifacts into output artifacts |
-| `transform_run` | Concrete execution activity for a transform |
-| `transform_asset` | Prompt, template, script, style guide, rubric, example, schema, or config that affects a transform |
-| `policy` | Read/write scope, tool, network, cost, and review constraints |
-| `eval` | Deterministic, semantic, LLM-judge, or human-review quality check |
-| `runner` | External process or plugin that executes transform logic |
-
-## Standard Project Layout
+It is not an LLM provider, document converter, OCR engine, or agent runtime.
+Those capabilities live behind external runners. fbt core owns the project
+graph, planning, local state, artifact versions, evals, review gates, lineage,
+and standard exports.
 
 ```text
-fs_project.yml
-sources/
-transforms/
-prompts/
-assets/
-policies/
-evals/
-target/
-.fbt/
+project/
+├── fs_project.yml        # project contract and paths
+├── sources/              # read-only input declarations
+├── transforms/           # outputs, refs, runner, assets, policy, evals
+├── prompts/              # prompt assets for LLM/agent runners
+├── assets/               # style guides, schemas, rubrics, examples
+├── policies/             # read/write/network/review constraints
+├── evals/                # deterministic checks and review gates
+├── target/               # materialized artifact files
+└── .fbt/state/           # manifest, run results, versions, approvals
 ```
 
-Minimal project config:
+## Surfaces
 
-```yaml
-name: knowledge_ops
-config_version: 1
-version: 0.1.0
+- **`fbt`** - Go CLI for init, parse, doctor, plan, build, eval,
+  review, diff, docs, state, artifact inspection, runner diagnostics, and
+  standard exports.
+- **`apps/docs`** - Astro/Starlight documentation site published at
+  [nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).
+- **External runners** - protocol adapters for scripts, provider APIs, and CLI
+  agents such as OpenAI, Claude Code, Codex, Claude, and Gemini.
 
-source_paths: ["sources"]
-transform_paths: ["transforms"]
-asset_paths: ["prompts", "assets"]
-policy_paths: ["policies"]
-eval_paths: ["evals"]
+## Documentation
 
-target_path: "target"
-artifact_path: "target/artifacts"
+User-facing documentation lives in [`apps/docs/`](apps/docs/README.md).
 
-state:
-  backend: local
-  path: .fbt/state
+```bash
+cd apps/docs
+npm ci
+npm run dev      # -> http://127.0.0.1:4321/fbt
 ```
 
-## Positioning
+Canonical source docs:
 
-`fbt` is not an AI agent runner. It is the control plane for filesystem artifacts generated or updated by transforms, including AI agent transforms.
+- [Usage guide](docs/usage-guide.md) - end-to-end local workflow
+- [Design doc](docs/design-doc.md) - product principles and architecture
+- [Core spec](docs/spec.md) - overall fbt semantics
+- [CLI reference](docs/cli-reference.md) - commands, flags, selectors, exits
+- [Project config spec](docs/project-config-spec.md) - `fs_project.yml` and resources
+- [Schema and versioning spec](docs/schema-and-versioning-spec.md) - config and artifact version rules
+- [Runner discovery spec](docs/runner-discovery-spec.md) - runner resolution and plugins
+- [Runner protocol spec](docs/runner-protocol-spec.md) - core/runner boundary
+- [Runner authoring guide](docs/runner-authoring-guide.md) - implementation checklist
+- [Security and conformance spec](docs/security-and-conformance-spec.md) - trust boundary and MVP checks
+- [Standard export spec](docs/standard-export-spec.md) - OpenLineage and OTel contracts
+- [Practical examples](docs/examples/practical-manual-generation-examples.md) - incident runbooks and support manuals
 
-Mapping to dbt:
+## Quickstart
 
-| dbt | fbt |
+```bash
+fbt init knowledge_ops --template support
+
+fbt parse --project-dir knowledge_ops
+fbt doctor --project-dir knowledge_ops
+fbt plan --project-dir knowledge_ops --select tag:support
+
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries \
+  --project-dir knowledge_ops \
+  --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+
+fbt docs generate --project-dir knowledge_ops
+fbt artifact history case_summaries --project-dir knowledge_ops
+```
+
+The generated support project uses deterministic demo runners so the loop runs
+offline from a source checkout. Replace those runners with external adapters for
+provider-backed execution.
+
+## Install
+
+Download the current release from
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0).
+
+| Platform | Asset |
 |---|---|
-| Warehouse relation | Filesystem artifact |
-| Model | Transform |
-| Adapter / materialization | Runner / plugin |
-| SQL | Transform assets, code, LLM, agent, converter |
-| `ref()` | Upstream artifact reference |
-| `source()` | External file source |
-| Data test | Artifact eval, document eval, LLM judge, human approval |
-| `manifest.json` | Filesystem transformation manifest |
-| `run_results.json` | Transform and eval execution results |
-| Docs | Artifact lineage, eval report, review state |
+| macOS (Apple Silicon) | `fbt_0.1.0_darwin_arm64.tar.gz` |
+| macOS (Intel) | `fbt_0.1.0_darwin_amd64.tar.gz` |
+| Linux (arm64) | `fbt_0.1.0_linux_arm64.tar.gz` |
+| Linux (amd64) | `fbt_0.1.0_linux_amd64.tar.gz` |
+| Windows (arm64) | `fbt_0.1.0_windows_arm64.zip` |
+| Windows (amd64) | `fbt_0.1.0_windows_amd64.zip` |
 
-## Non-Goals
+Verify a download:
 
-- Becoming a general-purpose workflow orchestrator
-- Implementing document conversion, OCR, LLM providers, or agent runtimes in core
-- Requiring a daemon, scheduler, metadata database, web server, or cloud account
-- Promising full reproducibility for stochastic AI transformations
-- Replacing a CMS, knowledge base, ticket system, or document editor
+```bash
+shasum -a 256 -c SHA256SUMS
+```
 
-## Current Status
+Or build from source:
 
-This repository contains the MVP implementation and source-of-truth
-specifications. It includes the Go CLI, project/resource parsing, manifest graph
-generation, descriptor and state primitives, dirty-state planning, runner
-discovery diagnostics, protocol runners, deterministic evals, review gates,
-artifact approvals, immutable artifact version storage, local templates,
-artifact diffs, static Markdown project docs, and an Astro/Starlight docs site
-under `apps/docs`. `make verify` runs harness, docs, Go, CLI smoke,
-knowledge-loop smoke, docs-site build, runner conformance, product conformance,
-and local release-binary checks.
+```bash
+git clone https://github.com/nyuta01/fbt.git
+cd fbt
+make build
+./bin/fbt version
+```
 
-The MVP release is published at
-`https://github.com/nyuta01/fbt/releases/tag/v0.1.0` with signed tag
-verification, cross-platform CLI archives, and `SHA256SUMS`.
+## Examples
+
+- [Knowledge operations](examples/knowledge_ops/README.md) - local support
+  knowledge loop with demo runners.
+- [Incident response runbook](examples/incident_response_runbook/README.md) -
+  incident logs and response notes to a reviewed runbook.
+- [Support resolution manual](examples/support_resolution_manual/README.md) -
+  inquiry and response logs to a support manual.
+
+The practical examples can use the optional OpenAI Responses runner under
+`runners/openai` when `OPENAI_API_KEY` is set.
+
+## Lineage and standards
+
+fbt records local lineage for sources, transform assets, runs, output
+candidates, artifact versions, evals, approvals, and policy decisions.
+
+```bash
+fbt artifact show case_summaries --project-dir knowledge_ops
+fbt artifact history case_summaries --project-dir knowledge_ops
+fbt export openlineage --project-dir knowledge_ops
+fbt export otel --project-dir knowledge_ops
+```
+
+OpenLineage output is intended for Marquez and OpenMetadata ingestion paths.
+OTLP/JSON output is intended for trace backends such as Jaeger, Tempo, and
+Grafana.
+
+## Releases
+
+The current MVP release is
+[`v0.1.0`](https://github.com/nyuta01/fbt/releases/tag/v0.1.0).
+
+Release integrity:
+
+- the release tag is signed with Git SSH signing
+- `make verify` passed before publication
+- GitHub Actions `verify` passed for `main` and `v0.1.0`
+- release archives and `SHA256SUMS` are attached to the GitHub Release
+
+Future releases should be cut from a clean tree:
+
+```bash
+make verify
+git tag -s vX.Y.Z -m "fbt vX.Y.Z"
+git push origin main
+git push origin vX.Y.Z
+```
+
+## Repository harness
+
+This repository follows an AI-first operating model: compact router docs,
+structured task state, active execution plans, and one deterministic
+verification gate.
+
+```bash
+make agent-init   # restart context for the next agent
+make verify       # harness + drift + docs + Go + CLI/e2e smokes
+                  # + docs-site build + runner/product conformance
+                  # + local release-binary smoke
+```
+
+See [AGENTS.md](AGENTS.md),
+[harness engineering](docs/methodology/harness-engineering.md), and
+[self-PDCA loop](docs/methodology/self-pdca-loop.md) for the operating model.
+
+## Non-goals
+
+- becoming a general-purpose workflow orchestrator
+- implementing document conversion, OCR, LLM providers, or agent runtimes in core
+- requiring a daemon, scheduler, metadata database, web server, or cloud account
+- promising full reproducibility for stochastic AI transformations
+- replacing a CMS, knowledge base, ticket system, or document editor

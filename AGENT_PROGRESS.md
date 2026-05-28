@@ -13,6 +13,9 @@ review approvals, confidence promotion, init templates, a runnable local
 knowledge-loop example, practical external-runner manual-generation examples,
 artifact diffing, static Markdown docs generation, and a Folio-inspired
 Astro/Starlight docs site under `apps/docs`.
+The top-level README now follows the Folio public-entry structure with centered
+identity, badges, surfaces, docs, quickstart, install, examples, lineage,
+release, and harness sections.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
