@@ -149,8 +149,8 @@ commit artifact versions, and update local state.
 
 ### Inspect And Export
 
-Use `fbt artifact`, `fbt diff`, `fbt docs generate`, `fbt export openlineage`,
-and `fbt export otel` to inspect the result or pass metadata to existing tools.
+Use `fbt artifact`, `fbt diff`, `fbt export openlineage`, and `fbt export otel`
+to inspect the result or pass metadata to existing tools.
 
 ## 8. Runner Protocol
 
@@ -195,7 +195,6 @@ internal/artifact   descriptors and artifact store
 internal/runner     runner discovery and protocol client
 internal/eval       eval execution
 internal/lineage    OpenLineage and OTel exports
-internal/docs       generated local docs
 internal/diff       artifact diffs
 runners/            optional external runner implementations
 ```

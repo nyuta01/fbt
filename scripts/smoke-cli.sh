@@ -90,10 +90,6 @@ YAML
 printf '{}\n' >"$project/data/support/tickets/2026-05-28.jsonl"
 printf '# Task\n' >"$project/prompts/case_summary.md"
 
-go run ./cmd/fbt parse --project-dir "$project" >"$tmpdir/parse.txt"
-grep -q "Manifest written" "$tmpdir/parse.txt"
-test -f "$project/.fbt/state/manifest.json"
-
 go run ./cmd/fbt doctor --project-dir "$project" >"$tmpdir/doctor.txt"
 grep -q "Doctor: ok" "$tmpdir/doctor.txt"
 grep -q "RUNNER_PROTOCOL_OK" "$tmpdir/doctor.txt"
@@ -101,23 +97,15 @@ grep -q "RUNNER_PROTOCOL_OK" "$tmpdir/doctor.txt"
 go run ./cmd/fbt plan --project-dir "$project" --select tag:support >"$tmpdir/plan.txt"
 grep -q "Plan: 1 selected" "$tmpdir/plan.txt"
 grep -q "run transform.knowledge_ops.case_summaries" "$tmpdir/plan.txt"
-
-go run ./cmd/fbt state status --project-dir "$project" >"$tmpdir/state.txt"
-grep -q "State dir:" "$tmpdir/state.txt"
+test -f "$project/.fbt/state/manifest.json"
 
 go run ./cmd/fbt artifact ls --project-dir "$project" >"$tmpdir/artifact-ls.txt"
-
-go run ./cmd/fbt runner list --project-dir "$project" >"$tmpdir/runner-list.txt"
-grep -q "openai.responses" "$tmpdir/runner-list.txt"
 
 go run ./cmd/fbt build --project-dir "$project" >"$tmpdir/build.txt"
 grep -q "committed:" "$tmpdir/build.txt"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
 go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
 grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
-
-go run ./cmd/fbt eval case_summaries --project-dir "$project" >"$tmpdir/eval.txt"
-grep -q "pass eval.knowledge_ops.required_case_sections" "$tmpdir/eval.txt"
 
 go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
@@ -130,11 +118,13 @@ grep -q '"resourceSpans"' "$tmpdir/otel.json"
 grep -q '"fbt.transform.id"' "$tmpdir/otel.json"
 grep -q '"progress"' "$tmpdir/otel.json"
 
-if go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review.out" 2>"$tmpdir/review.err"; then
-  echo "review should not be part of the fbt command surface" >&2
-  exit 1
-fi
-grep -q "unknown command: review" "$tmpdir/review.err"
+for command in parse eval docs state runner review; do
+  if go run ./cmd/fbt "$command" --project-dir "$project" >"$tmpdir/$command.out" 2>"$tmpdir/$command.err"; then
+    echo "$command should not be part of the fbt command surface" >&2
+    exit 1
+  fi
+  grep -q "unknown command: $command" "$tmpdir/$command.err"
+done
 
 if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
   echo "expected fbt run to be outside the MVP command surface" >&2

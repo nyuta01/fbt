@@ -15,9 +15,6 @@ check_example() {
   local project="$tmpdir/$name"
   cp -R "$source_dir" "$project"
 
-  go run ./cmd/fbt parse --project-dir "$project" >"$tmpdir/$name-parse.txt"
-  grep -q "Manifest written" "$tmpdir/$name-parse.txt"
-
   go run ./cmd/fbt plan --project-dir "$project" --select "$selector" >"$tmpdir/$name-plan.txt"
   grep -q "Plan: 1 selected" "$tmpdir/$name-plan.txt"
   grep -q "run transform" "$tmpdir/$name-plan.txt"
@@ -32,9 +29,6 @@ check_daily_qa_ops() {
   # The checked-in wrapper resolves the source checkout when run in-place.
   # The smoke runs from a copied project, so pass the source checkout explicitly.
   perl -0pi -e 's/(command: bin\/fbt-demo-(?:llm|agent)-runner\n)/$1    env:\n      - FBT_SOURCE_ROOT\n/g' "$project/fs_project.yml"
-
-  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt parse --project-dir "$project" >"$tmpdir/$name-parse.txt"
-  grep -q "Manifest written" "$tmpdir/$name-parse.txt"
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select tag:daily_qa >"$tmpdir/$name-plan.txt"
   grep -q "Plan: 2 selected, 1 run, 0 skipped, 1 blocked" "$tmpdir/$name-plan.txt"

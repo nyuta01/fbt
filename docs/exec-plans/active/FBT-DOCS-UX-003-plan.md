@@ -10,8 +10,8 @@ general fbt architecture walkthrough.
 ## Decision
 
 Define quickstart as a small control-plane acceptance demo. The support
-template is only a fixture used to demonstrate parse, doctor, plan, build,
-artifact versioning, review gating, local inspection, and standard exports.
+template is only a fixture used to demonstrate doctor, plan, build, artifact
+versioning, local inspection, and standard exports.
 
 ## Permanent Fix
 

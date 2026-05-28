@@ -28,7 +28,7 @@ fbt export openlineage
 |---|---|
 | `--project-dir PATH` | Directory containing `fs_project.yml`; defaults to the current directory |
 | `--state-dir PATH` | Local state directory; defaults to `.fbt/state` |
-| `--select EXPR` | Select transforms for `plan`, `build`, and `eval` |
+| `--select EXPR` | Select transforms for `plan` and `build` |
 | `--json` | Machine-readable JSON output |
 
 MVP does not accept `--exclude`, `--target`, `--vars`, `--dry-run`,
@@ -104,17 +104,7 @@ The runnable templates include deterministic `demo.*` runner wrappers for local
 smoke runs from a source checkout. Replace them with external runner commands
 for real provider-backed execution.
 
-### 5.2 fbt parse
-
-Advanced command for tooling and debugging. Parse project files and generate
-`.fbt/state/manifest.json`. Does not start runners. Most users should use
-`fbt doctor` or `fbt plan`; both parse the project internally.
-
-```sh
-fbt parse
-```
-
-### 5.3 fbt plan
+### 5.2 fbt plan
 
 Compare current manifest and state to show what will run.
 
@@ -139,7 +129,7 @@ blocked transform.knowledge_ops.weekly_support_insights
   next: fbt build --select case_summaries
 ```
 
-### 5.4 fbt build
+### 5.3 fbt build
 
 Run the lifecycle.
 
@@ -153,22 +143,7 @@ Lifecycle:
 parse -> plan -> run external runner -> eval -> commit -> write state
 ```
 
-### 5.5 fbt eval
-
-Advanced command. Re-run evals against an artifact or artifact version.
-
-```sh
-fbt eval TARGET [--select EVAL_EXPR]
-```
-
-MVP behavior:
-
-- deterministic evals run in core against the selected artifact version
-- semantic and LLM-judge evals are recorded as `skipped` until delegated eval
-  runners are implemented
-- failed deterministic evals return exit code `1`
-
-### 5.6 fbt diff
+### 5.4 fbt diff
 
 Show differences between artifact versions.
 
@@ -183,30 +158,7 @@ fbt diff TARGET [--against REF]
 
 MVP supports raw text diff and Markdown heading-aware diff.
 
-### 5.7 fbt docs generate
-
-Generate static Markdown docs from local state. This is a local report helper,
-not the main fbt artifact workflow.
-
-```sh
-fbt docs generate
-```
-
-Docs include graph lineage, runner/model metadata, confidence, artifact
-versions, eval results, policy decisions, and diff links.
-
-### 5.8 fbt state
-
-Advanced command for inspecting local state files. Prefer `fbt artifact` for
-normal artifact inspection.
-
-```sh
-fbt state status
-fbt state ls
-fbt state current TARGET
-```
-
-### 5.9 fbt artifact
+### 5.5 fbt artifact
 
 Inspect artifacts and versions.
 
@@ -216,7 +168,6 @@ fbt artifact path TARGET
 fbt artifact show TARGET
 fbt artifact explain TARGET
 fbt artifact history TARGET
-fbt artifact versions TARGET
 ```
 
 `artifact path` prints the logical output path and immutable storage path for
@@ -225,22 +176,7 @@ logical path, immutable storage path, digest, runner/model, confidence,
 generating run, and semantic descriptors when available. `artifact history`
 lists prior versions for the same logical artifact.
 
-### 5.10 fbt runner
-
-Advanced command for runner authors and debugging. Normal users should start
-with `fbt doctor`.
-
-```sh
-fbt runner list
-fbt runner doctor [RUNNER_NAME]
-fbt runner validate RUNNER_NAME
-```
-
-Runner discovery order is project config, project-local plugin manifest,
-user-local plugin manifest, then `PATH` convention. See
-[Runner Discovery Spec](runner-discovery-spec.md).
-
-### 5.11 fbt doctor
+### 5.6 fbt doctor
 
 Run a project readiness check.
 
@@ -251,7 +187,7 @@ fbt doctor
 Checks project config parsing, state writability/lock acquisition, runner
 discovery, executable availability, and runner protocol `initialize`.
 
-### 5.12 Standard exports
+### 5.7 Standard exports
 
 ```sh
 fbt export openlineage [--output PATH]
@@ -320,7 +256,8 @@ The main user-facing path stays small:
 - `fbt diff`
 - `fbt export`
 
-`parse`, `eval`, `docs`, `state`, and `runner` are advanced or diagnostic
-commands. `fbt` does not own human review or approval workflows; use Git, PRs,
-CI, release tooling, or catalog systems around the files and standard exports
-that fbt produces.
+`parse`, `eval`, `docs`, `state`, and `runner` are not public commands. Their
+former responsibilities happen inside `doctor`, `plan`, `build`, and
+`artifact`. `fbt` does not own human review or approval workflows; use Git,
+PRs, CI, release tooling, or catalog systems around the files and standard
+exports that fbt produces.

@@ -16,9 +16,6 @@ cd "$tmpdir"
 "$fbt_bin" init "$project" --template support >"$tmpdir/init.txt"
 grep -q "Initialized support project" "$tmpdir/init.txt"
 
-"$fbt_bin" parse --project-dir "$project" >"$tmpdir/parse.txt"
-grep -q "Manifest written" "$tmpdir/parse.txt"
-
 "$fbt_bin" doctor --project-dir "$project" >"$tmpdir/doctor.txt"
 grep -q "Doctor: ok" "$tmpdir/doctor.txt"
 
@@ -50,9 +47,5 @@ grep -q "current_version: artifact_version.knowledge_ops.case_summaries" "$tmpdi
 "$fbt_bin" build --project-dir "$project" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
 grep -q "committed:" "$tmpdir/build-weekly.txt"
 test -f "$project/target/artifacts/support/weekly_insights.md"
-
-"$fbt_bin" docs generate --project-dir "$project" >"$tmpdir/docs.txt"
-grep -q "Docs written" "$tmpdir/docs.txt"
-test -f "$project/target/docs/index.md"
 
 echo "knowledge-loop-smoke: ok"

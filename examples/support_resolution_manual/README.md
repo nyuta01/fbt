@@ -45,10 +45,12 @@ fbt artifact history support_resolution_manual --project-dir examples/support_re
 fbt artifact explain support_resolution_manual --project-dir examples/support_resolution_manual
 ```
 
-Generate local docs:
+Export standard lineage:
 
 ```sh
-fbt docs generate --project-dir examples/support_resolution_manual
+fbt export openlineage \
+  --project-dir examples/support_resolution_manual \
+  --output examples/support_resolution_manual/target/lineage/openlineage.ndjson
 ```
 
 Human approval and publishing should happen in Git, PR, CI, release, or catalog

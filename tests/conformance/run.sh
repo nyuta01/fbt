@@ -19,11 +19,11 @@ cat >"$schema_missing/fs_project.yml" <<'YAML'
 name: schema_missing
 YAML
 set +e
-"$FBT_BIN" parse --project-dir "$schema_missing" >"$tmpdir/schema-missing.out" 2>"$tmpdir/schema-missing.err"
+"$FBT_BIN" plan --project-dir "$schema_missing" >"$tmpdir/schema-missing.out" 2>"$tmpdir/schema-missing.err"
 schema_missing_code=$?
 set -e
 if [[ "$schema_missing_code" -ne 2 ]]; then
-  echo "expected missing config_version parse exit code 2, got $schema_missing_code" >&2
+  echo "expected missing config_version plan exit code 2, got $schema_missing_code" >&2
   exit 1
 fi
 grep -q "CONFIG_VERSION_MISSING" "$tmpdir/schema-missing.err"
@@ -35,11 +35,11 @@ name: schema_unsupported
 config_version: 999
 YAML
 set +e
-"$FBT_BIN" parse --project-dir "$schema_unsupported" >"$tmpdir/schema-unsupported.out" 2>"$tmpdir/schema-unsupported.err"
+"$FBT_BIN" plan --project-dir "$schema_unsupported" >"$tmpdir/schema-unsupported.out" 2>"$tmpdir/schema-unsupported.err"
 schema_unsupported_code=$?
 set -e
 if [[ "$schema_unsupported_code" -ne 2 ]]; then
-  echo "expected unsupported config_version parse exit code 2, got $schema_unsupported_code" >&2
+  echo "expected unsupported config_version plan exit code 2, got $schema_unsupported_code" >&2
   exit 1
 fi
 grep -q "CONFIG_VERSION_UNSUPPORTED" "$tmpdir/schema-unsupported.err"
@@ -101,13 +101,6 @@ fi
 grep -q "output candidate outside work outputs" "$tmpdir/build-candidate-escape.err"
 if [[ -e "$candidate_escape/target/artifacts/support/case_summaries/index.md" ]]; then
   echo "outside-work output candidate was committed" >&2
-  exit 1
-fi
-
-"$FBT_BIN" docs generate --project-dir "$happy" >"$tmpdir/docs.txt"
-test -f "$happy/target/docs/index.md"
-if grep -R "$redaction_marker" "$happy/target/docs" >/dev/null; then
-  echo "docs leaked redaction marker" >&2
   exit 1
 fi
 

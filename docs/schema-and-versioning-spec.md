@@ -41,11 +41,13 @@ project files and resource definitions.
 MVP rules:
 
 - `config_version: 1` is required.
-- Missing or unsupported `config_version` fails parse with exit code `2`.
+- Missing or unsupported `config_version` fails project parsing with exit code
+  `2`.
 - Generated project files must include `config_version: 1`.
 - Draft-period aliases may be accepted only when they can be normalized without
   ambiguity.
-- Generated manifests and docs must use canonical `snake_case` field names.
+- Generated manifests and standard exports must use canonical `snake_case`
+  field names where fbt owns the schema.
 
 ## 4. JSON Schema Versioning
 

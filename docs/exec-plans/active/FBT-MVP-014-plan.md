@@ -2,9 +2,9 @@
 
 ## Observation
 
-The CLI can parse, plan, build, eval, and review existing projects, but users
-still need to hand-create project files. The repository also lacks a committed
-example project that exercises the local build and review loop end to end.
+The CLI can plan and build existing projects, but users still need to
+hand-create project files. The repository also lacks a committed example
+project that exercises the local build loop end to end.
 
 ## Decision
 
@@ -15,8 +15,8 @@ Implement:
 - `fbt init [PROJECT_NAME] --template NAME [--force]`
 - local runner wrapper scripts in generated runnable templates
 - a committed `examples/knowledge_ops` project
-- an e2e smoke that initializes, builds, reviews, and builds a downstream
-  artifact without external services
+- an e2e smoke that initializes, builds a first artifact, and builds a
+  downstream artifact without external services
 
 ## Permanent Fix
 

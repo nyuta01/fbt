@@ -287,6 +287,27 @@ Command and subcommand argument validation now rejects unknown flags and extra
 positionals. Selectors that match no transforms now fail. Build selection uses
 the same selector semantics as plan, and CLI tests cover the typo cases.
 
+## F-015 Debug commands stayed public after the product boundary changed
+
+- **Status**: `fixed`
+- **Task**: `FBT-UNIX-013`
+- **Plan**: `docs/exec-plans/active/FBT-UNIX-013-plan.md`
+
+### Observation
+
+After removing review and tightening CLI validation, `parse`, `eval`, `docs`,
+`state`, `runner`, and the duplicate `artifact versions` alias still remained
+in the user-facing command surface. That contradicted the current product
+model: fbt should expose the small build-control loop, not every internal
+operation as a top-level command.
+
+### Permanent fix
+
+The public CLI is limited to `init`, `doctor`, `plan`, `build`, `artifact`,
+`diff`, `export`, `version`, and `help`. Parsing, evals, state writes, and
+runner diagnostics happen inside the primary commands. CLI tests and smoke
+checks now assert that pruned commands are unknown.
+
 ## Entry Template
 
 ```markdown

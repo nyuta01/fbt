@@ -46,10 +46,9 @@ fbt artifact history incident_response_runbook --project-dir examples/incident_r
 fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
 ```
 
-Generate local docs and standard lineage:
+Export standard lineage:
 
 ```sh
-fbt docs generate --project-dir examples/incident_response_runbook
 fbt export openlineage \
   --project-dir examples/incident_response_runbook \
   --output examples/incident_response_runbook/target/lineage/openlineage.ndjson

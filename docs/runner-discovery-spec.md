@@ -57,7 +57,7 @@ precedence level are an error.
 
 Relative commands in project config are resolved from the project directory.
 Absolute commands are allowed but reduce portability and should be reported by
-`fbt runner doctor`.
+`fbt doctor`.
 
 ## 4. Project Runner Config
 
@@ -97,7 +97,7 @@ from the parent `fbt` process. This preserves existing wrappers while allowing
 projects to opt into explicit working directories. Core passes a small base
 environment (`PATH`, `HOME`, user and temp directory variables when present)
 plus the declared `env` names. Missing declared environment variables are
-reported by `fbt runner doctor` and `fbt doctor` without printing values.
+reported by `fbt doctor` without printing values.
 
 ## 5. Plugin Manifest
 
@@ -156,9 +156,8 @@ Implemented validation checks:
 - `capabilities.output_candidates` must be `true` for build transforms because
   core only commits declared output candidates.
 
-`fbt doctor`, `fbt runner doctor`, and `fbt runner validate` report these checks
-as runner diagnostics. `fbt build` fails before transform execution when the
-selected runner is incompatible.
+`fbt doctor` reports these checks as runner diagnostics. `fbt build` fails
+before transform execution when the selected runner is incompatible.
 
 ## 7. Plugin Installation Semantics
 
@@ -179,14 +178,13 @@ When implemented, `plugin install` must:
 - write or update a plugin manifest
 - avoid mutating `fs_project.yml` unless `--save` is passed
 - never introduce in-process code loading into core
-- make the installed runner visible to `fbt runner list`
+- make the installed runner visible to `fbt doctor`
 
 Until then, users validate availability with:
 
 ```sh
-fbt runner list
-fbt runner doctor openai.responses
-fbt runner validate openai.responses
+fbt doctor
+FBT_RUNNER_CONFORMANCE_COMMAND='adapter-command' make runner-conformance
 ```
 
 Provider SDKs, CLI agent dependencies, and credential setup belong to those
@@ -195,15 +193,7 @@ are in [Runner Adapter Packaging](runner-adapters.md).
 
 ## 8. Diagnostics
 
-`fbt runner list` shows:
-
-- logical runner name
-- resolution source
-- command
-- args, cwd, and env names when configured
-- negotiated status if recently validated
-
-`fbt runner doctor RUNNER` checks:
+`fbt doctor` checks:
 
 - command exists and is executable
 - configured cwd exists and is a directory
@@ -212,8 +202,8 @@ are in [Runner Adapter Packaging](runner-adapters.md).
 - `initialize` succeeds
 - capabilities satisfy configured transforms
 
-`fbt runner validate RUNNER` performs protocol validation and exits non-zero on
-incompatibility.
+Runner authors should use `make runner-conformance` with
+`FBT_RUNNER_CONFORMANCE_COMMAND` for protocol validation outside a project.
 
 ## 9. Locking and Reproducibility
 

@@ -234,11 +234,11 @@
         "go_test": true,
         "cli_smoke": true
       },
-      "notes": "Selects runnable transforms, computes dirty reasons for source/assets/policy/eval/runner/model/effective/output changes, and reports blocked review/confidence requirements."
+      "notes": "Selects runnable transforms, computes dirty reasons for source/assets/policy/eval/runner/model/effective/output changes, and reports blocked confidence requirements."
     },
     {
       "id": "FBT-MVP-006",
-      "title": "Implement parse, plan, state, and artifact CLI surfaces",
+      "title": "Implement plan and artifact CLI surfaces",
       "priority": "P0",
       "status": "done",
       "owner": "agent",
@@ -258,7 +258,7 @@
         "go_test": true,
         "cli_smoke": true
       },
-      "notes": "Turns planned parse/plan/state/artifact commands into working inspection commands with human and JSON output, stable exit codes, manifest writes, and fixture-backed tests."
+      "notes": "Turns planned plan/artifact commands into working inspection commands with human and JSON output, stable exit codes, manifest writes, and fixture-backed tests. Public parse/state commands were removed by FBT-UNIX-013."
     },
     {
       "id": "FBT-MVP-007",
@@ -281,7 +281,7 @@
         "go_test": true,
         "cli_smoke": true
       },
-      "notes": "Resolves project runners, project/user plugin manifests, and PATH conventions; implements runner list/doctor/validate diagnostics and missing-runner exit code 6."
+      "notes": "Resolves project runners, project/user plugin manifests, and PATH conventions. Runner readiness now surfaces through `fbt doctor`; the older runner subcommands were removed by FBT-UNIX-013."
     },
     {
       "id": "FBT-MVP-008",
@@ -453,11 +453,11 @@
         "go_test": true,
         "e2e_smoke": true
       },
-      "notes": "Implements fbt init with blank/support/knowledge_ops/incident templates, adds committed examples/knowledge_ops, and verifies an init -> parse -> plan -> build -> review approve -> downstream build loop without external services."
+      "notes": "Implements fbt init with blank/support/knowledge_ops/incident templates, adds committed examples/knowledge_ops, and verifies an init -> plan -> build -> downstream build loop without external services."
     },
     {
       "id": "FBT-MVP-015",
-      "title": "Implement diff and docs generation",
+      "title": "Implement diff and artifact lineage inspection",
       "priority": "P0",
       "status": "done",
       "owner": "agent",
@@ -469,7 +469,6 @@
       "plan_url": "docs/exec-plans/active/FBT-MVP-015-plan.md",
       "paths": [
         "internal/diff",
-        "internal/docs",
         "docs/cli-reference.md"
       ],
       "verification": {
@@ -477,7 +476,7 @@
         "cli_smoke": true,
         "e2e_smoke": true
       },
-      "notes": "Adds raw text and Markdown heading-aware diff, fbt diff with previous/current-version resolution, fbt docs generate, static Markdown lineage docs, unit tests, CLI tests, and e2e docs smoke."
+      "notes": "Adds raw text and Markdown heading-aware diff plus `fbt diff` with previous/current-version resolution. The older built-in docs generator was removed from the public CLI by FBT-UNIX-013; standard exports and artifact inspection are the supported surfaces."
     },
     {
       "id": "FBT-MVP-016",
@@ -519,7 +518,7 @@
         "e2e_smoke": true,
         "dist_check": true
       },
-      "notes": "Adds executable conformance scenarios, local release binary dist check, and wires conformance/dist checks into make verify alongside init -> parse -> plan -> build -> eval -> review -> docs smoke coverage."
+      "notes": "Adds executable conformance scenarios, local release binary dist check, and wires conformance/dist checks into make verify alongside init -> doctor -> plan -> build -> artifact -> export smoke coverage."
     },
     {
       "id": "FBT-REL-001",
@@ -804,7 +803,7 @@
         "cli_smoke": true,
         "validate_docs": true
       },
-      "notes": "Strengthen `fbt parse`/validation output with line-oriented, actionable YAML diagnostics and consider narrow scaffolding for new transforms. User research analogs: Terraform validate, kubectl explain, and dbt parse/debug reduce config-authoring ambiguity before execution."
+      "notes": "Strengthen project validation output with line-oriented, actionable YAML diagnostics in `fbt doctor`, `fbt plan`, and `fbt build`; consider narrow scaffolding for new transforms. User research analogs: Terraform validate, kubectl explain, and dbt parse/debug reduce config-authoring ambiguity before execution."
     },
     {
       "id": "FBT-STD-000",
@@ -1046,7 +1045,7 @@
         "cli_smoke": true,
         "validate_docs": true
       },
-      "notes": "Closed the MVP command surface by removing `run` and `debug` placeholders from CLI help/docs. `build` remains the execution command and diagnostics stay under `doctor`, `parse`, `state`, and `runner doctor`; former placeholders now return the normal unknown-command error."
+      "notes": "Closed the MVP command surface by removing `run` and `debug` placeholders from CLI help/docs. `build` remains the execution command; diagnostics stay under `doctor`, `plan`, `build`, and `artifact`; former placeholders now return the normal unknown-command error."
     },
     {
       "id": "FBT-CONF-001",
@@ -1083,7 +1082,6 @@
       "plan_url": "docs/exec-plans/active/FBT-STATE-001-plan.md",
       "paths": [
         "internal/build",
-        "internal/docs",
         "internal/policy",
         "internal/state",
         "internal/telemetry",
@@ -1114,7 +1112,6 @@
         "internal/artifact",
         "internal/build",
         "internal/cli",
-        "internal/docs",
         "scripts/smoke-cli.sh",
         "scripts/smoke-knowledge-loop.sh",
         "tests/conformance",
@@ -1128,7 +1125,7 @@
         "cli_smoke": true,
         "validate_docs": true
       },
-      "notes": "Adds first-pass `text_normalized_v1` and `markdown_ast_v1` semantic descriptors for text/Markdown artifacts, persists them on artifact versions, and surfaces them in artifact inspection and generated docs while keeping raw descriptor digests as artifact version identity."
+      "notes": "Adds first-pass `text_normalized_v1` and `markdown_ast_v1` semantic descriptors for text/Markdown artifacts, persists them on artifact versions, and surfaces them in artifact inspection and standard exports while keeping raw descriptor digests as artifact version identity."
     },
     {
       "id": "FBT-RUNNER-000",
@@ -1174,7 +1171,7 @@
         "go_test": true,
         "validate_docs": true
       },
-      "notes": "Build now populates `fbt/runTransform` with resolved source inputs, current artifact-version inputs, descriptors, semantic descriptors, transform assets, runner config metadata, prior/current state, plan dirty reasons, and review context so external runners do not need to parse fbt project files themselves."
+      "notes": "Build now populates `fbt/runTransform` with resolved source inputs, current artifact-version inputs, descriptors, semantic descriptors, transform assets, runner config metadata, prior/current state, and plan dirty reasons so external runners do not need to parse fbt project files themselves."
     },
     {
       "id": "FBT-RUNNER-002",
@@ -1232,7 +1229,7 @@
         "conformance": true,
         "validate_docs": true
       },
-      "notes": "Makes runner `initialize` capabilities authoritative for protocol version, transform types, output artifact types, and output-candidate support. Build fails before transform execution on incompatibility, and doctor/runner validate report the same diagnostics."
+      "notes": "Makes runner `initialize` capabilities authoritative for protocol version, transform types, output artifact types, and output-candidate support. Build fails before transform execution on incompatibility, and `fbt doctor` reports the same diagnostics."
     },
     {
       "id": "FBT-RUNNER-004",
@@ -1365,7 +1362,7 @@
         "practical_examples_smoke": true,
         "validate_docs": true
       },
-      "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, and a parse/plan smoke that runs without provider calls."
+      "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, and a plan smoke that runs without provider calls."
     },
     {
       "id": "FBT-EXAMPLES-UX-001",
@@ -1732,7 +1729,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Rewrites the README example command sequence as user checkpoints: preview, generate, inspect, approve, and explain, with each step stating what fbt does and what the user gets. Adds actual plan output and shortened offline quickstart lifecycle output."
+      "notes": "Rewrites the README example command sequence as user checkpoints: preview, generate, inspect, export, and explain, with each step stating what fbt does and what the user gets. Adds actual plan output and shortened offline quickstart lifecycle output."
     },
     {
       "id": "FBT-UNIX-000",
@@ -1756,7 +1753,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Registers a Unix-philosophy backlog that keeps fbt focused on one job: external tools generate files while fbt records, explains, reviews, versions, and exports the artifact lifecycle."
+      "notes": "Registers a Unix-philosophy backlog that keeps fbt focused on one job: external tools generate files while fbt records, explains, versions, and exports the artifact lifecycle."
     },
     {
       "id": "FBT-UNIX-001",
@@ -1780,7 +1777,7 @@
         "docs_site_build": true,
         "make_verify": true
       },
-      "notes": "Make the Unix-style boundary explicit: fbt is the build receipt, review, version, and lineage control plane for generated file artifacts; it does not replace dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers, provider SDKs, or artifact stores."
+      "notes": "Make the Unix-style boundary explicit: fbt is the build receipt, version, and lineage control plane for generated file artifacts; it does not replace dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers, provider SDKs, or artifact stores."
     },
     {
       "id": "FBT-UNIX-002",
@@ -1804,7 +1801,7 @@
         "cli_smoke": true,
         "make_verify": true
       },
-      "notes": "Elevate `fbt artifact explain` and related `plan`/`review show` output so a user can answer why an artifact exists, what changed, which inputs caused rebuilds, what is blocked, and what exact next command to run."
+      "notes": "Elevate `fbt artifact explain` and related `plan`/`build` output so a user can answer why an artifact exists, what changed, which inputs caused rebuilds, what is blocked, and what exact next command to run."
     },
     {
       "id": "FBT-UNIX-003",
@@ -1852,7 +1849,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Show fbt composing with existing Unix-style document tools instead of reimplementing them: a remark example for Markdown lint/format/TOC and a Pandoc example for document conversion with fbt-owned artifact receipts, review, and lineage."
+      "notes": "Show fbt composing with existing Unix-style document tools instead of reimplementing them: a remark example for Markdown lint/format/TOC and a Pandoc example for document conversion with fbt-owned artifact receipts and lineage."
     },
     {
       "id": "FBT-UNIX-005",
@@ -1875,7 +1872,7 @@
         "practical_examples_smoke": true,
         "make_verify": true
       },
-      "notes": "Demonstrate fbt as a complement to dbt and DataChain: consume their outputs or run-result artifacts as sources, then produce reviewed knowledge artifacts without trying to become a warehouse transformer or typed dataset database."
+      "notes": "Demonstrate fbt as a complement to dbt and DataChain: consume their outputs or run-result artifacts as sources, then produce versioned knowledge artifacts without trying to become a warehouse transformer or typed dataset database."
     },
     {
       "id": "FBT-UNIX-006",
@@ -2016,7 +2013,6 @@
         "internal/planner",
         "internal/eval",
         "internal/lineage",
-        "internal/docs",
         "docs",
         "apps/docs",
         "examples",
@@ -2060,6 +2056,38 @@
         "make_verify": true
       },
       "notes": "Unknown command flags, unsupported global flags, extra positional arguments, and selectors that match no transforms now fail instead of being ignored. Build selection now supports the same selector forms as plan, keeping the primary CLI predictable and scriptable."
+    },
+    {
+      "id": "FBT-UNIX-013",
+      "title": "Prune public CLI command surface",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000",
+        "FBT-UNIX-012"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-013-plan.md",
+      "paths": [
+        "internal/cli",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "docs/spec.md",
+        "docs/runner-discovery-spec.md",
+        "apps/docs",
+        "examples",
+        "scripts",
+        "tests",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "docs_site_build": true,
+        "make_verify": true
+      },
+      "notes": "Removed public parse/eval/docs/state/runner command routing and the duplicate artifact versions alias. Parsing, evals, state writes, and runner diagnostics now stay behind doctor, plan, and build, while tests and smokes assert the pruned commands are unknown."
     },
     {
       "id": "FBT-PDCA-001",

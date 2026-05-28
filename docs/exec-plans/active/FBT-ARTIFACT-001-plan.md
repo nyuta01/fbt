@@ -12,7 +12,7 @@ semantic structure metadata.
 Implement first-pass descriptors without changing artifact version identity:
 `text_normalized_v1` for normalized text and `markdown_ast_v1` for Markdown
 heading/code-block structure. Store them on artifact versions and surface them
-through artifact inspection and generated docs.
+through artifact inspection and standard exports.
 
 ## Permanent Fix
 

@@ -64,7 +64,6 @@ Inspect and export what happened:
 
 ```sh
 fbt artifact history case_summaries
-fbt docs generate
 fbt export openlineage --output target/lineage/openlineage.ndjson
 fbt export otel --output target/telemetry/otel.json
 ```

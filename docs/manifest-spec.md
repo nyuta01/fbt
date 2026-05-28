@@ -8,7 +8,7 @@ Audience: implementers of parsed graph metadata
 ## 1. Overview
 
 The manifest is canonical parsed metadata for an `fbt` project. It represents
-the graph used by planning, execution, evals, generated docs, lineage, and
+the graph used by planning, execution, evals, lineage, standard exports, and
 state comparison.
 
 The manifest contains definitions and current state overlays. Runtime history

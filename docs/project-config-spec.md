@@ -11,9 +11,10 @@ declare filesystem sources, output artifacts, transform contracts, runners,
 transform assets, policies, and evals. `fbt` core parses these files into a
 manifest and delegates execution to external runners.
 
-`fbt parse` diagnostics include a stable diagnostic code, file, line when fbt
-can locate the resource in YAML, resource name, and an actionable hint for
-common fixes.
+Project diagnostics include a stable diagnostic code, file, line when fbt can
+locate the resource in YAML, resource name, and an actionable hint for common
+fixes. `fbt doctor`, `fbt plan`, and `fbt build` all parse the project before
+doing their main work.
 
 ## 2. Standard Layout
 
@@ -347,7 +348,7 @@ Initial selector methods:
 
 ## 12. Validation Rules
 
-`fbt parse` validates at least:
+Project parsing validates at least:
 
 - Unique resource names
 - Resolvable `source` and `ref` references

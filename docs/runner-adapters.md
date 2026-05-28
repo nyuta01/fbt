@@ -181,12 +181,11 @@ Before documenting an adapter as fbt-compatible:
 1. Run `FBT_RUNNER_CONFORMANCE_COMMAND='adapter-command' make runner-conformance`.
 2. Create a temporary fbt project using the adapter.
 3. Run `fbt doctor`.
-4. Run `fbt runner validate RUNNER_NAME`.
-5. Run `fbt plan` and confirm expected dirty/block reasons.
-6. Run a build that writes at least one output candidate.
-7. Confirm no raw credentials or raw prompts are persisted in state, docs,
+4. Run `fbt plan` and confirm expected dirty/block reasons.
+5. Run a build that writes at least one output candidate.
+6. Confirm no raw credentials or raw prompts are persisted in state,
    OpenLineage, or OTel exports.
-8. Confirm failed or denied runs do not update official artifact paths.
+7. Confirm failed or denied runs do not update official artifact paths.
 
 Adapters that require real provider accounts should keep provider smoke tests
 behind explicit opt-in commands, not `make verify`.

@@ -2,7 +2,7 @@
 
 ## Observation
 
-Generated artifacts were visible in state files and `artifact versions`, but
+Generated artifacts were visible in state files, but
 users needed to piece together logical output paths, immutable storage paths,
 runner/model metadata, confidence, and generating run IDs manually.
 

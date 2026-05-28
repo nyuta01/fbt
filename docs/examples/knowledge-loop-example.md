@@ -24,7 +24,6 @@ fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt build --project-dir knowledge_ops --select weekly_support_insights
-fbt docs generate --project-dir knowledge_ops
 mkdir -p knowledge_ops/target/lineage knowledge_ops/target/telemetry
 fbt export openlineage --project-dir knowledge_ops --output knowledge_ops/target/lineage/openlineage.ndjson
 fbt export otel --project-dir knowledge_ops --output knowledge_ops/target/telemetry/otel.json
@@ -146,7 +145,7 @@ fbt plan --select tag:support
 fbt build --select case_summaries
 fbt build --select weekly_support_insights
 fbt artifact explain weekly_support_insights
-fbt docs generate
+fbt export openlineage --output target/lineage/openlineage.ndjson
 ```
 
 Important behavior:

@@ -54,9 +54,9 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt export openlineage` | Export artifact lineage as OpenLineage NDJSON. |
 | `fbt export otel` | Export local execution traces as OTLP/JSON. |
 
-Advanced commands exist for tooling and debugging: `fbt parse`, `fbt eval`,
-`fbt docs generate`, `fbt state`, and `fbt runner`. The daily path should not
-need them.
+The public CLI is intentionally small. Parsing, runner diagnostics, evals, and
+state writes happen inside `doctor`, `plan`, and `build` instead of requiring
+separate user-facing commands.
 
 CLI safety rule: unknown flags, extra arguments, and selectors that match no
 transforms fail instead of being ignored.

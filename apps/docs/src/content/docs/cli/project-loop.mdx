@@ -1,6 +1,6 @@
 ---
 title: Project loop
-description: Parse, plan, build, inspect, and document a project.
+description: Check, plan, build, inspect, and export a project.
 ---
 
 The normal fbt loop is:
@@ -10,7 +10,7 @@ fbt doctor
 fbt plan
 fbt build
 fbt artifact explain <artifact>
-fbt docs generate
+fbt export openlineage
 ```
 
 ## Check
@@ -35,7 +35,7 @@ results, commits artifact versions, and runs configured evals.
 `fbt artifact explain` show where artifacts live, which version is current,
 and why a transform will run or skip.
 
-## Docs
+## Export
 
-`fbt docs generate` optionally writes project-local Markdown docs with artifact lineage,
-eval results, and policy decision references.
+`fbt export openlineage` and `fbt export otel` write standard records that can
+be loaded into lineage, catalog, and trace tools.

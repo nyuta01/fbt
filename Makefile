@@ -63,7 +63,7 @@ e2e-smoke: ## Run the local knowledge-loop smoke.
 	@bash scripts/smoke-knowledge-loop.sh
 
 .PHONY: practical-examples-smoke
-practical-examples-smoke: ## Parse and plan external-runner practical examples without provider calls.
+practical-examples-smoke: ## Plan external-runner practical examples without provider calls.
 	@bash scripts/smoke-practical-examples.sh
 
 .PHONY: real-llm-smoke

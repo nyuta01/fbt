@@ -9,13 +9,13 @@ numbers or actionable hints, which made YAML authoring errors slower to fix.
 
 Keep diagnostics lightweight in core. Add line and hint fields to parser
 diagnostics, derive resource line numbers from YAML nodes where possible, and
-print `file:line` plus `hint:` in CLI parse errors.
+print `file:line` plus `hint:` in CLI project-parse errors.
 
 ## Permanent Fix
 
 Added diagnostic JSON tags, `line`, and `hint`; indexed resource YAML name lines
 for sources, source artifacts, transforms, assets, policies, and evals; added
-common remediation hints; updated parse output docs; and covered line/hint
+common remediation hints; updated project-parse output docs; and covered line/hint
 behavior in parser and CLI tests.
 
 ## Next Check

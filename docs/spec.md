@@ -66,7 +66,6 @@ target/
 | `policies/` | Tool, network, write-scope, security, and cost policies |
 | `evals/` | Deterministic and delegated eval definitions |
 | `target/artifacts/` | Logical output artifacts |
-| `target/docs/` | Generated docs |
 | `.fbt/state/` | Manifest, state snapshot, run results, artifact versions, eval results, policy decisions |
 
 ## 4. Resource Types
@@ -323,20 +322,18 @@ fbt export otel
 
 Base `fbt` does not require a metadata database.
 
-## 16. Docs
+## 16. Inspect And Export
 
-`fbt docs generate` should generate static docs showing:
+fbt core exposes local build state through a small CLI surface:
 
-- Artifact graph
-- Source files
-- Transform DAG
-- Transform asset lineage
-- Policy and eval lineage
-- Runner and plugin lineage
-- Model and tool metadata
-- Confidence class
-- Artifact versions
-- Diff links
+- `fbt artifact` for current paths, versions, descriptors, and lineage context
+- `fbt diff` for comparing generated artifact versions
+- `fbt export openlineage` for standard lineage event records
+- `fbt export otel` for standard execution trace payloads
+
+Project documentation, catalogs, dashboards, and review UIs should consume those
+files or the `.fbt/state` directory from external tools instead of requiring a
+built-in docs generator.
 
 ## 17. MVP Acceptance Criteria
 
@@ -349,7 +346,7 @@ Base `fbt` does not require a metadata database.
 7. Changes to source, transform assets, or policy trigger downstream dirty selection.
 8. Policy or confidence requirements can block downstream work.
 9. Interrupted runs do not corrupt official artifact pointers.
-10. Docs and standard exports expose lineage and artifact state.
+10. Artifact inspection and standard exports expose lineage and artifact state.
 
 ## 18. User-Facing Specs
 

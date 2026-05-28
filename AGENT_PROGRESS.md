@@ -7,7 +7,7 @@ Last updated: 2026-05-29
 The repository contains the current MVP for `fbt`: a local-first file build
 tool that parses a filesystem project, plans changed transforms, calls external
 runners, commits versioned artifacts, runs deterministic evals, records local
-state, explains artifact lineage, generates local docs, and exports standard
+state, explains artifact lineage, and exports standard
 OpenLineage / OTLP JSON metadata.
 
 The core intentionally does not implement document conversion, OCR, LLM
@@ -27,9 +27,11 @@ The primary command surface is now centered on:
 - `fbt export openlineage`
 - `fbt export otel`
 
-`parse`, `eval`, `docs`, `state`, and `runner` remain advanced/debugging
-surfaces. CLI argument handling is strict: unknown flags, extra arguments, and
-selectors that match no transforms fail instead of being ignored.
+The public CLI no longer exposes `parse`, `eval`, `docs`, `state`, or `runner`
+subcommands. Parsing, evals, state writes, and runner diagnostics happen inside
+`doctor`, `plan`, and `build`. CLI argument handling is strict: unknown flags,
+extra arguments, and selectors that match no transforms fail instead of being
+ignored.
 
 Docs and examples are aligned with the simpler model:
 

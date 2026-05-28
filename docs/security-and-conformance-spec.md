@@ -134,8 +134,8 @@ scenario classes.
 
 | ID | Area | Scenario | Expected Result |
 |---|---|---|---|
-| `CONF-SCHEMA-001` | schema | `fs_project.yml` omits `config_version` | parse fails with exit code `2` |
-| `CONF-SCHEMA-002` | schema | `config_version` is unsupported | parse fails with exit code `2` |
+| `CONF-SCHEMA-001` | schema | `fs_project.yml` omits `config_version` | project parsing fails with exit code `2` |
+| `CONF-SCHEMA-002` | schema | `config_version` is unsupported | project parsing fails with exit code `2` |
 | `CONF-DESC-001` | descriptor | same directory content with different mtimes | identical directory digest |
 | `CONF-DESC-002` | descriptor | directory contains symlink escape | descriptor computation fails |
 | `CONF-RUNNER-001` | runner | transform references missing runner | build/plan fails with exit code `6` |

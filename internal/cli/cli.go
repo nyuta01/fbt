@@ -16,8 +16,6 @@ import (
 	buildmgr "github.com/nyuta01/fbt/internal/build"
 	"github.com/nyuta01/fbt/internal/config"
 	diffmgr "github.com/nyuta01/fbt/internal/diff"
-	docsgen "github.com/nyuta01/fbt/internal/docs"
-	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/graph"
 	"github.com/nyuta01/fbt/internal/lineage"
 	"github.com/nyuta01/fbt/internal/manifest"
@@ -44,14 +42,6 @@ var primaryCommands = []commandHelp{
 	{"artifact", "Inspect artifact paths, versions, and lineage"},
 	{"diff", "Compare artifact versions"},
 	{"export", "Write standard lineage or trace records"},
-}
-
-var advancedCommands = []commandHelp{
-	{"parse", "Validate project files and write the manifest"},
-	{"eval", "Re-run eval checks for an artifact"},
-	{"docs", "Generate local Markdown docs"},
-	{"state", "Inspect local state files"},
-	{"runner", "Inspect runner discovery and protocol compatibility"},
 }
 
 type options struct {
@@ -102,24 +92,14 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return 0
 	case "init":
 		return runInit(opts, commandArgs[1:], stdout, stderr)
-	case "parse":
-		return runParse(opts, commandArgs[1:], stdout, stderr)
 	case "plan":
 		return runPlan(opts, commandArgs[1:], stdout, stderr)
 	case "build":
 		return runBuild(opts, commandArgs[1:], stdout, stderr)
-	case "eval":
-		return runEval(opts, commandArgs[1:], stdout, stderr)
 	case "diff":
 		return runDiff(opts, commandArgs[1:], stdout, stderr)
-	case "docs":
-		return runDocs(opts, commandArgs[1:], stdout, stderr)
-	case "state":
-		return runState(opts, commandArgs[1:], stdout, stderr)
 	case "artifact":
 		return runArtifact(opts, commandArgs[1:], stdout, stderr)
-	case "runner":
-		return runRunner(opts, commandArgs[1:], stdout, stderr)
 	case "doctor":
 		return runDoctor(opts, commandArgs[1:], stdout, stderr)
 	case "export":
@@ -254,74 +234,6 @@ func parseDiffArgs(args []string) (diffOptions, error) {
 	}
 	if opts.Target == "" {
 		return diffOptions{}, fmt.Errorf("diff requires a target")
-	}
-	return opts, nil
-}
-
-func runDocs(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := rejectSelect("docs", opts); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	docsOpts, err := parseDocsArgs(args)
-	if err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	if docsOpts.Subcommand != "generate" {
-		fmt.Fprintf(stderr, "unknown docs command: %s\n", docsOpts.Subcommand)
-		return 2
-	}
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	if err := ctx.Store.WriteManifest(ctx.Manifest); err != nil {
-		printError("docs generate", err, stderr, opts.JSON)
-		return 5
-	}
-	result, err := docsgen.Generate(ctx.ParseResult.ProjectDir, ctx.Manifest, ctx.Store, docsgen.Options{OutputDir: docsOpts.OutputDir})
-	if err != nil {
-		printError("docs generate", err, stderr, opts.JSON)
-		return 5
-	}
-	if opts.JSON {
-		writeJSON(stdout, map[string]any{"command": "docs generate", "status": "success", "docs": result})
-		return 0
-	}
-	fmt.Fprintf(stdout, "Docs written to %s\n", result.IndexPath)
-	return 0
-}
-
-type docsOptions struct {
-	Subcommand string
-	OutputDir  string
-}
-
-func parseDocsArgs(args []string) (docsOptions, error) {
-	opts := docsOptions{Subcommand: "generate"}
-	seenSubcommand := false
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		switch {
-		case arg == "--output":
-			i++
-			if i >= len(args) {
-				return docsOptions{}, fmt.Errorf("--output requires a value")
-			}
-			opts.OutputDir = args[i]
-		case strings.HasPrefix(arg, "--output="):
-			opts.OutputDir = strings.TrimPrefix(arg, "--output=")
-		case strings.HasPrefix(arg, "--"):
-			return docsOptions{}, fmt.Errorf("unknown docs flag: %s", arg)
-		default:
-			if seenSubcommand {
-				return docsOptions{}, fmt.Errorf("docs accepts one subcommand")
-			}
-			opts.Subcommand = arg
-			seenSubcommand = true
-		}
 	}
 	return opts, nil
 }
@@ -607,78 +519,6 @@ func parseInitArgs(args []string) (initOptions, error) {
 	return opts, nil
 }
 
-func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 {
-		fmt.Fprintln(stderr, "Error: eval requires 1 argument(s)")
-		return 2
-	}
-	if err := expectArgs("eval", args, 1); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	snapshot, err := ctx.Store.ReadState()
-	if err != nil {
-		printError("eval", err, stderr, opts.JSON)
-		return 5
-	}
-	versions, err := ctx.Store.ReadArtifactVersions()
-	if err != nil {
-		printError("eval", err, stderr, opts.JSON)
-		return 5
-	}
-	version, ok := findVersion(snapshot, versions, args[0])
-	if !ok {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", args[0])
-		return 2
-	}
-	transform, ok := producerTransform(ctx.Manifest, version.ArtifactID)
-	if !ok {
-		fmt.Fprintf(stderr, "Error: producer transform not found for %s\n", version.ArtifactID)
-		return 2
-	}
-	evalIDs, err := selectedEvalIDs(ctx.Manifest, transform.Evals, opts.Select)
-	if err != nil {
-		printError("eval", err, stderr, opts.JSON)
-		return 2
-	}
-	transform.Evals = evalIDs
-	outcome, evalErr := evalmgr.RunForCandidate(ctx.ParseResult.ProjectDir, transform, ctx.Manifest.Evals, version.VersionID, version.GeneratedBy, filepath.Join(ctx.ParseResult.ProjectDir, version.StoragePath))
-	for _, result := range outcome.Results {
-		if err := ctx.Store.PutEvaluationResult(result); err != nil {
-			printError("eval", err, stderr, opts.JSON)
-			return 5
-		}
-	}
-	status := "success"
-	code := 0
-	if evalErr != nil {
-		status = "failed"
-		code = 1
-	}
-	if opts.JSON {
-		writeJSON(stdout, map[string]any{"command": "eval", "status": status, "artifact_version_id": version.VersionID, "results": outcome.Results})
-		return code
-	}
-	for _, result := range outcome.Results {
-		fmt.Fprintf(stdout, "%s %s\n", result.Status, result.EvalID)
-		if result.Score != nil {
-			fmt.Fprintf(stdout, "  score: %.2f\n", *result.Score)
-		}
-		if result.GrantsConfidence != "" {
-			fmt.Fprintf(stdout, "  grants_confidence: %s\n", result.GrantsConfidence)
-		}
-	}
-	if evalErr != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", evalErr)
-	}
-	return code
-}
-
 func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
 	if err := expectNoArgs("build", args); err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -732,104 +572,6 @@ func isSelectionError(err error) bool {
 	}
 	message := err.Error()
 	return strings.Contains(message, "selector matched no transforms") || strings.Contains(message, "unknown selector")
-}
-
-func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := rejectSelect("runner", opts); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	discovery := runnermgr.NewDiscovery(ctx.ParseResult.ProjectDir, ctx.ParseResult.Config)
-	subcommand := "list"
-	if len(args) > 0 {
-		subcommand = args[0]
-	}
-	switch subcommand {
-	case "list":
-		if err := expectAtMostArgs("runner list", args, 1); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		resolved, err := discovery.List()
-		if err != nil {
-			printError("runner list", err, stderr, opts.JSON)
-			return 6
-		}
-		if opts.JSON {
-			writeJSON(stdout, map[string]any{"command": "runner list", "status": "success", "runners": resolved})
-			return 0
-		}
-		for _, runner := range resolved {
-			fmt.Fprintf(stdout, "%s\n", runner.Name)
-			fmt.Fprintf(stdout, "  source: %s\n", runner.Source)
-			fmt.Fprintf(stdout, "  command: %s\n", runner.Command)
-			if len(runner.Args) > 0 {
-				fmt.Fprintf(stdout, "  args: %s\n", strings.Join(runner.Args, " "))
-			}
-			if runner.CWD != "" {
-				fmt.Fprintf(stdout, "  cwd: %s\n", runner.CWD)
-			}
-			if len(runner.Env) > 0 {
-				fmt.Fprintf(stdout, "  env: %s\n", strings.Join(runner.Env, ", "))
-			}
-			for _, diagnostic := range runner.Diagnostics {
-				fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
-			}
-		}
-		return 0
-	case "doctor", "validate":
-		if len(args) < 2 {
-			fmt.Fprintf(stderr, "Error: runner %s requires 1 argument(s)\n", subcommand)
-			return 2
-		}
-		if err := expectArgs("runner "+subcommand, args, 2); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		resolved, err := discovery.Resolve(args[1])
-		if err != nil {
-			printError("runner "+subcommand, err, stderr, opts.JSON)
-			return 6
-		}
-		diagnostics := runnermgr.Diagnose(resolved)
-		if !runnermgr.HasErrors(diagnostics) {
-			diagnostics = append(diagnostics, runnerProtocolDiagnostics(resolved, capabilityRequirementsForRunner(ctx.Manifest, resolved.Name))...)
-		}
-		status := "success"
-		code := 0
-		if runnermgr.HasErrors(diagnostics) {
-			status = "error"
-			code = 6
-		}
-		if opts.JSON {
-			writeJSON(stdout, map[string]any{"command": "runner " + subcommand, "status": status, "runner": resolved, "diagnostics": diagnostics})
-			return code
-		}
-		fmt.Fprintf(stdout, "%s\n", resolved.Name)
-		fmt.Fprintf(stdout, "  source: %s\n", resolved.Source)
-		fmt.Fprintf(stdout, "  command: %s\n", resolved.Command)
-		if len(resolved.Args) > 0 {
-			fmt.Fprintf(stdout, "  args: %s\n", strings.Join(resolved.Args, " "))
-		}
-		if resolved.CWD != "" {
-			fmt.Fprintf(stdout, "  cwd: %s\n", resolved.CWD)
-		}
-		if len(resolved.Env) > 0 {
-			fmt.Fprintf(stdout, "  env: %s\n", strings.Join(resolved.Env, ", "))
-		}
-		for _, diagnostic := range diagnostics {
-			fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
-		}
-		return code
-	default:
-		fmt.Fprintf(stderr, "unknown runner command: %s\n", subcommand)
-		return 2
-	}
 }
 
 type doctorCheck struct {
@@ -1018,11 +760,6 @@ func printHelp(w io.Writer) {
 	for _, command := range primaryCommands {
 		fmt.Fprintf(w, "  %-10s %s\n", command.Name, command.Description)
 	}
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Advanced/debug commands:")
-	for _, command := range advancedCommands {
-		fmt.Fprintf(w, "  %-10s %s\n", command.Name, command.Description)
-	}
 	fmt.Fprintln(w, "  version    Print version")
 	fmt.Fprintln(w, "  help       Show this help")
 }
@@ -1088,46 +825,6 @@ func loadProject(opts options) (projectContext, error) {
 	return projectContext{ParseResult: parseResult, Manifest: m, Store: state.Open(stateDir)}, nil
 }
 
-func runParse(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := rejectSelect("parse", opts); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	if err := expectNoArgs("parse", args); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	if err := ctx.Store.WriteManifest(ctx.Manifest); err != nil {
-		printError("parse", err, stderr, opts.JSON)
-		return 5
-	}
-	if opts.JSON {
-		writeJSON(stdout, map[string]any{
-			"command": "parse",
-			"status":  "success",
-			"summary": map[string]any{
-				"sources":          len(ctx.Manifest.Sources),
-				"artifacts":        len(ctx.Manifest.Artifacts),
-				"transforms":       len(ctx.Manifest.Transforms),
-				"transform_assets": len(ctx.Manifest.TransformAssets),
-				"policies":         len(ctx.Manifest.Policies),
-				"evals":            len(ctx.Manifest.Evals),
-				"runners":          len(ctx.Manifest.Runners),
-			},
-			"manifest_path": filepath.Join(ctx.Store.Dir, "manifest.json"),
-		})
-		return 0
-	}
-	fmt.Fprintf(stdout, "Parsed %d resources\n", resourceCount(ctx.Manifest))
-	fmt.Fprintf(stdout, "Manifest written to %s\n", filepath.Join(ctx.Store.Dir, "manifest.json"))
-	return 0
-}
-
 func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
 	if err := expectNoArgs("plan", args); err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -1182,101 +879,6 @@ func printPlanNode(stdout io.Writer, node planner.Node) {
 	for _, step := range node.NextSteps {
 		fmt.Fprintf(stdout, "  next: %s\n", step)
 	}
-}
-
-func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := rejectSelect("state", opts); err != nil {
-		fmt.Fprintf(stderr, "Error: %v\n", err)
-		return 2
-	}
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	subcommand := "status"
-	if len(args) > 0 {
-		subcommand = args[0]
-	}
-	switch subcommand {
-	case "status":
-		if err := expectAtMostArgs("state status", args, 1); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		snapshot, err := ctx.Store.ReadState()
-		if err != nil {
-			printError("state", err, stderr, opts.JSON)
-			return 5
-		}
-		versions, err := ctx.Store.ReadArtifactVersions()
-		if err != nil {
-			printError("state", err, stderr, opts.JSON)
-			return 5
-		}
-		if opts.JSON {
-			writeJSON(stdout, map[string]any{"command": "state status", "status": "success", "state_dir": ctx.Store.Dir, "current_artifacts": len(snapshot.CurrentArtifacts), "latest_runs": len(snapshot.LatestRuns), "artifact_versions": len(versions.ArtifactVersions)})
-			return 0
-		}
-		fmt.Fprintf(stdout, "State dir: %s\n", ctx.Store.Dir)
-		fmt.Fprintf(stdout, "Current artifacts: %d\n", len(snapshot.CurrentArtifacts))
-		fmt.Fprintf(stdout, "Latest runs: %d\n", len(snapshot.LatestRuns))
-		fmt.Fprintf(stdout, "Artifact versions: %d\n", len(versions.ArtifactVersions))
-		return 0
-	case "ls":
-		if err := expectAtMostArgs("state ls", args, 1); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		files, err := stateFiles(ctx.Store.Dir)
-		if err != nil {
-			printError("state", err, stderr, opts.JSON)
-			return 5
-		}
-		if opts.JSON {
-			writeJSON(stdout, map[string]any{"command": "state ls", "status": "success", "files": files})
-			return 0
-		}
-		for _, file := range files {
-			fmt.Fprintln(stdout, file)
-		}
-		return 0
-	case "current":
-		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: state current requires 1 argument(s)")
-			return 2
-		}
-		if err := expectArgs("state current", args, 2); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		return runStateCurrent(ctx.Store, args[1], opts.JSON, stdout, stderr)
-	default:
-		fmt.Fprintf(stderr, "unknown state command: %s\n", subcommand)
-		return 2
-	}
-}
-
-func runStateCurrent(store state.Store, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	snapshot, err := store.ReadState()
-	if err != nil {
-		printError("state current", err, stderr, jsonOutput)
-		return 5
-	}
-	id, pointer, ok := findPointer(snapshot, target)
-	if !ok {
-		fmt.Fprintf(stderr, "Error: current artifact not found: %s\n", target)
-		return 2
-	}
-	if jsonOutput {
-		writeJSON(stdout, map[string]any{"command": "state current", "status": "success", "artifact_id": id, "current": pointer})
-		return 0
-	}
-	fmt.Fprintf(stdout, "%s\n", id)
-	fmt.Fprintf(stdout, "  version: %s\n", pointer.CurrentVersionID)
-	fmt.Fprintf(stdout, "  digest: %s\n", pointer.CurrentDigest)
-	fmt.Fprintf(stdout, "  path: %s\n", pointer.LogicalPath)
-	return 0
 }
 
 func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
@@ -1353,16 +955,6 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			return 2
 		}
 		return runArtifactHistory(ctx, versions, args[1], opts.JSON, stdout, stderr)
-	case "versions":
-		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact versions requires 1 argument(s)")
-			return 2
-		}
-		if err := expectArgs("artifact versions", args, 2); err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		return printArtifactVersion("artifact versions", versions, args[1], true, opts.JSON, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "unknown artifact command: %s\n", subcommand)
 		return 2
@@ -1763,28 +1355,6 @@ func resolveArtifactID(m manifest.Manifest, target string) (string, bool) {
 	return "", false
 }
 
-func printArtifactVersion(command string, index state.ArtifactVersionsIndex, target string, all bool, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	matches := matchingVersions(index, target)
-	if len(matches) == 0 {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
-		return 2
-	}
-	if !all && len(matches) > 1 {
-		matches = matches[:1]
-	}
-	if jsonOutput {
-		writeJSON(stdout, map[string]any{"command": command, "status": "success", "versions": matches})
-		return 0
-	}
-	for _, version := range matches {
-		fmt.Fprintf(stdout, "%s\n", version.VersionID)
-		fmt.Fprintf(stdout, "  artifact: %s\n", version.ArtifactID)
-		fmt.Fprintf(stdout, "  digest: %s\n", version.Descriptor.Digest)
-		fmt.Fprintf(stdout, "  path: %s\n", version.LogicalPath)
-	}
-	return 0
-}
-
 func matchingVersions(index state.ArtifactVersionsIndex, target string) []state.ArtifactVersion {
 	var matches []state.ArtifactVersion
 	for _, version := range index.ArtifactVersions {
@@ -1873,23 +1443,6 @@ func producerTransform(m manifest.Manifest, artifactID string) (manifest.Transfo
 	return manifest.TransformResource{}, false
 }
 
-func selectedEvalIDs(m manifest.Manifest, evalIDs []string, expr string) ([]string, error) {
-	if expr == "" {
-		return append([]string(nil), evalIDs...), nil
-	}
-	var selected []string
-	for _, id := range evalIDs {
-		evalResource := m.Evals[id]
-		if id == expr || evalResource.Name == strings.Trim(expr, "+") {
-			selected = append(selected, id)
-		}
-	}
-	if len(selected) == 0 {
-		return nil, fmt.Errorf("unknown eval selection: %s", expr)
-	}
-	return selected, nil
-}
-
 func shortResourceName(id string) string {
 	if index := strings.LastIndex(id, "."); index >= 0 && index+1 < len(id) {
 		return id[index+1:]
@@ -1910,25 +1463,6 @@ func artifactIDs(index state.ArtifactVersionsIndex) []string {
 	return ids
 }
 
-func stateFiles(dir string) ([]string, error) {
-	entries, err := os.ReadDir(dir)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	var files []string
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		files = append(files, entry.Name())
-	}
-	sort.Strings(files)
-	return files, nil
-}
-
 func findPointer(snapshot state.Snapshot, target string) (string, state.ArtifactPointer, bool) {
 	for id, pointer := range snapshot.CurrentArtifacts {
 		if id == target || strings.HasSuffix(id, "."+target) {
@@ -1936,10 +1470,6 @@ func findPointer(snapshot state.Snapshot, target string) (string, state.Artifact
 		}
 	}
 	return "", state.ArtifactPointer{}, false
-}
-
-func resourceCount(m manifest.Manifest) int {
-	return len(m.Sources) + len(m.Artifacts) + len(m.Transforms) + len(m.TransformAssets) + len(m.Policies) + len(m.Evals) + len(m.Runners)
 }
 
 func printParseError(err error, diagnostics []parser.Diagnostic, stderr io.Writer, jsonOutput bool) {

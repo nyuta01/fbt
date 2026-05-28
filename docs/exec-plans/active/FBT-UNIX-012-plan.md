@@ -32,8 +32,7 @@ transform. `plan` and `build` should share selector semantics.
 - `build --select` now supports `name`, `tag:`, `path:`, `resource_type:`, and
   `selector:` forms consistently with `plan`.
 - Updated CLI docs and docs-site guidance to make `doctor -> plan -> build` the
-  primary loop and keep `parse`, `eval`, `docs`, `state`, and `runner` as
-  advanced/debugging surfaces.
+  primary loop. `FBT-UNIX-013` later removed the old debug command surface.
 
 ## Next Check
 

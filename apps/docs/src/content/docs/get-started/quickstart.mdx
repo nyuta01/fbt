@@ -138,34 +138,7 @@ Generated downstream excerpt:
 - write candidate artifact
 ```
 
-## 4. Generate Docs
-
-This optional step proves that fbt can summarize the local project state
-without a server or database.
-
-```sh
-fbt docs generate --project-dir knowledge_ops
-```
-
-Expected output:
-
-```text
-Docs written to <tmp>/knowledge_ops/target/docs/index.md
-```
-
-The generated docs summarize transforms, artifact versions, eval results, and
-policy decisions:
-
-```md
-## Current Artifacts
-
-- `artifact.knowledge_ops.case_summaries`
-  - confidence: `structural`
-- `artifact.knowledge_ops.weekly_support_insights`
-  - confidence: `structural`
-```
-
-## 5. Inspect Lineage Locally
+## 4. Inspect Lineage Locally
 
 This step proves that the generated file is not just a loose Markdown file.
 You can ask fbt where it is stored, which transform produced it, what version
@@ -194,7 +167,7 @@ artifact.knowledge_ops.weekly_support_insights
   next: fbt artifact show weekly_support_insights
 ```
 
-## 6. Export Standard Records
+## 5. Export Standard Records
 
 This step proves that fbt does not require a custom visualization backend.
 It exports local run and artifact state into standard-compatible files.
@@ -224,7 +197,6 @@ The final files created by the quickstart are:
 ```text
 knowledge_ops/target/artifacts/support/case_summaries/index.md
 knowledge_ops/target/artifacts/support/weekly_insights.md
-knowledge_ops/target/docs/index.md
 knowledge_ops/target/lineage/openlineage.ndjson
 knowledge_ops/target/telemetry/otel.json
 ```
@@ -239,7 +211,7 @@ For real work:
 
 | Replace | Keep |
 |---|---|
-| `demo.llm` or `demo.agent` runner commands | `parse`, `doctor`, `plan`, `build`, `artifact`, and `export` workflow |
+| `demo.llm` or `demo.agent` runner commands | `doctor`, `plan`, `build`, `artifact`, and `export` workflow |
 | Fixture support ticket data | Source declarations, artifact paths, policies, and evals |
 | Demo Markdown output quality | Artifact versions, local lineage, and standard exports |
 

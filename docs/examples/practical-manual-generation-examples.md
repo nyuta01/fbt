@@ -117,6 +117,6 @@ source evidence.
   manual contract changes.
 - Use `fbt plan` before building to see whether source, policy, runner, model,
   or asset changes make the manual dirty.
-- Use `fbt artifact history`, `fbt artifact explain`, `fbt docs generate`,
+- Use `fbt artifact history`, `fbt artifact explain`,
   `fbt export openlineage`, and `fbt export otel` to inspect what produced a
   manual version.

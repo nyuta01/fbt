@@ -113,19 +113,14 @@ func TestRunRejectsUnknownAndExtraArguments(t *testing.T) {
 			expected: "unknown artifact show flag: --bogus",
 		},
 		{
-			name:     "runner list extra arg",
-			args:     []string{"runner", "list", "openai.responses", "--project-dir", root},
-			expected: "runner list accepts at most 1 argument(s)",
+			name:     "artifact history extra arg",
+			args:     []string{"artifact", "history", "case_summaries", "extra", "--project-dir", root},
+			expected: "artifact history accepts 2 argument(s)",
 		},
 		{
-			name:     "docs extra arg",
-			args:     []string{"docs", "generate", "extra", "--project-dir", root},
-			expected: "docs accepts one subcommand",
-		},
-		{
-			name:     "docs rejects select",
-			args:     []string{"docs", "--select", "tag:support", "--project-dir", root},
-			expected: "docs does not accept --select",
+			name:     "export extra arg",
+			args:     []string{"export", "openlineage", "extra", "--project-dir", root},
+			expected: "export accepts one format",
 		},
 	}
 
@@ -165,17 +160,17 @@ func TestRunSelectNoMatchFails(t *testing.T) {
 	}
 }
 
-func TestRunParseWritesManifest(t *testing.T) {
+func TestRunPlanWritesManifest(t *testing.T) {
 	root := writeCLIProject(t)
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
-	code := Run([]string{"parse", "--project-dir", root}, &stdout, &stderr)
+	code := Run([]string{"plan", "--project-dir", root}, &stdout, &stderr)
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "Manifest written") {
-		t.Fatalf("expected manifest output, got %q", stdout.String())
+	if !strings.Contains(stdout.String(), "Plan: 1 selected") {
+		t.Fatalf("expected plan output, got %q", stdout.String())
 	}
 	if _, err := os.Stat(filepath.Join(root, ".fbt", "state", "manifest.json")); err != nil {
 		t.Fatalf("manifest not written: %v", err)
@@ -199,12 +194,6 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, "fs_project.yml")); err != nil {
 		t.Fatalf("expected project config: %v", err)
-	}
-
-	var parseOut bytes.Buffer
-	var parseErr bytes.Buffer
-	if code := Run([]string{"parse", "--project-dir", root}, &parseOut, &parseErr); code != 0 {
-		t.Fatalf("generated project should parse: code=%d stderr=%q", code, parseErr.String())
 	}
 
 	var planOut bytes.Buffer
@@ -255,13 +244,13 @@ func TestRunPlanJSON(t *testing.T) {
 	}
 }
 
-func TestRunParseMissingConfigVersion(t *testing.T) {
+func TestRunPlanMissingConfigVersion(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "fs_project.yml", "name: demo\n")
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
-	code := Run([]string{"parse", "--project-dir", root}, &stdout, &stderr)
+	code := Run([]string{"plan", "--project-dir", root}, &stdout, &stderr)
 	if code != 2 {
 		t.Fatalf("expected exit code 2, got %d", code)
 	}
@@ -273,7 +262,7 @@ func TestRunParseMissingConfigVersion(t *testing.T) {
 	}
 }
 
-func TestRunStateAndArtifactCommands(t *testing.T) {
+func TestRunArtifactCommands(t *testing.T) {
 	root := writeCLIProject(t)
 	store := state.Open(filepath.Join(root, ".fbt", "state"))
 	size := int64(7)
@@ -294,24 +283,6 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 	if err := store.PutArtifactVersion(version); err != nil {
 		t.Fatal(err)
-	}
-
-	var stateOut bytes.Buffer
-	var stateErr bytes.Buffer
-	if code := Run([]string{"state", "status", "--project-dir", root}, &stateOut, &stateErr); code != 0 {
-		t.Fatalf("state status failed: code=%d stderr=%q", code, stateErr.String())
-	}
-	if !strings.Contains(stateOut.String(), "Artifact versions: 1") {
-		t.Fatalf("unexpected state status: %q", stateOut.String())
-	}
-
-	var artifactOut bytes.Buffer
-	var artifactErr bytes.Buffer
-	if code := Run([]string{"artifact", "versions", "case_summaries", "--project-dir", root}, &artifactOut, &artifactErr); code != 0 {
-		t.Fatalf("artifact versions failed: code=%d stderr=%q", code, artifactErr.String())
-	}
-	if !strings.Contains(artifactOut.String(), version.VersionID) {
-		t.Fatalf("unexpected artifact versions output: %q", artifactOut.String())
 	}
 
 	var pathOut bytes.Buffer
@@ -339,6 +310,15 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "committed_at: 2026-05-28T00:00:00Z") {
 		t.Fatalf("unexpected artifact history output: %q", historyOut.String())
+	}
+
+	var versionsOut bytes.Buffer
+	var versionsErr bytes.Buffer
+	if code := Run([]string{"artifact", "versions", "case_summaries", "--project-dir", root}, &versionsOut, &versionsErr); code != 2 {
+		t.Fatalf("artifact versions should be pruned: code=%d stdout=%q stderr=%q", code, versionsOut.String(), versionsErr.String())
+	}
+	if !strings.Contains(versionsErr.String(), "unknown artifact command: versions") {
+		t.Fatalf("expected unknown artifact command, got %q", versionsErr.String())
 	}
 }
 
@@ -458,30 +438,23 @@ func TestRunExportOTel(t *testing.T) {
 	}
 }
 
-func TestRunEvalCommand(t *testing.T) {
+func TestRunPrunedCommandsAreUnknown(t *testing.T) {
 	root := writeCLIProject(t)
-	writeCLICurrentArtifact(t, root)
-
-	var evalOut bytes.Buffer
-	var evalErr bytes.Buffer
-	if code := Run([]string{"eval", "case_summaries", "--project-dir", root}, &evalOut, &evalErr); code != 0 {
-		t.Fatalf("eval failed: code=%d stdout=%q stderr=%q", code, evalOut.String(), evalErr.String())
-	}
-	if !strings.Contains(evalOut.String(), "pass eval.knowledge_ops.required_case_sections") {
-		t.Fatalf("unexpected eval output: %q", evalOut.String())
-	}
-
-	var reviewOut bytes.Buffer
-	var reviewErr bytes.Buffer
-	if code := Run([]string{"review", "status", "case_summaries", "--project-dir", root}, &reviewOut, &reviewErr); code == 0 {
-		t.Fatalf("review should not be a command: stdout=%q stderr=%q", reviewOut.String(), reviewErr.String())
-	}
-	if !strings.Contains(reviewErr.String(), "unknown command: review") {
-		t.Fatalf("expected unknown review command, got %q", reviewErr.String())
+	for _, command := range []string{"parse", "eval", "docs", "state", "runner", "review"} {
+		t.Run(command, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			if code := Run([]string{command, "--project-dir", root}, &stdout, &stderr); code != 2 {
+				t.Fatalf("%s should be unknown: code=%d stdout=%q stderr=%q", command, code, stdout.String(), stderr.String())
+			}
+			if !strings.Contains(stderr.String(), "unknown command: "+command) {
+				t.Fatalf("expected unknown command message, got %q", stderr.String())
+			}
+		})
 	}
 }
 
-func TestRunDiffAndDocsGenerate(t *testing.T) {
+func TestRunDiffCommand(t *testing.T) {
 	root := writeCLIProject(t)
 	store := state.Open(filepath.Join(root, ".fbt", "state"))
 	writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_1111111111111111111111111111111111111111111111111111111111111111", "target/artifacts/support/case_summaries_old", "old")
@@ -508,42 +481,10 @@ func TestRunDiffAndDocsGenerate(t *testing.T) {
 	if !strings.Contains(diffOut.String(), "+new") || !strings.Contains(diffOut.String(), "changed: Summary") {
 		t.Fatalf("unexpected diff output: %q", diffOut.String())
 	}
-
-	var docsOut bytes.Buffer
-	var docsErr bytes.Buffer
-	if code := Run([]string{"docs", "generate", "--project-dir", root}, &docsOut, &docsErr); code != 0 {
-		t.Fatalf("docs generate failed: code=%d stdout=%q stderr=%q", code, docsOut.String(), docsErr.String())
-	}
-	docsPath := filepath.Join(root, "target", "docs", "index.md")
-	data, err := os.ReadFile(docsPath)
-	if err != nil {
-		t.Fatalf("read docs: %v", err)
-	}
-	if !strings.Contains(string(data), "artifact.knowledge_ops.case_summaries") {
-		t.Fatalf("unexpected docs content: %s", string(data))
-	}
 }
 
-func TestRunRunnerListAndDoctor(t *testing.T) {
+func TestRunDoctorShowsMissingRunnerDiagnostic(t *testing.T) {
 	root := writeCLIProject(t)
-	var listOut bytes.Buffer
-	var listErr bytes.Buffer
-	if code := Run([]string{"runner", "list", "--project-dir", root}, &listOut, &listErr); code != 0 {
-		t.Fatalf("runner list failed: code=%d stderr=%q", code, listErr.String())
-	}
-	if !strings.Contains(listOut.String(), "openai.responses") {
-		t.Fatalf("expected runner list output, got %q", listOut.String())
-	}
-
-	var doctorOut bytes.Buffer
-	var doctorErr bytes.Buffer
-	if code := Run([]string{"runner", "doctor", "openai.responses", "--project-dir", root}, &doctorOut, &doctorErr); code != 6 {
-		t.Fatalf("expected missing runner exit code 6, got %d; stdout=%q stderr=%q", code, doctorOut.String(), doctorErr.String())
-	}
-	if !strings.Contains(doctorOut.String(), "RUNNER_COMMAND_NOT_FOUND") {
-		t.Fatalf("expected missing command diagnostic, got %q", doctorOut.String())
-	}
-
 	var projectDoctorOut bytes.Buffer
 	var projectDoctorErr bytes.Buffer
 	if code := Run([]string{"doctor", "--project-dir", root}, &projectDoctorOut, &projectDoctorErr); code != 6 {
@@ -566,8 +507,8 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
-	if code := Run([]string{"runner", "doctor", "openai.responses", "--project-dir", root}, &stdout, &stderr); code != 0 {
-		t.Fatalf("runner doctor failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	if code := Run([]string{"doctor", "--project-dir", root}, &stdout, &stderr); code != 0 {
+		t.Fatalf("doctor failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 	if !strings.Contains(stdout.String(), "RUNNER_COMMAND_OK") {
 		t.Fatalf("expected ok diagnostic, got %q", stdout.String())

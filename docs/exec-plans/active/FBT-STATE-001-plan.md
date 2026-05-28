@@ -17,7 +17,7 @@ version ID, status, check names/statuses/messages, and decision time.
 
 Added state read/put APIs for policy decisions, recorded decisions from build
 before commit or denial return, included policy decision IDs in run results and
-OTel attributes, and surfaced policy decisions in generated docs. Tests and
+OTel attributes, and surfaced policy decisions in standard exports. Tests and
 conformance now verify allowed and denied decisions are written.
 
 ## Next Check

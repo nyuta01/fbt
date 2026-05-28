@@ -66,15 +66,15 @@ fbt init knowledge_ops --template support
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 
-# 3. Build artifacts and generate docs.
+# 3. Build artifacts and export lineage.
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt build --project-dir knowledge_ops --select weekly_support_insights
-fbt docs generate --project-dir knowledge_ops
+fbt export openlineage --project-dir knowledge_ops --output target/lineage/openlineage.ndjson
 ```
 
 This creates `target/artifacts/support/case_summaries/index.md`,
 `target/artifacts/support/weekly_insights.md`, local state under `.fbt/state`,
-and generated project docs under `target/docs/index.md`.
+and OpenLineage records under `target/lineage/openlineage.ndjson`.
 
 ## Architecture at a glance
 

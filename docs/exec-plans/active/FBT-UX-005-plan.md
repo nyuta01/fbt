@@ -2,9 +2,9 @@
 
 ## Observation
 
-Users had to combine `parse`, `state status`, and `runner doctor` manually to
-know whether a project was ready to build. Runner executable checks existed,
-but the top-level readiness flow did not verify protocol initialization.
+Users did not have one command to know whether a project was ready to build.
+Runner executable checks existed, but the top-level readiness flow did not
+verify protocol initialization.
 
 ## Decision
 

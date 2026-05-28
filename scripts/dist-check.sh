@@ -27,7 +27,8 @@ grep -q "\"build_date\": \"${BUILD_DATE}\"" "$dist_dir/version.json"
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 "$binary" init "$tmpdir/blank" --template blank >"$tmpdir/init.txt"
-"$binary" parse --project-dir "$tmpdir/blank" >"$tmpdir/parse.txt"
-grep -q "Manifest written" "$tmpdir/parse.txt"
+"$binary" plan --project-dir "$tmpdir/blank" >"$tmpdir/plan.txt"
+grep -q "Plan:" "$tmpdir/plan.txt"
+test -f "$tmpdir/blank/.fbt/state/manifest.json"
 
 echo "dist-check: ok"

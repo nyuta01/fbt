@@ -17,8 +17,9 @@ The `fbt` CLI is the main interface for local projects.
 | `fbt artifact` | Inspect paths, versions, and explanations |
 | `fbt export` | Export standard lineage and trace data |
 
-Advanced commands exist for tooling and debugging: `fbt parse`, `fbt eval`,
-`fbt docs generate`, `fbt state`, and `fbt runner`.
+Parsing, state writes, evals, and runner diagnostics happen inside these
+commands. The public surface stays small so daily operation is a short loop
+instead of a toolbox of debug subcommands.
 
 ## Global flags
 

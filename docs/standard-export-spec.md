@@ -234,8 +234,8 @@ fbt standard exports should be viewable with existing tools:
 - OpenMetadata for catalog and governance views through OpenLineage ingestion
   or an optional external publisher
 
-The static `fbt docs generate` output may link to exported files, but fbt core
-does not build or host an interactive lineage graph UI.
+External docs, catalog, or dashboard tools may link to exported files, but fbt
+core does not build or host an interactive lineage graph UI.
 Operational recipes live in
 [Standard Visualization Guide](standard-visualization-guide.md).
 
