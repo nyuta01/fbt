@@ -18,8 +18,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-016` are complete. Remaining tracked work is the
-standing P1 self-PDCA and permanent-fix maintenance loop in
+`FBT-MVP-001` through `FBT-MVP-016` and `FBT-PDCA-001` are complete. Remaining
+tracked work is the standing P1 permanent-fix maintenance loop in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -44,7 +44,8 @@ This runs:
 
 ## Next Steps
 
-1. Maintain the standing self-PDCA and permanent-fix loops as future work lands.
+1. Close `FBT-PERMANENT-FIX-001` by confirming no repeated failure needs a new
+   deterministic guard.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.

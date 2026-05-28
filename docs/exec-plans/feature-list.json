@@ -526,21 +526,21 @@
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-H-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-PDCA-001-plan.md",
       "paths": [
         "docs/methodology/self-pdca-loop.md",
         "docs/QUALITY_SCORE.md",
         "docs/agent-failures.md"
       ],
       "verification": {
-        "drift_check": false
+        "drift_check": true
       },
-      "notes": "Standing task used by the drift check to keep retrospective updates explicit."
+      "notes": "Standing self-PDCA loop checked after MVP task execution; quality score, active plans, feature list, and progress handoff are current and guarded by make verify."
     },
     {
       "id": "FBT-PERMANENT-FIX-001",
