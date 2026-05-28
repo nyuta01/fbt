@@ -114,7 +114,7 @@ This spec defines:
       "version_id": "artifact_version.knowledge_ops.case_summaries.sha256_abcd",
       "artifact_id": "artifact.knowledge_ops.case_summaries",
       "logical_path": "target/artifacts/support/case_summaries/",
-      "storage_path": "target/artifacts/support/case_summaries/",
+      "storage_path": ".fbt/artifacts/artifact_version.knowledge_ops.case_summaries.sha256_abcd/content",
       "descriptor": {
         "media_type": "inode/directory",
         "digest": "sha256:abcd...",
@@ -356,11 +356,11 @@ Approval for one artifact version does not automatically apply to a later versio
 6. invoke runner
 7. runner writes output candidates under .fbt/work/
 8. fbt computes descriptors / digests
-9. fbt records artifact_versions
-10. fbt runs evals and policy checks
-11. fbt records evaluation_results and policy_decisions
-12. fbt applies review gate
-13. fbt commits allowed artifact_versions to logical paths
+9. fbt runs evals and policy checks
+10. fbt copies immutable artifact version content under `.fbt/artifacts/`
+11. fbt commits allowed artifact_versions to logical paths
+12. fbt records artifact_versions, evaluation_results, policy_decisions, and approvals
+13. fbt applies review gate
 14. fbt updates state.json current pointers
 15. append transform_run and invocation_completed to run_results.jsonl
 ```

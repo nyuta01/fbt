@@ -181,6 +181,61 @@ func TestRunBuildWithLocalLLMRunnerRecordsUsageAndProvenance(t *testing.T) {
 	}
 }
 
+func TestRunBuildStoresImmutableVersionContent(t *testing.T) {
+	root := writeBuildProject(t)
+	repoRoot := repoRoot(t)
+	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "llm"))+"\n")
+	if err := os.Chmod(filepath.Join(root, "bin", "fbt-local-llm-runner"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: bin/fbt-fake-runner", "command: bin/fbt-local-llm-runner"))
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Case Summaries"]
+    grants_confidence: structural
+`)
+	transformPath := filepath.Join(root, "transforms", "case.yml")
+	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, transformPath), `    runner: openai.responses
+`, `    runner: openai.responses
+    model:
+      provider: local
+      name: first-model
+`))
+	if _, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"}); err != nil {
+		t.Fatalf("first build: %v", err)
+	}
+	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, transformPath), "name: first-model", "name: second-model"))
+	if _, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"}); err != nil {
+		t.Fatalf("second build: %v", err)
+	}
+
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	versions, err := store.ReadArtifactVersions()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(versions.ArtifactVersions) != 2 {
+		t.Fatalf("expected two artifact versions, got %+v", versions.ArtifactVersions)
+	}
+	var sawFirst, sawSecond bool
+	for _, version := range versions.ArtifactVersions {
+		if strings.HasPrefix(version.StoragePath, "target/artifacts/") {
+			t.Fatalf("version storage path should be immutable internal storage: %+v", version)
+		}
+		data, err := os.ReadFile(filepath.Join(root, version.StoragePath, "index.md"))
+		if err != nil {
+			t.Fatalf("read stored version content: %v", err)
+		}
+		sawFirst = sawFirst || strings.Contains(string(data), "first-model")
+		sawSecond = sawSecond || strings.Contains(string(data), "second-model")
+	}
+	if !sawFirst || !sawSecond {
+		t.Fatalf("expected both stored version contents, first=%v second=%v", sawFirst, sawSecond)
+	}
+}
+
 func writeBuildProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

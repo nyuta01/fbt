@@ -255,6 +255,11 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		if evalErr != nil {
 			return Run{}, evalErr
 		}
+		versionStorageRel := filepath.ToSlash(filepath.Join(".fbt", "artifacts", versionID, "content"))
+		versionStorageAbs := filepath.Join(parseResult.ProjectDir, versionStorageRel)
+		if err := commitPath(candidate.Path, versionStorageAbs); err != nil {
+			return Run{}, err
+		}
 		logicalAbs := filepath.Join(parseResult.ProjectDir, output.DeclaredPath)
 		if err := commitPath(candidate.Path, logicalAbs); err != nil {
 			return Run{}, err
@@ -275,7 +280,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			VersionID:      versionID,
 			ArtifactID:     output.UniqueID,
 			LogicalPath:    output.DeclaredPath,
-			StoragePath:    output.DeclaredPath,
+			StoragePath:    versionStorageRel,
 			Descriptor:     descriptor,
 			GeneratedBy:    transformRunID,
 			Confidence:     confidence,
