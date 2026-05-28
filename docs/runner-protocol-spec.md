@@ -260,13 +260,69 @@ Skeleton:
       "type": "llm",
       "fingerprint": "sha256:transform..."
     },
-    "inputs": [],
-    "outputs": [],
-    "assets": [],
+    "runner": {
+      "unique_id": "runner.knowledge_ops.openai.responses",
+      "name": "openai.responses",
+      "type": "llm",
+      "protocol": "stdio_jsonrpc",
+      "env": ["OPENAI_API_KEY"],
+      "config": {
+        "provider": "openai",
+        "default_model": "gpt-5"
+      }
+    },
+    "inputs": [
+      {
+        "kind": "ref",
+        "name": "contract_summaries",
+        "unique_id": "artifact.knowledge_ops.contract_summaries",
+        "current": {
+          "current_version_id": "artifact_version.knowledge_ops.contract_summaries.sha256_...",
+          "current_digest": "sha256:..."
+        },
+        "current_version": {
+          "version_id": "artifact_version.knowledge_ops.contract_summaries.sha256_...",
+          "storage_path": ".fbt/artifacts/artifact_version.../content",
+          "descriptor": {},
+          "semantic_descriptor": {}
+        }
+      }
+    ],
+    "outputs": [
+      {
+        "name": "contract_summaries",
+        "artifact_type": "markdown_directory",
+        "declared_path": "target/artifacts/contracts/summaries/"
+      }
+    ],
+    "assets": [
+      {
+        "unique_id": "transform_asset.knowledge_ops.contract_prompt",
+        "name": "contract_prompt",
+        "asset_type": "prompt",
+        "path": "prompts/contract.md",
+        "absolute_path": "/repo/prompts/contract.md",
+        "fingerprint": {
+          "method": "content",
+          "value": "sha256:..."
+        }
+      }
+    ],
     "model": {},
     "tools": [],
     "policy": {},
-    "state": {},
+    "state": {
+      "previous_run": {},
+      "current_outputs": {},
+      "plan": {
+        "action": "run",
+        "dirty_reasons": ["source descriptor changed"]
+      },
+      "review": {
+        "required": true,
+        "group": "legal_ops"
+      }
+    },
     "work": {
       "root": "/repo/.fbt/work/req_123",
       "temp": "/repo/.fbt/work/req_123/tmp",
@@ -275,6 +331,25 @@ Skeleton:
   }
 }
 ```
+
+Context payload rules:
+
+- `inputs` preserve transform input order.
+- Source inputs include declared path, resolved paths, fingerprint, tags, and
+  descriptor metadata when the source path has a concrete file or directory
+  shape.
+- Artifact reference inputs include the current artifact pointer and current
+  artifact version with raw descriptor and semantic descriptor metadata when a
+  current version exists.
+- `assets` include only declared transform assets, with project-relative and
+  absolute paths plus fingerprints. Asset content is not embedded in the
+  request.
+- `runner` includes logical runner identity, protocol, declared environment
+  variable names, config, static capabilities, and fingerprint. Environment
+  variable values are not included.
+- `state` includes prior run state, current output pointers, plan dirty reasons,
+  blocked reasons when relevant, and review requirements. Runners must treat
+  this as read-only context.
 
 ## 8. Event Notification
 

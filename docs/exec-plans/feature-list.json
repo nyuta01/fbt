@@ -1158,25 +1158,25 @@
       "id": "FBT-RUNNER-001",
       "title": "Pass complete execution context to protocol runners",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-008",
         "FBT-MVP-010"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-001-plan.md",
       "paths": [
         "internal/build",
         "internal/protocol",
+        "runners/fake",
         "docs/runner-protocol-spec.md",
-        "tests/conformance"
+        "docs/exec-plans/active/FBT-RUNNER-001-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false
+        "go_test": true,
+        "validate_docs": true
       },
-      "notes": "Populate `fbt/runTransform` with resolved inputs, input artifact versions, descriptors, semantic descriptors, transform assets, runner config, prior state, and dirty/review context so external runners do not need to parse fbt project files themselves."
+      "notes": "Build now populates `fbt/runTransform` with resolved source inputs, current artifact-version inputs, descriptors, semantic descriptors, transform assets, runner config metadata, prior/current state, plan dirty reasons, and review context so external runners do not need to parse fbt project files themselves."
     },
     {
       "id": "FBT-RUNNER-002",

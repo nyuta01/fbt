@@ -116,7 +116,7 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 		if node.Action != planner.ActionRun {
 			continue
 		}
-		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, node.TransformID, invocationID)
+		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, node, invocationID)
 		if err != nil {
 			return result, err
 		}
@@ -147,7 +147,8 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 	return result, nil
 }
 
-func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, transformID string, invocationID string) (Run, error) {
+func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, node planner.Node, invocationID string) (Run, error) {
+	transformID := node.TransformID
 	transform := m.Transforms[transformID]
 	runnerName := strings.TrimPrefix(transform.Runner, "runner."+parseResult.Config.Name+".")
 	discovery := runner.NewDiscovery(parseResult.ProjectDir, parseResult.Config)
@@ -191,6 +192,10 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 	if err := os.MkdirAll(workOutputs, 0o755); err != nil {
 		return Run{}, err
 	}
+	artifactVersions, err := store.ReadArtifactVersions()
+	if err != nil {
+		return Run{}, err
+	}
 
 	startedAt := time.Now().UTC()
 	outcome, err := client.RunTransform(runCtx, protocol.RunTransformParams{
@@ -202,10 +207,14 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			"name":      transform.Name,
 			"type":      transform.TransformType,
 		},
+		Runner:  protocolRunner(transform, m, resolved),
+		Inputs:  protocolInputs(parseResult.ProjectDir, transform, m, *snapshot, artifactVersions),
 		Model:   transform.Model,
 		Tools:   protocolTools(transform),
 		Policy:  protocolPolicy(policyResource),
 		Outputs: protocolOutputs(transform),
+		Assets:  protocolAssets(parseResult.ProjectDir, transform, m),
+		State:   protocolState(transformID, transform, *snapshot, artifactVersions, node, reviewForTransform(transform, policyResource)),
 		Work: map[string]any{
 			"root":    workRoot,
 			"temp":    workTemp,
@@ -421,12 +430,178 @@ func protocolOutputs(transform manifest.TransformResource) []any {
 	return outputs
 }
 
+func protocolInputs(root string, transform manifest.TransformResource, m manifest.Manifest, snapshot state.Snapshot, versions state.ArtifactVersionsIndex) []any {
+	inputs := make([]any, 0, len(transform.Inputs))
+	for _, input := range transform.Inputs {
+		record := map[string]any{
+			"kind":      input.Kind,
+			"name":      input.Name,
+			"unique_id": input.UniqueID,
+		}
+		if len(input.Require) > 0 {
+			record["require"] = input.Require
+		}
+		switch input.Kind {
+		case "source":
+			if source, ok := m.Sources[input.UniqueID]; ok {
+				record["resource_type"] = source.ResourceType
+				record["source_name"] = source.SourceName
+				record["artifact_type"] = source.ArtifactType
+				record["path"] = source.Path
+				record["resolved_paths"] = source.ResolvedPaths
+				record["fingerprint"] = source.Fingerprint
+				record["tags"] = source.Tags
+				if len(source.Meta) > 0 {
+					record["meta"] = source.Meta
+				}
+				if descriptor, semantic, ok := sourceDescriptors(root, source); ok {
+					record["descriptor"] = descriptor
+					if len(semantic) > 0 {
+						record["semantic_descriptor"] = semantic
+					}
+				}
+			}
+		case "ref":
+			if artifactResource, ok := m.Artifacts[input.UniqueID]; ok {
+				record["resource_type"] = artifactResource.ResourceType
+				record["artifact_type"] = artifactResource.ArtifactType
+				record["logical_path"] = artifactResource.LogicalPath
+				if len(artifactResource.Contract) > 0 {
+					record["contract"] = artifactResource.Contract
+				}
+				if len(artifactResource.Tags) > 0 {
+					record["tags"] = artifactResource.Tags
+				}
+			}
+			if pointer, ok := snapshot.CurrentArtifacts[input.UniqueID]; ok {
+				record["current"] = pointer
+				if version, ok := versions.ArtifactVersions[pointer.CurrentVersionID]; ok {
+					record["current_version"] = map[string]any{
+						"version_id":          version.VersionID,
+						"artifact_id":         version.ArtifactID,
+						"logical_path":        version.LogicalPath,
+						"storage_path":        version.StoragePath,
+						"absolute_path":       filepath.Join(root, version.StoragePath),
+						"descriptor":          version.Descriptor,
+						"semantic_descriptor": version.SemanticDescriptor,
+						"confidence":          version.Confidence,
+						"approval_status":     version.ApprovalStatus,
+						"generated_by":        version.GeneratedBy,
+					}
+				}
+			}
+		}
+		inputs = append(inputs, record)
+	}
+	return inputs
+}
+
+func sourceDescriptors(root string, source manifest.SourceResource) (artifact.Descriptor, map[string]any, bool) {
+	if strings.ContainsAny(source.Path, "*?[") || source.Path == "" {
+		return artifact.Descriptor{}, nil, false
+	}
+	descriptor, err := artifact.Describe(root, source.Path, source.ArtifactType)
+	if err != nil {
+		return artifact.Descriptor{}, nil, false
+	}
+	semantic, err := artifact.SemanticDescriptor(root, source.Path, source.ArtifactType)
+	if err != nil {
+		semantic = nil
+	}
+	return descriptor, semantic, true
+}
+
+func protocolAssets(root string, transform manifest.TransformResource, m manifest.Manifest) []any {
+	assets := make([]any, 0, len(transform.Assets))
+	for _, assetID := range transform.Assets {
+		asset, ok := m.TransformAssets[assetID]
+		if !ok {
+			continue
+		}
+		record := map[string]any{
+			"unique_id":     asset.UniqueID,
+			"resource_type": asset.ResourceType,
+			"name":          asset.Name,
+			"asset_type":    asset.AssetType,
+			"path":          asset.Path,
+			"absolute_path": filepath.Join(root, asset.Path),
+			"fingerprint":   asset.Fingerprint,
+			"variables":     asset.Variables,
+		}
+		if len(asset.Meta) > 0 {
+			record["meta"] = asset.Meta
+		}
+		assets = append(assets, record)
+	}
+	return assets
+}
+
+func protocolRunner(transform manifest.TransformResource, m manifest.Manifest, resolved runner.Resolved) map[string]any {
+	record := map[string]any{
+		"unique_id": transform.Runner,
+		"name":      resolved.Name,
+		"type":      resolved.Type,
+		"protocol":  resolved.Protocol,
+		"source":    resolved.Source,
+	}
+	if runnerResource, ok := m.Runners[transform.Runner]; ok {
+		record["unique_id"] = runnerResource.UniqueID
+		record["name"] = runnerResource.Name
+		record["type"] = runnerResource.RunnerType
+		record["protocol"] = runnerResource.Protocol
+		record["env"] = runnerResource.Env
+		record["config"] = runnerResource.Config
+		record["capabilities"] = runnerResource.Capabilities
+		record["fingerprint"] = runnerResource.Fingerprint
+	}
+	if resolved.PluginName != "" {
+		record["plugin_name"] = resolved.PluginName
+	}
+	if resolved.Version != "" {
+		record["version"] = resolved.Version
+	}
+	return record
+}
+
 func protocolTools(transform manifest.TransformResource) []any {
 	tools := make([]any, 0, len(transform.Tools))
 	for _, tool := range transform.Tools {
 		tools = append(tools, map[string]any{"name": tool})
 	}
 	return tools
+}
+
+func protocolState(transformID string, transform manifest.TransformResource, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, node planner.Node, review reviewRequirement) map[string]any {
+	currentOutputs := map[string]any{}
+	for _, output := range transform.Outputs {
+		pointer, ok := snapshot.CurrentArtifacts[output.UniqueID]
+		if !ok {
+			continue
+		}
+		record := map[string]any{"pointer": pointer}
+		if version, ok := versions.ArtifactVersions[pointer.CurrentVersionID]; ok {
+			record["version"] = map[string]any{
+				"version_id":          version.VersionID,
+				"storage_path":        version.StoragePath,
+				"descriptor":          version.Descriptor,
+				"semantic_descriptor": version.SemanticDescriptor,
+				"confidence":          version.Confidence,
+				"approval_status":     version.ApprovalStatus,
+				"generated_by":        version.GeneratedBy,
+			}
+		}
+		currentOutputs[output.UniqueID] = record
+	}
+	statePayload := map[string]any{
+		"transform_id":    transformID,
+		"plan":            map[string]any{"action": node.Action, "dirty_reasons": node.DirtyReasons, "blocked_reasons": node.BlockedReasons},
+		"current_outputs": currentOutputs,
+		"review":          map[string]any{"required": review.Required, "group": review.Group},
+	}
+	if latest, ok := snapshot.LatestRuns[transformID]; ok {
+		statePayload["previous_run"] = latest
+	}
+	return statePayload
 }
 
 func protocolPolicy(policyResource *manifest.PolicyResource) map[string]any {

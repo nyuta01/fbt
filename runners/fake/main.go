@@ -77,6 +77,11 @@ func runFake(req request) error {
 	if err := json.Unmarshal(req.Params, &params); err != nil {
 		return err
 	}
+	if capturePath := os.Getenv("FBT_FAKE_RUNNER_CAPTURE_PARAMS"); capturePath != "" {
+		if err := os.WriteFile(capturePath, append(req.Params, '\n'), 0o644); err != nil {
+			return err
+		}
+	}
 	if params.Work.Outputs == "" {
 		return fmt.Errorf("work.outputs is required")
 	}

@@ -2,6 +2,7 @@ package build
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -267,6 +268,82 @@ func TestRunBuildStoresImmutableVersionContent(t *testing.T) {
 	}
 	if !sawFirst || !sawSecond {
 		t.Fatalf("expected both stored version contents, first=%v second=%v", sawFirst, sawSecond)
+	}
+}
+
+func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
+	root := writeBuildProject(t)
+	repoRoot := repoRoot(t)
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), `    command: bin/fbt-fake-runner
+`, `    command: bin/fbt-fake-runner
+    config:
+      provider: test
+      default_model: fake
+`))
+	writeFile(t, root, "sources/support.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "sources", "support.yml")), "path: data/support/tickets/*.jsonl", "path: data/support/tickets/"))
+	writeFile(t, root, "transforms/weekly.yml", `transforms:
+  - name: weekly_report
+    type: llm
+    runner: openai.responses
+    inputs:
+      - source: support.raw_tickets
+      - ref: case_summaries
+    outputs:
+      - name: weekly_report
+        type: markdown
+        path: target/artifacts/support/weekly_report.md
+    assets:
+      - ref: case_summary_prompt
+    tags: ["support"]
+`)
+
+	if _, err := RunBuild(context.Background(), Options{ProjectDir: root, Select: "case_summaries", FBTVersion: "test"}); err != nil {
+		t.Fatalf("first build: %v", err)
+	}
+
+	capturePath := filepath.Join(root, ".fbt", "captured-runner-params.json")
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_CAPTURE_PARAMS="+shellQuote(capturePath)+"\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RunBuild(context.Background(), Options{ProjectDir: root, Select: "weekly_report", FBTVersion: "test"}); err != nil {
+		t.Fatalf("second build: %v", err)
+	}
+
+	var params map[string]any
+	if err := json.Unmarshal([]byte(readFile(t, capturePath)), &params); err != nil {
+		t.Fatalf("decode captured params: %v", err)
+	}
+	inputs := params["inputs"].([]any)
+	if len(inputs) != 2 {
+		t.Fatalf("expected source and ref inputs, got %+v", inputs)
+	}
+	sourceInput := inputs[0].(map[string]any)
+	if sourceInput["kind"] != "source" || sourceInput["descriptor"] == nil || len(sourceInput["resolved_paths"].([]any)) == 0 {
+		t.Fatalf("expected resolved source descriptor, got %+v", sourceInput)
+	}
+	refInput := inputs[1].(map[string]any)
+	currentVersion := refInput["current_version"].(map[string]any)
+	if refInput["kind"] != "ref" || currentVersion["version_id"] == "" || currentVersion["descriptor"] == nil || currentVersion["semantic_descriptor"] == nil {
+		t.Fatalf("expected current artifact version context, got %+v", refInput)
+	}
+	assets := params["assets"].([]any)
+	if len(assets) != 1 {
+		t.Fatalf("expected one asset, got %+v", assets)
+	}
+	asset := assets[0].(map[string]any)
+	if asset["name"] != "case_summary_prompt" || asset["absolute_path"] == "" || asset["fingerprint"] == nil {
+		t.Fatalf("expected asset context, got %+v", asset)
+	}
+	runner := params["runner"].(map[string]any)
+	config := runner["config"].(map[string]any)
+	if runner["name"] != "openai.responses" || config["provider"] != "test" {
+		t.Fatalf("expected runner config context, got %+v", runner)
+	}
+	statePayload := params["state"].(map[string]any)
+	plan := statePayload["plan"].(map[string]any)
+	if plan["action"] != "run" || len(plan["dirty_reasons"].([]any)) == 0 {
+		t.Fatalf("expected plan state context, got %+v", statePayload)
 	}
 }
 

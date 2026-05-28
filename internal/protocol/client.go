@@ -54,6 +54,7 @@ type RunTransformParams struct {
 	InvocationID   string         `json:"invocation_id"`
 	TransformRunID string         `json:"transform_run_id"`
 	Transform      map[string]any `json:"transform"`
+	Runner         map[string]any `json:"runner,omitempty"`
 	Inputs         []any          `json:"inputs,omitempty"`
 	Outputs        []any          `json:"outputs,omitempty"`
 	Assets         []any          `json:"assets,omitempty"`

@@ -39,6 +39,10 @@ The backlog keeps provider SDKs and agent runtimes outside fbt core while
 hardening the protocol payload, process invocation, capability validation,
 safe CLI-agent adapter contract, runner authoring fixtures, demo-runner UX, and
 optional provider adapter packaging.
+`FBT-RUNNER-001` is complete: build now sends protocol runners resolved source
+inputs, current artifact-version inputs, descriptors, semantic descriptors,
+declared transform assets, runner config metadata, prior/current state, plan
+dirty reasons, and review context.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -90,9 +94,9 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Start external runner hardening with `FBT-RUNNER-001`, then proceed through
-   process invocation, capability validation, safe CLI-agent adapters, authoring
-   fixtures, demo-runner UX, and optional provider adapter packaging.
+3. Continue external runner hardening with `FBT-RUNNER-002`, then proceed
+   through capability validation, safe CLI-agent adapters, authoring fixtures,
+   demo-runner UX, and optional provider adapter packaging.
 4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
 5. Keep fbt-native state as the internal source of truth and delegate graph,
