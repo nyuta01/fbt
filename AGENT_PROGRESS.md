@@ -23,8 +23,8 @@ readiness, user-facing workflow hardening, and post-MVP depth: version stamping,
 repository/release publication, MVP-ready docs, actionable blocked/skipped
 guidance, artifact explain/path/show/history, safer review inspection,
 project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
-command-surface cleanup, expanded conformance, full policy-decision records,
-and semantic descriptors.
+command-surface cleanup, OpenLineage/OpenTelemetry/OpenMetadata export planning,
+expanded conformance, full policy-decision records, and semantic descriptors.
 
 ## Verification
 
@@ -51,9 +51,11 @@ This runs:
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 2. Start `FBT-UX-001` if prioritizing day-to-day user workflow polish, or
    `FBT-REL-001` if prioritizing release publication readiness.
-3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+3. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
+   keep fbt-native state as the internal source of truth.
+4. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-4. Keep `make verify` green after each bounded task.
+5. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 
