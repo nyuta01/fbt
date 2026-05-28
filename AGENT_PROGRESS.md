@@ -54,6 +54,11 @@ candidate support in build, doctor, and runner validate paths.
 adapter contract requiring staging workspaces, fail-closed policy translation,
 redacted events, and output candidates under `work.outputs`; Go and conformance
 coverage verify outside-work candidates fail before official commit.
+`FBT-RUNNER-005` is complete: external runner authors now have
+`docs/runner-authoring-guide.md`, protocol fixtures under
+`tests/runner-conformance/fixtures`, and `make runner-conformance`, which runs
+a strict black-box stdio protocol check against the source fake runner inside
+`make verify`.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -96,6 +101,7 @@ This runs:
 - `make go-test`
 - `make cli-smoke`
 - `make e2e-smoke`
+- `make runner-conformance`
 - `make conformance`
 - `make dist-check`
 
@@ -105,8 +111,8 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue external runner hardening with `FBT-RUNNER-005`, then proceed
-   through demo-runner UX and optional provider adapter packaging.
+3. Continue external runner hardening with `FBT-RUNNER-006`, then proceed
+   through optional provider adapter packaging.
 4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
 5. Keep fbt-native state as the internal source of truth and delegate graph,

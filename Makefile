@@ -66,6 +66,10 @@ e2e-smoke: ## Run the local knowledge-loop smoke.
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
 
+.PHONY: runner-conformance
+runner-conformance: ## Run the minimal external runner protocol conformance fixture.
+	@bash scripts/runner-conformance.sh --strict
+
 .PHONY: conformance
 conformance: build ## Run deterministic MVP conformance scenarios.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash tests/conformance/run.sh
@@ -75,5 +79,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke runner-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

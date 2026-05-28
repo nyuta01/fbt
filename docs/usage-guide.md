@@ -544,6 +544,12 @@ local command-line automation modes, but fbt does not depend on their packages
 or provider SDKs. Install and configure those tools outside fbt core, then wrap
 them with an adapter that implements the runner protocol.
 
+Before using a custom runner in a project, run the protocol fixture:
+
+```sh
+FBT_RUNNER_CONFORMANCE_COMMAND='my-fbt-runner --flag value' make runner-conformance
+```
+
 ## 16. Day-2 Operation
 
 The operating loop:

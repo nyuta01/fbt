@@ -1,0 +1,25 @@
+{
+  "jsonrpc": "2.0",
+  "id": "init_001",
+  "method": "initialize",
+  "params": {
+    "core": {
+      "name": "fbt-runner-conformance",
+      "version": "0.1.0"
+    },
+    "protocol": {
+      "versions": [
+        "0.1"
+      ],
+      "framing": "jsonl",
+      "schema_version": "https://schemas.fbt.dev/runner-protocol/v0.1.json"
+    },
+    "capability_request": [
+      "run_transform",
+      "stream_events",
+      "usage_reporting",
+      "output_candidates",
+      "cancellation"
+    ]
+  }
+}

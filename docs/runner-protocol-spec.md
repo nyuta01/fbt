@@ -10,6 +10,9 @@ Audience: implementers of `fbt-core` and external runners
 
 The initial runner protocol is **JSON-RPC 2.0 compatible messages over stdio**. Runners may be implemented in Go, Python, TypeScript, Rust, shell, or internal binaries.
 
+For implementer workflow and the reusable black-box conformance harness, see
+[Runner Authoring Guide](runner-authoring-guide.md).
+
 ## 2. Design Principles
 
 ### Necessary, Not Minimal

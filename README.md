@@ -60,6 +60,7 @@ Specifications:
 | [Manifest Spec](docs/manifest-spec.md) | Canonical graph metadata produced by parsing |
 | [State and Run Results Spec](docs/state-and-run-results-spec.md) | Local state, run results, artifact versions, approvals, eval and policy records |
 | [Runner Protocol Spec](docs/runner-protocol-spec.md) | JSON-RPC protocol between `fbt-core` and external runners |
+| [Runner Authoring Guide](docs/runner-authoring-guide.md) | Practical runner implementation checklist and protocol conformance harness |
 | [Schema and Versioning Spec](docs/schema-and-versioning-spec.md) | Config versioning, schema compatibility, artifact type registry, descriptor rules |
 | [Runner Discovery Spec](docs/runner-discovery-spec.md) | Runner resolution, plugin manifest shape, and diagnostics |
 | [Security and Conformance Spec](docs/security-and-conformance-spec.md) | Core security model and MVP conformance scenarios |
@@ -159,8 +160,8 @@ generation, descriptor and state primitives, dirty-state planning, runner
 discovery diagnostics, protocol runners, deterministic evals, review gates,
 artifact approvals, immutable artifact version storage, local templates,
 artifact diffs, and static Markdown project docs. `make verify` runs harness,
-docs, Go, CLI smoke, knowledge-loop smoke, conformance, and local release-binary
-checks.
+docs, Go, CLI smoke, knowledge-loop smoke, runner conformance, product
+conformance, and local release-binary checks.
 
 Release publication is not complete until a maintainer configures the public
 remote, signing setup, and signed `v0.1.0` tag. See `CONTRIBUTING.md` and the

@@ -1267,25 +1267,27 @@
       "id": "FBT-RUNNER-005",
       "title": "Add runner authoring kit and protocol conformance fixtures",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-001",
         "FBT-RUNNER-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-005-plan.md",
       "paths": [
         "docs/runner-authoring-guide.md",
         "tests/runner-conformance",
         "scripts",
+        "Makefile",
         "docs/runner-protocol-spec.md"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false
+        "runner_conformance": true,
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Provide golden JSONL protocol fixtures, a reusable runner conformance check, and a minimal authoring guide so Python, TypeScript, Go, Rust, or shell runners can be implemented without reverse-engineering fbt internals."
+      "notes": "Adds a language-neutral runner authoring guide, JSON protocol fixtures, a reusable black-box runner conformance harness, and `make runner-conformance`; the strict fixture now runs in `make verify` against the source fake runner."
     },
     {
       "id": "FBT-RUNNER-006",
