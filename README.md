@@ -33,8 +33,8 @@ wired into build commit. Deterministic evals, pending review gates, approval
 state, confidence promotion, `fbt init` templates, and a runnable local
 knowledge-loop example are wired into build and CLI flows. Optional local LLM
 and agent runner examples are available under `runners/` without provider SDK
-dependencies. Diff, docs generation, and conformance packaging are still
-pending.
+dependencies. Diff and docs generation are implemented for local state.
+Conformance packaging is still pending.
 
 The base runtime should work with only the local filesystem.
 
@@ -164,5 +164,6 @@ checks, run deterministic evals, commit pending-review outputs, update local
 state, promote reviewed artifacts through `fbt review approve`, and scaffold
 blank/support/incident projects through `fbt init`. Optional local fake,
 command, LLM, and agent runners exist for deterministic protocol and build
-tests, and `examples/knowledge_ops` exercises the local review loop. Diff, docs
-generation, and conformance packaging are still pending.
+tests, and `examples/knowledge_ops` exercises the local review loop. The CLI
+can compare artifact versions and generate static Markdown project docs.
+Conformance packaging is still pending.

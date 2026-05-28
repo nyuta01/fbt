@@ -13,6 +13,8 @@ import (
 
 	"github.com/nyuta01/fbt/internal/approval"
 	buildmgr "github.com/nyuta01/fbt/internal/build"
+	diffmgr "github.com/nyuta01/fbt/internal/diff"
+	docsgen "github.com/nyuta01/fbt/internal/docs"
 	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/graph"
 	"github.com/nyuta01/fbt/internal/manifest"
@@ -32,6 +34,8 @@ var implementedCommands = []string{
 	"build",
 	"eval",
 	"review",
+	"diff",
+	"docs",
 	"state",
 	"artifact",
 	"runner",
@@ -39,8 +43,6 @@ var implementedCommands = []string{
 
 var plannedCommands = []string{
 	"run",
-	"diff",
-	"docs",
 	"debug",
 }
 
@@ -83,6 +85,10 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runEval(opts, commandArgs[1:], stdout, stderr)
 	case "review":
 		return runReview(opts, commandArgs[1:], stdout, stderr)
+	case "diff":
+		return runDiff(opts, commandArgs[1:], stdout, stderr)
+	case "docs":
+		return runDocs(opts, commandArgs[1:], stdout, stderr)
 	case "state":
 		return runState(opts, commandArgs[1:], stdout, stderr)
 	case "artifact":
@@ -98,6 +104,148 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		printHelp(stderr)
 		return 2
 	}
+}
+
+func runDiff(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	diffOpts, err := parseDiffArgs(args)
+	if err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	snapshot, err := ctx.Store.ReadState()
+	if err != nil {
+		printError("diff", err, stderr, opts.JSON)
+		return 5
+	}
+	versions, err := ctx.Store.ReadArtifactVersions()
+	if err != nil {
+		printError("diff", err, stderr, opts.JSON)
+		return 5
+	}
+	current, ok := findVersion(snapshot, versions, diffOpts.Target)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", diffOpts.Target)
+		return 2
+	}
+	against, err := resolveAgainst(ctx.Store, snapshot, versions, current, diffOpts.Against)
+	if err != nil {
+		printError("diff", err, stderr, opts.JSON)
+		return 2
+	}
+	result, err := diffmgr.ComparePaths(filepath.Join(ctx.ParseResult.ProjectDir, against.StoragePath), filepath.Join(ctx.ParseResult.ProjectDir, current.StoragePath), against.VersionID, current.VersionID)
+	if err != nil {
+		printError("diff", err, stderr, opts.JSON)
+		return 1
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "diff", "status": "success", "diff": result})
+		return 0
+	}
+	for _, section := range result.Sections {
+		fmt.Fprintf(stdout, "%s: %s\n", section.Status, section.Heading)
+	}
+	fmt.Fprint(stdout, result.Unified)
+	return 0
+}
+
+type diffOptions struct {
+	Target  string
+	Against string
+}
+
+func parseDiffArgs(args []string) (diffOptions, error) {
+	opts := diffOptions{Against: "previous"}
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--against":
+			i++
+			if i >= len(args) {
+				return diffOptions{}, fmt.Errorf("--against requires a value")
+			}
+			opts.Against = args[i]
+		case strings.HasPrefix(arg, "--against="):
+			opts.Against = strings.TrimPrefix(arg, "--against=")
+		case strings.HasPrefix(arg, "--"):
+			return diffOptions{}, fmt.Errorf("unknown diff flag: %s", arg)
+		default:
+			if opts.Target != "" {
+				return diffOptions{}, fmt.Errorf("diff accepts one target")
+			}
+			opts.Target = arg
+		}
+	}
+	if opts.Target == "" {
+		return diffOptions{}, fmt.Errorf("diff requires a target")
+	}
+	return opts, nil
+}
+
+func runDocs(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	docsOpts, err := parseDocsArgs(args)
+	if err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	if docsOpts.Subcommand != "generate" {
+		fmt.Fprintf(stderr, "unknown docs command: %s\n", docsOpts.Subcommand)
+		return 2
+	}
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	if err := ctx.Store.WriteManifest(ctx.Manifest); err != nil {
+		printError("docs generate", err, stderr, opts.JSON)
+		return 5
+	}
+	result, err := docsgen.Generate(ctx.ParseResult.ProjectDir, ctx.Manifest, ctx.Store, docsgen.Options{OutputDir: docsOpts.OutputDir})
+	if err != nil {
+		printError("docs generate", err, stderr, opts.JSON)
+		return 5
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "docs generate", "status": "success", "docs": result})
+		return 0
+	}
+	fmt.Fprintf(stdout, "Docs written to %s\n", result.IndexPath)
+	return 0
+}
+
+type docsOptions struct {
+	Subcommand string
+	OutputDir  string
+}
+
+func parseDocsArgs(args []string) (docsOptions, error) {
+	opts := docsOptions{Subcommand: "generate"}
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--output":
+			i++
+			if i >= len(args) {
+				return docsOptions{}, fmt.Errorf("--output requires a value")
+			}
+			opts.OutputDir = args[i]
+		case strings.HasPrefix(arg, "--output="):
+			opts.OutputDir = strings.TrimPrefix(arg, "--output=")
+		case strings.HasPrefix(arg, "--"):
+			return docsOptions{}, fmt.Errorf("unknown docs flag: %s", arg)
+		default:
+			if opts.Subcommand != "generate" {
+				return docsOptions{}, fmt.Errorf("docs accepts one subcommand")
+			}
+			opts.Subcommand = arg
+		}
+	}
+	return opts, nil
 }
 
 func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
@@ -751,6 +899,67 @@ func findVersion(snapshot state.Snapshot, index state.ArtifactVersionsIndex, tar
 		return state.ArtifactVersion{}, false
 	}
 	return matches[len(matches)-1], true
+}
+
+func resolveAgainst(store state.Store, snapshot state.Snapshot, index state.ArtifactVersionsIndex, current state.ArtifactVersion, against string) (state.ArtifactVersion, error) {
+	switch against {
+	case "", "previous":
+		version, ok := previousVersion(index, current)
+		if !ok {
+			return state.ArtifactVersion{}, fmt.Errorf("previous artifact version not found for %s", current.ArtifactID)
+		}
+		return version, nil
+	case "last-approved":
+		version, ok := lastApprovedVersion(store, index, current)
+		if !ok {
+			return state.ArtifactVersion{}, fmt.Errorf("last approved artifact version not found for %s", current.ArtifactID)
+		}
+		return version, nil
+	default:
+		version, ok := findVersion(snapshot, index, against)
+		if !ok {
+			return state.ArtifactVersion{}, fmt.Errorf("artifact version not found: %s", against)
+		}
+		return version, nil
+	}
+}
+
+func previousVersion(index state.ArtifactVersionsIndex, current state.ArtifactVersion) (state.ArtifactVersion, bool) {
+	matches := matchingVersions(index, current.ArtifactID)
+	var previous []state.ArtifactVersion
+	for _, version := range matches {
+		if version.VersionID != current.VersionID {
+			previous = append(previous, version)
+		}
+	}
+	if len(previous) == 0 {
+		return state.ArtifactVersion{}, false
+	}
+	return previous[len(previous)-1], true
+}
+
+func lastApprovedVersion(store state.Store, index state.ArtifactVersionsIndex, current state.ArtifactVersion) (state.ArtifactVersion, bool) {
+	approvals, err := store.ReadApprovals()
+	if err != nil {
+		return state.ArtifactVersion{}, false
+	}
+	var approved []state.ArtifactVersion
+	for versionID, approval := range approvals.Approvals {
+		if approval.ArtifactID != current.ArtifactID || approval.Status != "approved" || versionID == current.VersionID {
+			continue
+		}
+		version, ok := index.ArtifactVersions[versionID]
+		if ok {
+			approved = append(approved, version)
+		}
+	}
+	sort.Slice(approved, func(i, j int) bool {
+		return approved[i].VersionID < approved[j].VersionID
+	})
+	if len(approved) == 0 {
+		return state.ArtifactVersion{}, false
+	}
+	return approved[len(approved)-1], true
 }
 
 func producerTransform(m manifest.Manifest, artifactID string) (manifest.TransformResource, bool) {

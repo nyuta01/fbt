@@ -32,4 +32,8 @@ go run ./cmd/fbt build --project-dir "$project" --select weekly_support_insights
 grep -q "committed:" "$tmpdir/build-weekly.txt"
 test -f "$project/target/artifacts/support/weekly_insights.md"
 
+go run ./cmd/fbt docs generate --project-dir "$project" >"$tmpdir/docs.txt"
+grep -q "Docs written" "$tmpdir/docs.txt"
+test -f "$project/target/docs/index.md"
+
 echo "knowledge-loop-smoke: ok"

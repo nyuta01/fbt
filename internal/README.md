@@ -32,6 +32,7 @@ Package boundaries:
 | `runner` | Runner discovery, process lifecycle, protocol client |
 | `eval` | Deterministic and delegated eval orchestration |
 | `approval` | Review gates and artifact-version approval state |
+| `diff` | Raw text and Markdown heading-aware artifact diffs |
 | `docs` | Static lineage and review documentation generation |
 | `plugin` | Runner/plugin manifest handling, not in-process execution |
 | `protocol` | JSON-RPC message types and compatibility checks |

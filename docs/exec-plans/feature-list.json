@@ -460,25 +460,25 @@
       "id": "FBT-MVP-015",
       "title": "Implement diff and docs generation",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-004",
         "FBT-MVP-010",
         "FBT-MVP-012"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-015-plan.md",
       "paths": [
         "internal/diff",
         "internal/docs",
         "docs/cli-reference.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "e2e_smoke": false
+        "go_test": true,
+        "cli_smoke": true,
+        "e2e_smoke": true
       },
-      "notes": "Provide raw text and Markdown heading-aware diff plus static docs with graph lineage, artifact versions, runner/model metadata, eval results, and review state."
+      "notes": "Adds raw text and Markdown heading-aware diff, fbt diff with previous/last-approved resolution, fbt docs generate, static Markdown lineage/review docs, unit tests, CLI tests, and e2e docs smoke."
     },
     {
       "id": "FBT-MVP-016",

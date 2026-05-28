@@ -9,14 +9,15 @@ baseline AI-first engineering harness, repo governance files, a Go CLI, parser,
 manifest graph, planner, descriptor/state primitives, runner discovery,
 protocol client, local fake/command/LLM/agent runners, the first build
 lifecycle, deterministic evals, review approvals, confidence promotion, init
-templates, and a runnable local knowledge-loop example.
+templates, a runnable local knowledge-loop example, artifact diffing, and
+static Markdown docs generation.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-014` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-015` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-015` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -39,7 +40,7 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-015` with raw text/Markdown diff and static docs generation.
+1. Start `FBT-MVP-016` with conformance, packaging, and release smoke.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.

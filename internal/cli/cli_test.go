@@ -229,6 +229,59 @@ func TestRunEvalAndReviewCommands(t *testing.T) {
 	}
 }
 
+func TestRunDiffAndDocsGenerate(t *testing.T) {
+	root := writeCLIProject(t)
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	oldVersion := writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_1111111111111111111111111111111111111111111111111111111111111111", "target/artifacts/support/case_summaries_old", "old")
+	newVersion := writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_2222222222222222222222222222222222222222222222222222222222222222", "target/artifacts/support/case_summaries_new", "new")
+	if err := store.WriteState(state.Snapshot{
+		CurrentArtifacts: map[string]state.ArtifactPointer{
+			newVersion.ArtifactID: {
+				ArtifactID:       newVersion.ArtifactID,
+				CurrentVersionID: newVersion.VersionID,
+				LogicalPath:      newVersion.LogicalPath,
+				Confidence:       "structural",
+				ApprovalStatus:   "pending",
+			},
+		},
+		LatestRuns: map[string]state.LatestRun{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.PutApproval(state.Approval{
+		ArtifactVersionID: oldVersion.VersionID,
+		ArtifactID:        oldVersion.ArtifactID,
+		Digest:            oldVersion.Descriptor.Digest,
+		Status:            "approved",
+		ReviewGroup:       "support_leads",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	var diffOut bytes.Buffer
+	var diffErr bytes.Buffer
+	if code := Run([]string{"diff", "case_summaries", "--against", "last-approved", "--project-dir", root}, &diffOut, &diffErr); code != 0 {
+		t.Fatalf("diff failed: code=%d stdout=%q stderr=%q", code, diffOut.String(), diffErr.String())
+	}
+	if !strings.Contains(diffOut.String(), "+new") || !strings.Contains(diffOut.String(), "changed: Summary") {
+		t.Fatalf("unexpected diff output: %q", diffOut.String())
+	}
+
+	var docsOut bytes.Buffer
+	var docsErr bytes.Buffer
+	if code := Run([]string{"docs", "generate", "--project-dir", root}, &docsOut, &docsErr); code != 0 {
+		t.Fatalf("docs generate failed: code=%d stdout=%q stderr=%q", code, docsOut.String(), docsErr.String())
+	}
+	docsPath := filepath.Join(root, "target", "docs", "index.md")
+	data, err := os.ReadFile(docsPath)
+	if err != nil {
+		t.Fatalf("read docs: %v", err)
+	}
+	if !strings.Contains(string(data), "artifact.knowledge_ops.case_summaries") {
+		t.Fatalf("unexpected docs content: %s", string(data))
+	}
+}
+
 func TestRunRunnerListAndDoctor(t *testing.T) {
 	root := writeCLIProject(t)
 	var listOut bytes.Buffer
@@ -267,6 +320,28 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	if !strings.Contains(stdout.String(), "RUNNER_COMMAND_OK") {
 		t.Fatalf("expected ok diagnostic, got %q", stdout.String())
 	}
+}
+
+func writeCLIArtifactVersion(t *testing.T, store state.Store, root, versionID, storagePath, body string) state.ArtifactVersion {
+	t.Helper()
+	writeFile(t, root, filepath.Join(storagePath, "index.md"), "# Summary\n"+body+"\n")
+	digest := strings.TrimPrefix(strings.TrimPrefix(versionID, "artifact_version.knowledge_ops.case_summaries."), "sha256_")
+	version := state.ArtifactVersion{
+		VersionID:   versionID,
+		ArtifactID:  "artifact.knowledge_ops.case_summaries",
+		LogicalPath: storagePath + "/",
+		StoragePath: storagePath,
+		Descriptor: artifact.Descriptor{
+			MediaType:    "inode/directory",
+			Digest:       "sha256:" + digest,
+			ArtifactType: "fbt.artifact.markdown_directory.v1",
+			FileCount:    1,
+		},
+	}
+	if err := store.PutArtifactVersion(version); err != nil {
+		t.Fatal(err)
+	}
+	return version
 }
 
 func writeCLICurrentArtifact(t *testing.T, root string) (state.Store, state.ArtifactVersion) {
