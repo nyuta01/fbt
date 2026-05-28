@@ -9,11 +9,13 @@ baseline AI-first engineering harness, repo governance files, a Go CLI, parser,
 manifest graph, planner, descriptor/state primitives, runner discovery,
 protocol client, local fake/command/LLM/agent runners, the first build
 lifecycle, deterministic evals, review approvals, confidence promotion, init
-templates, a runnable local knowledge-loop example, artifact diffing, and
-static Markdown docs generation.
-The current verification gate also includes deterministic conformance and local
-release-binary smoke checks. The MVP source default is `0.1.0`, and release
-builds can stamp version, commit, and build date metadata into the CLI.
+templates, a runnable local knowledge-loop example, practical external-runner
+manual-generation examples, artifact diffing, and static Markdown docs
+generation.
+The current verification gate also includes practical example parse/plan smoke,
+deterministic conformance, and local release-binary smoke checks. The MVP
+source default is `0.1.0`, and release builds can stamp version, commit, and
+build date metadata into the CLI.
 Plan and build output now include concrete `next:` commands for blocked and
 skipped work, and `fbt artifact explain TARGET` gives a focused explanation of
 one artifact's plan decision. Artifact inspection now includes `artifact path`,
@@ -69,6 +71,12 @@ conventions are documented in `docs/runner-adapters.md`, including package
 names, project config, plugin manifests, PATH behavior, credential boundaries,
 versioning, and conformance checks while keeping SDKs and runtimes outside
 core.
+`FBT-EXAMPLE-001` is complete: practical external-runner examples now cover
+incident logs to an approved incident response runbook and support
+inquiry/response logs to an approved support resolution manual. Both examples
+include realistic source records, format assets, policies, deterministic
+section evals, review gates, and parse/plan smoke coverage without provider
+calls.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -111,6 +119,7 @@ This runs:
 - `make go-test`
 - `make cli-smoke`
 - `make e2e-smoke`
+- `make practical-examples-smoke`
 - `make runner-conformance`
 - `make conformance`
 - `make dist-check`
@@ -118,19 +127,16 @@ This runs:
 ## Next Steps
 
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
-   setup are available; otherwise continue with the next unblocked P0 agent
-   task.
-3. Complete maintainer-owned release tasks when credentials, signing setup, and
-   release baseline are available.
-4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
+2. Complete maintainer-owned `FBT-REL-002` and `FBT-REL-003` when release
+   credentials, signing setup, and release baseline are available.
+3. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
-5. Keep fbt-native state as the internal source of truth and delegate graph,
+4. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.
-6. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+5. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-7. Keep `make verify` green after each bounded task.
+6. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 

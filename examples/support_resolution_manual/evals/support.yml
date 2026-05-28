@@ -1,0 +1,16 @@
+evals:
+  - name: required_support_manual_sections
+    type: deterministic
+    config:
+      sections:
+        - Audience
+        - When to Use
+        - Intake Checklist
+        - Triage
+        - Resolution Procedure
+        - Escalation
+        - Customer Response Templates
+        - Agent Notes
+        - Maintenance Notes
+        - Source Evidence
+    grants_confidence: structural

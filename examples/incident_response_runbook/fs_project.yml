@@ -1,0 +1,31 @@
+name: incident_response_runbook
+config_version: 1
+version: 0.1.0
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: .fbt/state
+execution:
+  mode: local
+  max_workers: 1
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-runner-openai
+    args: ["responses"]
+    env:
+      - OPENAI_API_KEY
+    config:
+      provider: openai
+      default_model: gpt-5
+selectors:
+  - name: manual_generation
+    definition:
+      method: tag
+      value: manual

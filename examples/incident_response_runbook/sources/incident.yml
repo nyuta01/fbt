@@ -1,0 +1,24 @@
+sources:
+  - name: incident
+    description: Incident records exported from monitoring, response, and postmortem workflows.
+    artifacts:
+      - name: event_logs
+        type: jsonl_directory
+        path: data/incidents/events/*.jsonl
+        tags: ["incident", "raw", "manual-input"]
+      - name: response_logs
+        type: markdown_directory
+        path: data/incidents/response_logs/
+        tags: ["incident", "response", "manual-input"]
+      - name: postmortems
+        type: markdown_directory
+        path: data/incidents/postmortems/
+        tags: ["incident", "learning", "manual-input"]
+
+  - name: reference
+    description: Current approved operational references used to avoid regressions.
+    artifacts:
+      - name: existing_runbooks
+        type: markdown_directory
+        path: data/reference/runbooks/
+        tags: ["reference", "runbook"]

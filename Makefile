@@ -62,6 +62,10 @@ cli-smoke: ## Run a deterministic fbt CLI smoke.
 e2e-smoke: ## Run the local knowledge-loop smoke.
 	@bash scripts/smoke-knowledge-loop.sh
 
+.PHONY: practical-examples-smoke
+practical-examples-smoke: ## Parse and plan external-runner practical examples without provider calls.
+	@bash scripts/smoke-practical-examples.sh
+
 .PHONY: real-llm-smoke
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
@@ -79,5 +83,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke runner-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke runner-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

@@ -1,0 +1,32 @@
+transforms:
+  - name: support_resolution_manual
+    type: llm
+    runner: openai.responses
+    model:
+      provider: openai
+      name: gpt-5
+      parameters:
+        temperature: 0.1
+    inputs:
+      - source: support.inquiry_tickets
+      - source: support.response_logs
+      - source: reference.product_docs
+      - source: reference.approved_macros
+    outputs:
+      - name: support_resolution_manual
+        type: markdown
+        path: target/artifacts/support/support_resolution_manual.md
+    assets:
+      - ref: support_resolution_prompt
+      - ref: support_resolution_manual_format
+      - ref: support_manual_style_guide
+      - ref: support_evidence_checklist
+    policy: support_manual_generation_scope
+    evals:
+      - required_support_manual_sections
+    review:
+      required: true
+      group: support_leads
+    cache:
+      mode: require_approval_for_reuse
+    tags: ["support", "manual", "resolution"]

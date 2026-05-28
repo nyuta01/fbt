@@ -1,0 +1,4 @@
+{"incident_id":"INC-2026-0421","time":"2026-04-21T09:12:04Z","source":"pager","severity":"SEV2","service":"checkout-api","event":"p95_latency_ms above 2400 for 10 minutes","customer_impact":"elevated checkout timeouts for a subset of customers"}
+{"incident_id":"INC-2026-0421","time":"2026-04-21T09:18:44Z","source":"metrics","service":"checkout-api","event":"database connection pool saturation","observed_value":"active_connections=280 limit=300"}
+{"incident_id":"INC-2026-0421","time":"2026-04-21T09:31:20Z","source":"incident_command","event":"traffic shifted away from us-east-1 read replica","result":"checkout timeout rate decreased from 7.8% to 1.1%"}
+{"incident_id":"INC-2026-0421","time":"2026-04-21T10:06:52Z","source":"incident_command","event":"incident resolved","result":"latency and timeout rate returned to normal range"}

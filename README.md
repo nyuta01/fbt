@@ -49,6 +49,7 @@ Start here:
 |---|---|
 | [Usage Guide](docs/usage-guide.md) | End-to-end workflow from project initialization to build, review, and docs generation |
 | [Knowledge Loop Example](docs/examples/knowledge-loop-example.md) | Customer support, incident response, and agile management examples |
+| [Practical Manual Generation Examples](docs/examples/practical-manual-generation-examples.md) | External-runner examples for incident runbooks and support manuals |
 | [Design Doc](docs/design-doc.md) | Background, principles, architecture, roadmap, and remaining decisions |
 
 Specifications:

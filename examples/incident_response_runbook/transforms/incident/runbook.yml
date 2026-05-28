@@ -1,0 +1,32 @@
+transforms:
+  - name: incident_response_runbook
+    type: llm
+    runner: openai.responses
+    model:
+      provider: openai
+      name: gpt-5
+      parameters:
+        temperature: 0.1
+    inputs:
+      - source: incident.event_logs
+      - source: incident.response_logs
+      - source: incident.postmortems
+      - source: reference.existing_runbooks
+    outputs:
+      - name: incident_response_runbook
+        type: markdown
+        path: target/artifacts/runbooks/incident_response_runbook.md
+    assets:
+      - ref: incident_runbook_prompt
+      - ref: incident_runbook_format
+      - ref: incident_runbook_style_guide
+      - ref: incident_evidence_checklist
+    policy: incident_manual_generation_scope
+    evals:
+      - required_incident_runbook_sections
+    review:
+      required: true
+      group: sre_leads
+    cache:
+      mode: require_approval_for_reuse
+    tags: ["incident", "manual", "runbook"]

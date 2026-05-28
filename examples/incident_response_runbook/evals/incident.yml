@@ -1,0 +1,19 @@
+evals:
+  - name: required_incident_runbook_sections
+    type: deterministic
+    config:
+      sections:
+        - Purpose
+        - Scope
+        - Detection
+        - Severity Classification
+        - Immediate Response
+        - Investigation
+        - Mitigation
+        - Recovery
+        - Customer Communication
+        - Escalation
+        - Post-Incident Follow-up
+        - Maintenance Notes
+        - Source Evidence
+    grants_confidence: structural

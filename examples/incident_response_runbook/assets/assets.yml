@@ -1,0 +1,16 @@
+assets:
+  - name: incident_runbook_prompt
+    type: prompt
+    path: assets/incident_runbook_prompt.md
+
+  - name: incident_runbook_format
+    type: template
+    path: assets/incident_runbook_format.md
+
+  - name: incident_runbook_style_guide
+    type: style_guide
+    path: assets/incident_runbook_style_guide.md
+
+  - name: incident_evidence_checklist
+    type: rubric
+    path: assets/incident_evidence_checklist.md

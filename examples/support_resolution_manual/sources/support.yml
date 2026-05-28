@@ -1,0 +1,24 @@
+sources:
+  - name: support
+    description: User inquiries and agent handling records exported from support systems.
+    artifacts:
+      - name: inquiry_tickets
+        type: jsonl_directory
+        path: data/support/tickets/*.jsonl
+        tags: ["support", "raw", "manual-input"]
+      - name: response_logs
+        type: markdown_directory
+        path: data/support/response_logs/
+        tags: ["support", "resolution", "manual-input"]
+
+  - name: reference
+    description: Current approved customer support references.
+    artifacts:
+      - name: product_docs
+        type: markdown_directory
+        path: data/reference/product_docs/
+        tags: ["reference", "product-docs"]
+      - name: approved_macros
+        type: markdown_directory
+        path: data/reference/macros/
+        tags: ["reference", "macros"]

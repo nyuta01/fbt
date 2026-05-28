@@ -1,0 +1,16 @@
+assets:
+  - name: support_resolution_prompt
+    type: prompt
+    path: assets/support_resolution_prompt.md
+
+  - name: support_resolution_manual_format
+    type: template
+    path: assets/support_resolution_manual_format.md
+
+  - name: support_manual_style_guide
+    type: style_guide
+    path: assets/support_manual_style_guide.md
+
+  - name: support_evidence_checklist
+    type: rubric
+    path: assets/support_evidence_checklist.md
