@@ -2090,6 +2090,81 @@
       "notes": "Removed public parse/eval/docs/state/runner command routing and the duplicate artifact versions alias. Parsing, evals, state writes, and runner diagnostics now stay behind doctor, plan, and build, while tests and smokes assert the pruned commands are unknown."
     },
     {
+      "id": "FBT-UNIX-014",
+      "title": "Remove stale non-core feature references from specs",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-011",
+        "FBT-UNIX-013"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-014-plan.md",
+      "paths": [
+        "docs/spec.md",
+        "docs/design-doc.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/manifest-spec.md",
+        "docs/exec-plans",
+        "docs/research"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "go_test": true,
+        "make_verify": true
+      },
+      "notes": "Audit and remove or explicitly mark stale references to deleted docs generation, review, approval, and old debug CLI surfaces. Specs should describe the current Unix-style boundary: artifact inspection plus OpenLineage/OTel export instead of built-in docs, review, or custom visualization."
+    },
+    {
+      "id": "FBT-UNIX-015",
+      "title": "Converge value narrative on the build receipt",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-014"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-015-plan.md",
+      "paths": [
+        "README.md",
+        "docs/usage-guide.md",
+        "docs/design-doc.md",
+        "apps/docs/src/content/docs",
+        "examples"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "docs_site_build": true,
+        "make_verify": true
+      },
+      "notes": "Make the product value read as one sentence everywhere: fbt gives generated files a build receipt that shows what changed, what ran, what version was produced, and how lineage can be exported. Keep runner, eval, policy, and standard-export details subordinate to that mental model."
+    },
+    {
+      "id": "FBT-UNIX-016",
+      "title": "Clarify or remove plan side effects",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-013"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-016-plan.md",
+      "paths": [
+        "internal/cli",
+        "internal/planner",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "scripts",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "make_verify": true
+      },
+      "notes": "`fbt plan` currently writes the current manifest snapshot, which is useful but surprising for a command named plan. Decide whether to make plan read-only or document the manifest-write side effect explicitly, then align tests and smoke checks with the chosen behavior."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
