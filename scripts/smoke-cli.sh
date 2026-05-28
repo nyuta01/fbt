@@ -9,7 +9,10 @@ trap 'rm -rf "$tmpdir"' EXIT
 
 go run ./cmd/fbt --help >"$tmpdir/help.txt"
 grep -q "file build tool" "$tmpdir/help.txt"
-grep -q "Planned commands" "$tmpdir/help.txt"
+if grep -q "Planned commands" "$tmpdir/help.txt"; then
+  echo "help should not list placeholder commands" >&2
+  exit 1
+fi
 
 go run ./cmd/fbt version >"$tmpdir/version.txt"
 grep -q "^fbt 0.1.0$" "$tmpdir/version.txt"
@@ -135,9 +138,9 @@ go run ./cmd/fbt review approve case_summaries --comment "smoke" --project-dir "
 grep -q "status: approved" "$tmpdir/review-approve.txt"
 
 if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
-  echo "expected fbt run to be a planned-but-unimplemented command" >&2
+  echo "expected fbt run to be outside the MVP command surface" >&2
   exit 1
 fi
-grep -q "not implemented yet" "$tmpdir/run.err"
+grep -q "unknown command: run" "$tmpdir/run.err"
 
 echo "cli-smoke: ok"

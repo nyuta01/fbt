@@ -31,6 +31,8 @@ Jaeger/OTLP, and Tempo/Grafana visualization recipes without adding a custom fbt
 graph UI or backend service.
 `make real-llm-smoke` is available as an opt-in external runner smoke gated by
 `FBT_REAL_LLM_RUNNER_COMMAND`; it is intentionally outside `make verify`.
+The CLI command surface is now closed around implemented commands; `run` and
+`debug` placeholders were removed from help and user docs.
 `fbt doctor` now checks project readiness, state writability/lock acquisition,
 runner discovery, and runner protocol initialization. YAML authoring diagnostics
 now include line numbers where available and actionable hints for common parse
@@ -42,9 +44,8 @@ conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication, command-surface cleanup, OpenMetadata
-evaluation, expanded conformance, full policy-decision records, and semantic
-descriptors. `FBT-REL-002` is blocked on
+repository/release publication, OpenMetadata evaluation, expanded conformance,
+full policy-decision records, and semantic descriptors. `FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
 or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
 release baseline exists.

@@ -487,7 +487,6 @@ fbt init
 fbt parse
 fbt plan
 fbt build
-fbt run --select weekly_report+
 fbt eval weekly_report
 fbt diff weekly_report --against last-approved
 fbt review status weekly_report

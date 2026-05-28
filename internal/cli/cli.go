@@ -48,11 +48,6 @@ var implementedCommands = []string{
 	"export",
 }
 
-var plannedCommands = []string{
-	"run",
-	"debug",
-}
-
 type options struct {
 	ProjectDir string
 	StateDir   string
@@ -118,10 +113,6 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 	case "export":
 		return runExport(opts, commandArgs[1:], stdout, stderr)
 	default:
-		if isPlannedCommand(commandArgs[0]) {
-			fmt.Fprintf(stderr, "fbt %s: not implemented yet\n", commandArgs[0])
-			return 2
-		}
 		fmt.Fprintf(stderr, "unknown command: %s\n\n", commandArgs[0])
 		printHelp(stderr)
 		return 2
@@ -1020,20 +1011,6 @@ func printHelp(w io.Writer) {
 	for _, command := range implementedCommands {
 		fmt.Fprintf(w, "  %-10s\n", command)
 	}
-	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Planned commands:")
-	for _, command := range plannedCommands {
-		fmt.Fprintf(w, "  %s\n", command)
-	}
-}
-
-func isPlannedCommand(command string) bool {
-	for _, planned := range plannedCommands {
-		if strings.EqualFold(command, planned) {
-			return true
-		}
-	}
-	return false
 }
 
 func parseOptions(args []string) (options, []string, error) {

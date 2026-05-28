@@ -200,16 +200,7 @@ fbt build --select tag:support
 fbt build --select +weekly_support_insights
 ```
 
-### 5.5 fbt run
-
-Reserved for direct transform execution. MVP returns a not-implemented error;
-use `fbt build` as the user-facing execution command.
-
-```sh
-fbt run --select EXPR
-```
-
-### 5.6 fbt eval
+### 5.5 fbt eval
 
 Run evals against an artifact or artifact version.
 
@@ -232,7 +223,7 @@ MVP behavior:
   delegated eval runners are implemented
 - failed deterministic evals return exit code `1`
 
-### 5.7 fbt diff
+### 5.6 fbt diff
 
 Show differences between artifact versions.
 
@@ -248,7 +239,7 @@ fbt diff TARGET [--against REF]
 
 MVP supports raw text diff and Markdown heading-aware diff.
 
-### 5.8 fbt review
+### 5.7 fbt review
 
 Manage review and approval state.
 
@@ -272,7 +263,7 @@ generating run, and inspection commands such as `artifact show`, `artifact
 path`, `diff --against last-approved` when available, and approve/reject
 commands to run after review.
 
-### 5.9 fbt docs generate
+### 5.8 fbt docs generate
 
 Generate static docs.
 
@@ -288,7 +279,7 @@ target/docs/
 
 Docs include graph lineage, runner/model metadata, token/cost summary, review state, confidence, artifact versions, eval results, and diff links.
 
-### 5.10 fbt state
+### 5.9 fbt state
 
 Inspect local state.
 
@@ -298,7 +289,7 @@ fbt state ls
 fbt state current TARGET
 ```
 
-### 5.11 fbt artifact
+### 5.10 fbt artifact
 
 Inspect artifacts and versions.
 
@@ -317,7 +308,7 @@ logical path, immutable storage path, digest, runner/model, approval state,
 confidence, and generating run. `artifact history` lists prior versions for the
 same logical artifact.
 
-### 5.12 fbt runner
+### 5.11 fbt runner
 
 Inspect runner availability and capabilities.
 
@@ -335,17 +326,7 @@ MVP does not download or install plugins. `fbt plugin install` is reserved for a
 future release; use host package managers or checked-in plugin manifests and then
 run `fbt runner doctor`.
 
-### 5.13 fbt debug
-
-Reserved for project diagnostics. MVP returns a not-implemented error; use
-`fbt doctor`, `fbt parse`, `fbt state status`, and `fbt runner doctor` for
-current checks.
-
-```sh
-fbt debug
-```
-
-### 5.14 fbt doctor
+### 5.12 fbt doctor
 
 Run a project readiness check.
 
@@ -363,7 +344,7 @@ Checks:
 The command exits `0` when all checks pass and `6` when dependency or runner
 readiness checks fail. Use `--json` for machine-readable check records.
 
-### 5.15 Standard exports
+### 5.13 Standard exports
 
 `fbt export openlineage` writes OpenLineage-compatible run events for artifact
 lineage. The default output is newline-delimited JSON on stdout. Use `--output`

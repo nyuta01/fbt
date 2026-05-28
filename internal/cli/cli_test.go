@@ -62,7 +62,7 @@ func TestRunVersionJSON(t *testing.T) {
 	}
 }
 
-func TestRunPlannedCommand(t *testing.T) {
+func TestRunFormerPlaceholderCommandIsUnknown(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
@@ -70,8 +70,8 @@ func TestRunPlannedCommand(t *testing.T) {
 	if code != 2 {
 		t.Fatalf("expected exit code 2, got %d", code)
 	}
-	if !strings.Contains(stderr.String(), "not implemented yet") {
-		t.Fatalf("expected not implemented message, got %q", stderr.String())
+	if !strings.Contains(stderr.String(), "unknown command: run") {
+		t.Fatalf("expected unknown command message, got %q", stderr.String())
 	}
 }
 

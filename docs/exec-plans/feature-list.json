@@ -1025,23 +1025,25 @@
       "id": "FBT-CLI-001",
       "title": "Decide and close run/debug command surface",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-CLI-001-plan.md",
       "paths": [
         "internal/cli",
+        "scripts/smoke-cli.sh",
         "docs/cli-reference.md",
-        "README.md"
+        "docs/spec.md",
+        "docs/exec-plans/active/FBT-CLI-001-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
-      "notes": "Either implement run/debug or remove them from planned-command help and docs so the MVP command surface has no ambiguous placeholders."
+      "notes": "Closed the MVP command surface by removing `run` and `debug` placeholders from CLI help/docs. `build` remains the execution command and diagnostics stay under `doctor`, `parse`, `state`, and `runner doctor`; former placeholders now return the normal unknown-command error."
     },
     {
       "id": "FBT-CONF-001",
