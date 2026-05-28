@@ -553,12 +553,12 @@
       "id": "FBT-REL-002",
       "title": "Prepare public repository remote and signed release baseline",
       "priority": "P0",
-      "status": "todo",
+      "status": "blocked",
       "owner": "maintainer",
       "depends": [
         "FBT-REL-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-REL-002-plan.md",
       "paths": [
         "CONTRIBUTING.md",
         "SECURITY.md",
@@ -567,9 +567,9 @@
       "verification": {
         "manual_remote_check": false,
         "signed_commit_check": false,
-        "make_verify": false
+        "make_verify": true
       },
-      "notes": "Configure the GitHub remote, decide whether to rewrite unsigned local history or sign from this point forward, verify maintainer GPG/signing setup, push main, and create the first release tag."
+      "notes": "Blocked on maintainer credentials and release-history decision: no git remote, no signing config, latest local commits are unsigned, and no v0.1.0 tag exists. Local docs and tag-triggered verify workflow are prepared."
     },
     {
       "id": "FBT-REL-003",

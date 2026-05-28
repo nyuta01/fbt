@@ -24,3 +24,10 @@ directories, avoid storing secrets by default, and prevent failed or interrupted
 runs from updating official artifact pointers.
 
 See `docs/security-and-conformance-spec.md` for the full draft model.
+
+## Release Integrity
+
+Official releases should be cut from a clean tree after `make verify` passes.
+Maintainers should sign release tags, keep release artifacts and checksums
+attached to the release, and treat unexpected unsigned tags, checksum
+mismatches, or runner binary substitution as supply-chain security issues.

@@ -43,6 +43,44 @@ Recommended categories:
 - state
 - security
 
+## Release Baseline
+
+Maintainers publish releases from a clean tree after `make verify` passes.
+Release builds use the version metadata contract documented in
+`docs/cli-reference.md`: `VERSION`, `COMMIT`, and `BUILD_DATE` are stamped at
+build time.
+
+Before the first public MVP release, a maintainer must configure the GitHub
+remote and choose the signing policy:
+
+```sh
+git remote add origin git@github.com:nyuta01/fbt.git
+git config commit.gpgsign true
+git config user.signingkey <KEY_ID>
+```
+
+The default policy is to keep existing local history intact and sign commits
+and tags from the first public release point forward. If history is rewritten to
+retroactively sign earlier commits, do that before the public remote becomes
+the source of truth.
+
+After verification, create and push the signed MVP tag:
+
+```sh
+make verify
+git tag -s v0.1.0 -m "fbt v0.1.0"
+git push -u origin main
+git push origin v0.1.0
+```
+
+Check release integrity before announcing the release:
+
+```sh
+git remote -v
+git log --show-signature -1
+git tag -v v0.1.0
+```
+
 ## Local Requirements
 
 - Go, as declared in `go.mod`

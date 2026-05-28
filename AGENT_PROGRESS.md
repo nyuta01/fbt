@@ -26,7 +26,9 @@ guidance, artifact explain/path/show/history, safer review inspection,
 project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
 command-surface cleanup, OpenLineage/OpenTelemetry/OpenMetadata export planning,
 standard-compatible visualization recipes, expanded conformance, full
-policy-decision records, and semantic descriptors.
+policy-decision records, and semantic descriptors. `FBT-REL-002` is blocked on
+maintainer release credentials and signing setup: no Git remote, signing config,
+or `v0.1.0` tag is present locally.
 
 ## Verification
 
@@ -51,8 +53,9 @@ This runs:
 ## Next Steps
 
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Start `FBT-REL-002` if maintainer release credentials and signing setup are
-   available; otherwise continue with the next unblocked P0 agent task.
+2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
+   setup are available; otherwise continue with the next unblocked P0 agent
+   task.
 3. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
    keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where possible.
