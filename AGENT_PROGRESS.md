@@ -5,17 +5,18 @@ Last updated: 2026-05-28
 ## Current State
 
 The repository contains the English design/specification set for `fbt`, a
-baseline AI-first engineering harness, repo governance files, and a minimal Go
-CLI scaffold. Product code is intentionally minimal: the CLI exposes `help` and
-`version` so verification has an executable target while the MVP implementation
-is still being planned.
+baseline AI-first engineering harness, repo governance files, a minimal Go CLI
+scaffold, and the first parser implementation baseline. The CLI still exposes
+only `help` and `version`; project behavior is currently available through
+internal packages and tests.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-The remaining practical-MVP work is registered as `FBT-MVP-001` through
-`FBT-MVP-016` in `docs/exec-plans/feature-list.json`.
+`FBT-MVP-001` is complete. The remaining practical-MVP work is registered as
+`FBT-MVP-002` through `FBT-MVP-016` in
+`docs/exec-plans/feature-list.json`.
 
 ## Verification
 
@@ -36,11 +37,11 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-001` with a plan for project discovery and `fs_project.yml`
-   parsing.
-2. Add executable tests for `config_version`, artifact type alias validation,
-   and path validation before implementing downstream graph behavior.
-3. Expand the Go CLI only when a task has a spec-backed acceptance criterion.
+1. Start `FBT-MVP-002` with a plan for manifest graph and selectors.
+2. Convert parser resources into deterministic manifest resources, parent/child
+   maps, and selector-ready metadata.
+3. Expand the Go CLI only when `FBT-MVP-006` has a spec-backed acceptance
+   criterion.
 4. Keep `make verify` green after each bounded MVP task.
 
 ## Notes For Next Agent

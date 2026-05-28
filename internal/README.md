@@ -1,8 +1,9 @@
 # Internal Package Boundaries
 
-`internal/` contains Go implementation packages for `fbt-core`. The current
-codebase only implements the CLI scaffold. Product packages should be added only
-when backed by an accepted spec or execution-plan task.
+`internal/` contains Go implementation packages for `fbt-core`. Product
+packages should be added only when backed by an accepted spec or execution-plan
+task. The current codebase includes the CLI scaffold plus the first
+project/config/resource parser baseline.
 
 Planned package boundaries:
 

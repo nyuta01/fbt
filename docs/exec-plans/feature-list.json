@@ -127,13 +127,13 @@
       "id": "FBT-MVP-001",
       "title": "Implement project config and resource parser",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-H-002",
         "FBT-H-004"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-001-plan.md",
       "paths": [
         "internal/project",
         "internal/config",
@@ -142,10 +142,10 @@
         "docs/schema-and-versioning-spec.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false
+        "go_test": true,
+        "cli_smoke": true
       },
-      "notes": "Read fs_project.yml, require config_version: 1, load resource YAML, validate names, paths, artifact aliases, source/ref syntax, and emit parse diagnostics."
+      "notes": "Reads fs_project.yml, requires config_version: 1, loads resource YAML, validates names, paths, artifact aliases, source/ref syntax, asset/eval/policy refs, and emits structured parse diagnostics."
     },
     {
       "id": "FBT-MVP-002",
