@@ -180,7 +180,10 @@ fbt artifact history TARGET
 the current or selected version. `artifact show` includes artifact version,
 logical path, immutable storage path, digest, runner/model, confidence,
 generating run, and semantic descriptors when available. `artifact history`
-lists prior versions for the same logical artifact.
+lists prior versions for the same logical artifact. `artifact explain` is the
+primary command for plan reasoning: it shows the producing transform, current
+version, previous run, decision, input/source fingerprints, upstream artifact
+requirements, dirty or blocked reasons, and exact next commands.
 
 ### 5.6 fbt doctor
 

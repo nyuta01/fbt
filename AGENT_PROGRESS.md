@@ -49,6 +49,10 @@ The single-purpose boundary is explicit in README, specs, and docs site: fbt
 composes with dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers,
 provider SDKs, artifact stores, and catalogs, but does not replace them.
 
+`fbt artifact explain` is the primary single-artifact reasoning surface. It
+prints the decision, current version, previous run, dependency fingerprints,
+upstream artifact state, dirty or blocked reasons, and next command.
+
 The checked-in examples cover:
 
 - `examples/knowledge_ops`: offline support knowledge-loop fixture using demo
@@ -80,20 +84,19 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-002` to make artifact explanation the primary UX.
-2. Run `FBT-UNIX-003` to define stable source-window operations.
-3. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
+1. Run `FBT-UNIX-003` to define stable source-window operations.
+2. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
    Pandoc.
-4. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
+3. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
    source-of-truth specs.
-5. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-6. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+4. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+5. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-7. Improve source-window ergonomics and artifact explanations without turning
+6. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-8. Keep graph, trace, and catalog visualization on standard-compatible exports
+7. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-9. Add CLI surface only when backed by a spec and verification.
+8. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

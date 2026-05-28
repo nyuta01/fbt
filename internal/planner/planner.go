@@ -90,6 +90,8 @@ func Build(inputs Inputs) Plan {
 
 func nextSteps(transform manifest.TransformResource, action Action, snapshot state.Snapshot) []string {
 	switch action {
+	case ActionRun:
+		return runNextSteps(transform)
 	case ActionBlocked:
 		return blockedNextSteps(transform, snapshot)
 	case ActionSkip:
@@ -97,6 +99,14 @@ func nextSteps(transform manifest.TransformResource, action Action, snapshot sta
 	default:
 		return nil
 	}
+}
+
+func runNextSteps(transform manifest.TransformResource) []string {
+	target := targetName(transform.Name, transform.UniqueID)
+	if target == "" {
+		return nil
+	}
+	return []string{fmt.Sprintf("fbt build --select %s", target)}
 }
 
 func blockedNextSteps(transform manifest.TransformResource, snapshot state.Snapshot) []string {
@@ -112,7 +122,7 @@ func blockedNextSteps(transform manifest.TransformResource, snapshot state.Snaps
 			continue
 		}
 		if required, ok := stringFromMap(input.Require, "confidence"); ok && !confidenceSatisfies(pointer.Confidence, required) {
-			steps = append(steps, fmt.Sprintf("fbt eval %s", target))
+			steps = append(steps, fmt.Sprintf("fbt artifact explain %s", target))
 		}
 	}
 	return uniqueStrings(steps)

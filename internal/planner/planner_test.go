@@ -134,7 +134,7 @@ func TestBuildBlocksOnConfidenceRequirement(t *testing.T) {
 		t.Fatalf("expected blocked, got %+v", node)
 	}
 	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries confidence semantic, current is structural")
-	assertContains(t, node.NextSteps, "fbt eval case_summaries")
+	assertContains(t, node.NextSteps, "fbt artifact explain case_summaries")
 }
 
 func TestBuildAllowsSatisfiedConfidenceInput(t *testing.T) {

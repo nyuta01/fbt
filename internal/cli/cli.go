@@ -1057,13 +1057,28 @@ type artifactExplanation struct {
 	TransformID    string                     `json:"transform_id"`
 	TransformName  string                     `json:"transform_name"`
 	Action         planner.Action             `json:"action"`
+	Decision       string                     `json:"decision"`
 	Inputs         []manifest.TransformInput  `json:"inputs,omitempty"`
 	Outputs        []manifest.TransformOutput `json:"outputs,omitempty"`
+	Dependencies   []explanationDependency    `json:"dependencies,omitempty"`
 	DirtyReasons   []string                   `json:"dirty_reasons,omitempty"`
 	BlockedReasons []string                   `json:"blocked_reasons,omitempty"`
 	NextSteps      []string                   `json:"next_steps,omitempty"`
 	Current        *state.ArtifactPointer     `json:"current,omitempty"`
 	PreviousRun    *state.LatestRun           `json:"previous_run,omitempty"`
+}
+
+type explanationDependency struct {
+	Role                string `json:"role"`
+	ResourceID          string `json:"resource_id"`
+	Name                string `json:"name,omitempty"`
+	Path                string `json:"path,omitempty"`
+	Fingerprint         string `json:"fingerprint,omitempty"`
+	PreviousFingerprint string `json:"previous_fingerprint,omitempty"`
+	Changed             *bool  `json:"changed,omitempty"`
+	CurrentVersionID    string `json:"current_version_id,omitempty"`
+	Confidence          string `json:"confidence,omitempty"`
+	RequiredConfidence  string `json:"required_confidence,omitempty"`
 }
 
 func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
@@ -1105,8 +1120,10 @@ func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdo
 		TransformID:    transform.UniqueID,
 		TransformName:  transform.Name,
 		Action:         node.Action,
+		Decision:       explanationDecision(node),
 		Inputs:         transform.Inputs,
 		Outputs:        transform.Outputs,
+		Dependencies:   explanationDependencies(ctx.Manifest, previous, snapshot, transform),
 		DirtyReasons:   node.DirtyReasons,
 		BlockedReasons: node.BlockedReasons,
 		NextSteps:      node.NextSteps,
@@ -1123,6 +1140,175 @@ func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdo
 	}
 	printArtifactExplanation(stdout, explanation)
 	return 0
+}
+
+func explanationDecision(node planner.Node) string {
+	switch node.Action {
+	case planner.ActionRun:
+		if len(node.DirtyReasons) == 0 {
+			return "will build selected artifact"
+		}
+		return "will build because " + strings.Join(node.DirtyReasons, "; ")
+	case planner.ActionBlocked:
+		if len(node.BlockedReasons) == 0 {
+			return "blocked"
+		}
+		return "blocked because " + strings.Join(node.BlockedReasons, "; ")
+	case planner.ActionSkip:
+		return "up to date; inspect the current artifact version"
+	default:
+		return string(node.Action)
+	}
+}
+
+func explanationDependencies(current manifest.Manifest, previous *manifest.Manifest, snapshot state.Snapshot, transform manifest.TransformResource) []explanationDependency {
+	var deps []explanationDependency
+	for _, input := range transform.Inputs {
+		dep := explanationDependency{Role: "input", ResourceID: input.UniqueID, Name: input.Name}
+		if input.Kind == "source" {
+			dep = sourceExplanationDependency(dep, current, previous, input.UniqueID)
+		}
+		if input.Kind == "ref" {
+			dep = artifactRefExplanationDependency(dep, snapshot, input)
+		}
+		deps = append(deps, dep)
+	}
+	for _, assetID := range transform.Assets {
+		deps = append(deps, assetExplanationDependency(current, previous, assetID))
+	}
+	if transform.Policy != "" {
+		deps = append(deps, policyExplanationDependency(current, previous, transform.Policy))
+	}
+	for _, evalID := range transform.Evals {
+		deps = append(deps, evalExplanationDependency(current, previous, evalID))
+	}
+	if transform.Runner != "" {
+		deps = append(deps, runnerExplanationDependency(current, previous, transform.Runner))
+	}
+	return deps
+}
+
+func sourceExplanationDependency(dep explanationDependency, current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+	source, ok := current.Sources[id]
+	if !ok {
+		return dep
+	}
+	dep.Name = source.Name
+	dep.Path = source.Path
+	dep.Fingerprint = source.Fingerprint.Value
+	if previous != nil {
+		if prev, ok := previous.Sources[id]; ok {
+			dep.PreviousFingerprint = prev.Fingerprint.Value
+			dep.Changed = boolPtr(prev.Fingerprint.Value != source.Fingerprint.Value)
+		} else {
+			dep.Changed = boolPtr(true)
+		}
+	}
+	return dep
+}
+
+func artifactRefExplanationDependency(dep explanationDependency, snapshot state.Snapshot, input manifest.TransformInput) explanationDependency {
+	if required, ok := stringFromAnyMap(input.Require, "confidence"); ok {
+		dep.RequiredConfidence = required
+	}
+	if pointer, ok := snapshot.CurrentArtifacts[input.UniqueID]; ok {
+		dep.CurrentVersionID = pointer.CurrentVersionID
+		dep.Confidence = pointer.Confidence
+	}
+	return dep
+}
+
+func assetExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+	dep := explanationDependency{Role: "asset", ResourceID: id}
+	asset, ok := current.TransformAssets[id]
+	if !ok {
+		return dep
+	}
+	dep.Name = asset.Name
+	dep.Path = asset.Path
+	dep.Fingerprint = asset.Fingerprint.Value
+	if previous != nil {
+		if prev, ok := previous.TransformAssets[id]; ok {
+			dep.PreviousFingerprint = prev.Fingerprint.Value
+			dep.Changed = boolPtr(prev.Fingerprint.Value != asset.Fingerprint.Value)
+		} else {
+			dep.Changed = boolPtr(true)
+		}
+	}
+	return dep
+}
+
+func policyExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+	dep := explanationDependency{Role: "policy", ResourceID: id}
+	policy, ok := current.Policies[id]
+	if !ok {
+		return dep
+	}
+	dep.Name = policy.Name
+	dep.Fingerprint = policy.Fingerprint.Value
+	if previous != nil {
+		if prev, ok := previous.Policies[id]; ok {
+			dep.PreviousFingerprint = prev.Fingerprint.Value
+			dep.Changed = boolPtr(prev.Fingerprint.Value != policy.Fingerprint.Value)
+		} else {
+			dep.Changed = boolPtr(true)
+		}
+	}
+	return dep
+}
+
+func evalExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+	dep := explanationDependency{Role: "eval", ResourceID: id}
+	eval, ok := current.Evals[id]
+	if !ok {
+		return dep
+	}
+	dep.Name = eval.Name
+	dep.Fingerprint = eval.Fingerprint.Value
+	if previous != nil {
+		if prev, ok := previous.Evals[id]; ok {
+			dep.PreviousFingerprint = prev.Fingerprint.Value
+			dep.Changed = boolPtr(prev.Fingerprint.Value != eval.Fingerprint.Value)
+		} else {
+			dep.Changed = boolPtr(true)
+		}
+	}
+	return dep
+}
+
+func runnerExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+	dep := explanationDependency{Role: "runner", ResourceID: id}
+	runner, ok := current.Runners[id]
+	if !ok {
+		return dep
+	}
+	dep.Name = runner.Name
+	dep.Fingerprint = runner.Fingerprint.Value
+	if previous != nil {
+		if prev, ok := previous.Runners[id]; ok {
+			dep.PreviousFingerprint = prev.Fingerprint.Value
+			dep.Changed = boolPtr(prev.Fingerprint.Value != runner.Fingerprint.Value)
+		} else {
+			dep.Changed = boolPtr(true)
+		}
+	}
+	return dep
+}
+
+func boolPtr(value bool) *bool {
+	return &value
+}
+
+func stringFromAnyMap(values map[string]any, key string) (string, bool) {
+	if values == nil {
+		return "", false
+	}
+	value, ok := values[key]
+	if !ok {
+		return "", false
+	}
+	text, ok := value.(string)
+	return text, ok
 }
 
 func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}, error) {
@@ -1304,11 +1490,8 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	fmt.Fprintf(stdout, "%s\n", explanation.ArtifactID)
 	fmt.Fprintf(stdout, "  transform: %s\n", explanation.TransformID)
 	fmt.Fprintf(stdout, "  action: %s\n", explanation.Action)
-	for _, input := range explanation.Inputs {
-		fmt.Fprintf(stdout, "  input: %s %s\n", input.Kind, input.UniqueID)
-	}
-	for _, output := range explanation.Outputs {
-		fmt.Fprintf(stdout, "  output: %s\n", output.UniqueID)
+	if explanation.Decision != "" {
+		fmt.Fprintf(stdout, "  decision: %s\n", explanation.Decision)
 	}
 	if explanation.Current != nil {
 		fmt.Fprintf(stdout, "  current_version: %s\n", explanation.Current.CurrentVersionID)
@@ -1321,6 +1504,16 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	} else {
 		fmt.Fprintln(stdout, "  previous_run: none")
 	}
+	for _, dep := range explanation.Dependencies {
+		printExplanationDependency(stdout, dep)
+	}
+	for _, output := range explanation.Outputs {
+		fmt.Fprintf(stdout, "  output: %s", output.UniqueID)
+		if output.DeclaredPath != "" {
+			fmt.Fprintf(stdout, " path=%s", output.DeclaredPath)
+		}
+		fmt.Fprintln(stdout)
+	}
 	for _, reason := range explanation.DirtyReasons {
 		fmt.Fprintf(stdout, "  reason: %s\n", reason)
 	}
@@ -1330,6 +1523,35 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	for _, step := range explanation.NextSteps {
 		fmt.Fprintf(stdout, "  next: %s\n", step)
 	}
+}
+
+func printExplanationDependency(stdout io.Writer, dep explanationDependency) {
+	fmt.Fprintf(stdout, "  %s: %s", dep.Role, dep.ResourceID)
+	if dep.Name != "" {
+		fmt.Fprintf(stdout, " name=%s", dep.Name)
+	}
+	if dep.Path != "" {
+		fmt.Fprintf(stdout, " path=%s", dep.Path)
+	}
+	if dep.Fingerprint != "" {
+		fmt.Fprintf(stdout, " fingerprint=%s", dep.Fingerprint)
+	}
+	if dep.PreviousFingerprint != "" {
+		fmt.Fprintf(stdout, " previous_fingerprint=%s", dep.PreviousFingerprint)
+	}
+	if dep.Changed != nil {
+		fmt.Fprintf(stdout, " changed=%t", *dep.Changed)
+	}
+	if dep.CurrentVersionID != "" {
+		fmt.Fprintf(stdout, " current_version=%s", dep.CurrentVersionID)
+	}
+	if dep.Confidence != "" {
+		fmt.Fprintf(stdout, " confidence=%s", dep.Confidence)
+	}
+	if dep.RequiredConfidence != "" {
+		fmt.Fprintf(stdout, " required_confidence=%s", dep.RequiredConfidence)
+	}
+	fmt.Fprintln(stdout)
 }
 
 func resolveArtifactID(m manifest.Manifest, target string) (string, bool) {

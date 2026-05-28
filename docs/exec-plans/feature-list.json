@@ -1783,13 +1783,13 @@
       "id": "FBT-UNIX-002",
       "title": "Make artifact explanation the primary UX",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-000",
         "FBT-UX-006"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-002-plan.md",
       "paths": [
         "internal/cli",
         "internal/planner",
@@ -1801,7 +1801,7 @@
         "cli_smoke": true,
         "make_verify": true
       },
-      "notes": "Elevate `fbt artifact explain` and related `plan`/`build` output so a user can answer why an artifact exists, what changed, which inputs caused rebuilds, what is blocked, and what exact next command to run."
+      "notes": "Elevates `fbt artifact explain` with a decision sentence, dependency fingerprints, upstream artifact state, current/previous run context, dirty or blocked reasons, and next commands. `plan` now includes a build next-step for run nodes."
     },
     {
       "id": "FBT-UNIX-003",

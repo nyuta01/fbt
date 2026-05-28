@@ -213,6 +213,12 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(explainOut.String(), "action: blocked") {
 		t.Fatalf("expected blocked explanation, got %q", explainOut.String())
 	}
+	if !strings.Contains(explainOut.String(), "decision: blocked because") {
+		t.Fatalf("expected decision explanation, got %q", explainOut.String())
+	}
+	if !strings.Contains(explainOut.String(), "input: artifact.knowledge_ops.case_summaries") {
+		t.Fatalf("expected upstream artifact input detail, got %q", explainOut.String())
+	}
 	if !strings.Contains(explainOut.String(), "next: fbt build --select case_summaries") {
 		t.Fatalf("expected explanation next step, got %q", explainOut.String())
 	}
