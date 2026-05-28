@@ -1,0 +1,192 @@
+package protocol
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestClientInitializeAndRunTransform(t *testing.T) {
+	client := startFakeRunner(t, "success")
+	defer client.Close()
+
+	initResult, err := client.Initialize(context.Background(), InitializeParams{
+		Core: map[string]string{"name": "fbt-core", "version": "test"},
+		Protocol: map[string]any{
+			"versions": []string{"0.1"},
+			"framing":  "jsonl",
+		},
+	})
+	if err != nil {
+		t.Fatalf("initialize: %v", err)
+	}
+	if initResult.Protocol["version"] != "0.1" {
+		t.Fatalf("unexpected protocol result: %+v", initResult.Protocol)
+	}
+
+	outcome, err := client.RunTransform(context.Background(), RunTransformParams{
+		Mode:           "run",
+		InvocationID:   "inv_1",
+		TransformRunID: "transform_run.run_1",
+		Transform:      map[string]any{"name": "case_summaries"},
+	})
+	if err != nil {
+		t.Fatalf("run transform: %v", err)
+	}
+	if outcome.Result.Status != "success" {
+		t.Fatalf("unexpected status: %s", outcome.Result.Status)
+	}
+	if len(outcome.Events) != 1 {
+		t.Fatalf("expected one event, got %d", len(outcome.Events))
+	}
+	if len(outcome.OutputCandidates) != 1 {
+		t.Fatalf("expected one output candidate, got %d", len(outcome.OutputCandidates))
+	}
+}
+
+func TestClientReturnsJSONRPCError(t *testing.T) {
+	client := startFakeRunner(t, "error")
+	defer client.Close()
+	if _, err := client.Initialize(context.Background(), InitializeParams{}); err != nil {
+		t.Fatalf("initialize: %v", err)
+	}
+	_, err := client.RunTransform(context.Background(), RunTransformParams{Mode: "run"})
+	if err == nil {
+		t.Fatal("expected run error")
+	}
+	rpcErr, ok := err.(JSONRPCError)
+	if !ok {
+		t.Fatalf("expected JSONRPCError, got %T", err)
+	}
+	if rpcErr.Code != -32010 {
+		t.Fatalf("unexpected error code: %d", rpcErr.Code)
+	}
+}
+
+func TestClientCancelsOnContext(t *testing.T) {
+	client := startFakeRunner(t, "hang")
+	defer client.Close()
+	if _, err := client.Initialize(context.Background(), InitializeParams{}); err != nil {
+		t.Fatalf("initialize: %v", err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+	_, err := client.RunTransform(ctx, RunTransformParams{Mode: "run"})
+	if err == nil {
+		t.Fatal("expected context timeout")
+	}
+}
+
+func startFakeRunner(t *testing.T, mode string) *Client {
+	t.Helper()
+	ctx := context.Background()
+	client, err := Start(ctx, os.Args[0], []string{"-test.run=TestFakeRunnerProcess"}, Options{
+		Env: append(os.Environ(), "FBT_FAKE_RUNNER=1", "FBT_FAKE_RUNNER_MODE="+mode),
+	})
+	if err != nil {
+		t.Fatalf("start fake runner: %v", err)
+	}
+	return client
+}
+
+func TestFakeRunnerProcess(t *testing.T) {
+	if os.Getenv("FBT_FAKE_RUNNER") != "1" {
+		return
+	}
+	mode := os.Getenv("FBT_FAKE_RUNNER_MODE")
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		var request struct {
+			ID     string `json:"id"`
+			Method string `json:"method"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &request); err != nil {
+			os.Exit(2)
+		}
+		switch request.Method {
+		case "initialize":
+			writeFake(map[string]any{
+				"jsonrpc": "2.0",
+				"id":      request.ID,
+				"result": map[string]any{
+					"runner": map[string]any{"name": "fake"},
+					"protocol": map[string]any{
+						"version": "0.1",
+						"framing": "jsonl",
+					},
+					"capabilities": map[string]any{"run_transform": true},
+				},
+			})
+		case "initialized":
+		case "fbt/runTransform":
+			switch mode {
+			case "error":
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"id":      request.ID,
+					"error": map[string]any{
+						"code":    -32010,
+						"message": "Policy denied",
+						"data":    map[string]any{"fbt_error_code": "POLICY_DENIED"},
+					},
+				})
+			case "hang":
+				select {}
+			default:
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"method":  "fbt/event",
+					"params": map[string]any{
+						"request_id":       request.ID,
+						"transform_run_id": "transform_run.run_1",
+						"event_type":       "progress",
+						"message":          "started",
+					},
+				})
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"method":  "fbt/outputCandidate",
+					"params": map[string]any{
+						"request_id":       request.ID,
+						"transform_run_id": "transform_run.run_1",
+						"outputs": []any{
+							map[string]any{"name": "case_summaries", "path": "/tmp/out"},
+						},
+					},
+				})
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"id":      request.ID,
+					"result": map[string]any{
+						"status":           "success",
+						"transform_run_id": "transform_run.run_1",
+						"outputs": []any{
+							map[string]any{"name": "case_summaries"},
+						},
+					},
+				})
+			}
+		case "$/cancelRequest":
+			if strings.Contains(mode, "hang") {
+				os.Exit(0)
+			}
+		default:
+			fmt.Fprintf(os.Stderr, "unknown method %s\n", request.Method)
+			os.Exit(2)
+		}
+	}
+	os.Exit(0)
+}
+
+func writeFake(value any) {
+	data, err := json.Marshal(value)
+	if err != nil {
+		os.Exit(2)
+	}
+	fmt.Printf("%s\n", data)
+}

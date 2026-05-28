@@ -5,11 +5,12 @@ means strong and mechanically protected.
 
 | Domain | Score | Evidence | Weak Spot | Next Task |
 |---|---:|---|---|---|
-| Harness PDCA | 4 | `make verify` includes harness, drift, docs, Go, and CLI smoke checks; MVP work is now registered as structured tasks | Product conformance tests are not implemented yet | `FBT-MVP-001` |
-| fbt Spec Coverage | 5 | Core, project config, manifest, state, runner protocol, schema/versioning, runner discovery, security/conformance, usage, and example specs exist | Most specs are still draft until implementation tests exercise them | `FBT-MVP-002` |
+| Harness PDCA | 4 | `make verify` includes harness, drift, docs, Go, CLI smoke checks, and task-by-task commits | Product conformance tests are not implemented yet | `FBT-MVP-016` |
+| fbt Spec Coverage | 5 | Core, project config, manifest, state, runner protocol, schema/versioning, runner discovery, security/conformance, usage, and example specs exist | Build/eval/review specs still need implementation evidence | `FBT-MVP-010` |
 | Go CLI Scaffold | 4 | CLI now exposes help/version plus parse, plan, state, artifact, and runner diagnostics with tests and smoke coverage | Build, eval, review, diff, and docs commands are still pending | `FBT-MVP-010` |
-| Runner Discovery | 4 | `internal/plugin`, `internal/runner`, and `fbt runner` tests cover project config, plugin manifests, PATH convention, missing commands, and diagnostics | Protocol initialize/validation is not implemented until the protocol client task | `FBT-MVP-008` |
-| Parser Baseline | 4 | `internal/project`, `internal/config`, and `internal/parser` now have tests for config versioning, artifact aliases, resource refs, and path containment | Parser still has no CLI surface until the parse command lands | `FBT-MVP-006` |
+| Runner Discovery | 4 | `internal/plugin`, `internal/runner`, and `fbt runner` tests cover project config, plugin manifests, PATH convention, missing commands, and diagnostics | Discovery validation is not yet backed by full protocol capability checks in CLI | `FBT-MVP-010` |
+| Runner Protocol | 4 | `internal/protocol` fake-runner tests cover initialize, runTransform, JSONL notifications, output candidates, JSON-RPC errors, and cancellation | Protocol client is not yet wired into build execution or command/fake runners | `FBT-MVP-009` |
+| Parser Baseline | 4 | `internal/project`, `internal/config`, and `internal/parser` now have tests for config versioning, artifact aliases, resource refs, path containment, and parse CLI wiring | Parser still emits first-pass diagnostics without schema-generated validation | `FBT-MVP-010` |
 | Manifest Graph | 4 | `internal/manifest` and `internal/graph` now test canonical IDs, parent/child maps, deterministic JSON, selectors, and CLI manifest writes | Planner/build integration still needs fuller state comparison | `FBT-MVP-010` |
 | Artifact Descriptors | 4 | `internal/artifact` and `internal/security` test file/directory descriptors, artifact version IDs, path containment, and symlink rejection | Descriptor code is not yet wired into build/state commit | `FBT-MVP-010` |
 | Local State | 4 | `internal/state` tests atomic snapshot writes, append-only run results, lock behavior, stale lock recovery, immutable artifact version records, and CLI inspection | State is not yet integrated into build commits | `FBT-MVP-010` |

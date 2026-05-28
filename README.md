@@ -26,9 +26,10 @@ fbt docs generate
 
 Implementation status: the current CLI implements `help`, `version`, the first
 product inspection commands (`parse`, `plan`, `state`, `artifact`), and runner
-discovery diagnostics (`runner list`, `runner doctor`, `runner validate`). Build
-execution, runner protocol invocation, evals, review, diff, and docs generation
-are specified but not implemented yet.
+discovery diagnostics (`runner list`, `runner doctor`, `runner validate`).
+The JSON-RPC stdio runner protocol client exists but is not wired into build
+execution yet. Build execution, evals, review, diff, and docs generation are
+specified but not implemented yet.
 
 The base runtime should work with only the local filesystem.
 
@@ -153,5 +154,5 @@ This repository currently contains design and specification drafts, a baseline
 AI-first engineering harness, a Go CLI scaffold, project/resource parsing,
 manifest graph generation, descriptor and state primitives, dirty-state
 planning, initial CLI inspection commands, and runner discovery diagnostics.
-Build execution, runner protocol invocation, evals, review, diff, and docs
-generation are still pending.
+The JSON-RPC stdio runner protocol client is implemented, but build execution,
+evals, review, diff, and docs generation are still pending.

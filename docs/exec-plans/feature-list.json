@@ -287,22 +287,23 @@
       "id": "FBT-MVP-008",
       "title": "Implement JSON-RPC runner protocol client",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-007"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-008-plan.md",
       "paths": [
         "internal/protocol",
         "internal/runner",
         "docs/runner-protocol-spec.md"
       ],
       "verification": {
-        "go_test": false,
+        "go_test": true,
         "conformance": false
       },
-      "notes": "Start runner processes, negotiate initialize, send fbt/runTransform, read JSONL notifications, handle output candidates, timeouts, cancellation, and protocol errors."
+      "verification_override_reason": "No conformance target exists yet; protocol behavior is covered by fake-runner Go tests until the suite is added in FBT-MVP-016.",
+      "notes": "Starts runner processes, negotiates initialize, sends fbt/runTransform, reads JSONL notifications, handles output candidates, context cancellation, and protocol errors."
     },
     {
       "id": "FBT-MVP-009",
