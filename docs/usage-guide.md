@@ -164,7 +164,28 @@ fbt artifact explain data_tool_brief --project-dir examples/data_tool_interop
 dbt still owns warehouse transformation. DataChain still owns dataset
 materialization. fbt owns the generated file artifact receipt.
 
-## 7. Review And Publishing Boundary
+## 7. Semantic Eval Boundary
+
+fbt core runs deterministic evals such as required sections or required text.
+It does not call model judges.
+
+For semantic judgement, create a normal runner-backed transform that produces a
+judge report artifact:
+
+```sh
+fbt build --select manual_update
+fbt build --select judge_manual_update
+fbt artifact show manual_update_judge_report
+```
+
+The runner owns the model call. fbt records the judge report's sources, runner,
+artifact version, policy decision, and lineage. Git, CI, PRs, or publishing
+tooling decide whether the report blocks release.
+
+`semantic` and `llm_judge` eval types are reserved config shapes in the MVP;
+build records them as skipped and grants no confidence from them.
+
+## 8. Review And Publishing Boundary
 
 fbt deliberately does not implement `review`, `approve`, or `reject` commands.
 

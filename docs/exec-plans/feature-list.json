@@ -1952,14 +1952,14 @@
       "id": "FBT-UNIX-009",
       "title": "Keep semantic evaluation outside core",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-012",
         "FBT-RUNNER-005",
         "FBT-UNIX-000"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-009-plan.md",
       "paths": [
         "docs/spec.md",
         "docs/runner-protocol-spec.md",
@@ -1971,7 +1971,7 @@
         "go_test": true,
         "make_verify": true
       },
-      "notes": "Clarify and demonstrate the boundary between deterministic core evals and semantic/LLM-judge eval runners. Core should record and gate results, while external runners perform model-based judging."
+      "notes": "Clarified that MVP core runs deterministic evals only; `semantic` and `llm_judge` declarations are recorded as skipped and grant no confidence. Added docs and examples that model-based judges should be external runner transforms producing judge report artifacts."
     },
     {
       "id": "FBT-UNIX-010",

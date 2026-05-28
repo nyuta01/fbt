@@ -34,7 +34,9 @@ policy context, and work directories. The runner returns output candidates.
 ## Eval
 
 An `eval` checks generated artifacts. MVP evals are deterministic checks such
-as required sections, file existence, and content requirements.
+as required sections, file existence, and content requirements. Semantic or
+LLM-judge evaluation belongs in external runner transforms that produce judge
+report artifacts; fbt core records receipts and lineage, not model-judge logic.
 
 ## Lineage
 

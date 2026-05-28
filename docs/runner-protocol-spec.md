@@ -352,7 +352,22 @@ Context payload rules:
   and blocked reasons when relevant. Runners must treat this as read-only
   context.
 
-## 8. Event Notification
+## 8. Eval Boundary
+
+The MVP runner protocol executes transforms through `fbt/runTransform`. It does
+not define `fbt/runEval`.
+
+Deterministic evals run in fbt core during `build`. Model-based semantic
+judging belongs outside core:
+
+- implement it as a normal transform runner that writes a judge report artifact
+- or wait for a future delegated eval-runner protocol
+
+In the MVP, `semantic` and `llm_judge` eval declarations are recorded as
+skipped and do not grant confidence. A model judge runner should emit normal
+transform events and output candidates, not mutate fbt state directly.
+
+## 9. Event Notification
 
 Runner event:
 
@@ -395,7 +410,7 @@ Core persists safe runner events in `run_results.jsonl` and maps them to
 OpenTelemetry span events in `fbt export otel`. Default telemetry export uses
 event attributes and does not include raw `tool_call` payload fields.
 
-## 9. Tool Call Event
+## 10. Tool Call Event
 
 ```json
 {
@@ -425,7 +440,7 @@ event attributes and does not include raw `tool_call` payload fields.
 
 Tool-call logs are for audit and must redact credentials.
 
-## 10. Output Candidate Notification
+## 11. Output Candidate Notification
 
 Runners write outputs to assigned work directories and declare candidates.
 
@@ -454,7 +469,7 @@ Runners write outputs to assigned work directories and declare candidates.
 
 Authoritative descriptors and digests are computed by core.
 
-## 11. Run Transform Response
+## 12. Run Transform Response
 
 ```json
 {
@@ -498,7 +513,7 @@ Status values:
 - `skipped`
 - `blocked`
 
-## 12. Error Handling
+## 13. Error Handling
 
 Use standard JSON-RPC error codes where possible. fbt-specific errors use `-32099` to `-32000` and `error.data.fbt_error_code`.
 
@@ -515,7 +530,7 @@ Initial fbt error codes:
 - `OUTPUT_CONTRACT_FAILED`
 - `INTERNAL_ERROR`
 
-## 13. Cancellation
+## 14. Cancellation
 
 ```json
 {
@@ -530,7 +545,7 @@ Initial fbt error codes:
 
 Runners should stop work, clean runner-owned temporary resources, and respond with either `status: cancelled` or a structured cancellation error.
 
-## 14. Security Requirements
+## 15. Security Requirements
 
 Core requirements:
 
@@ -554,7 +569,7 @@ Runner requirements:
 The full MVP security boundary and fake-runner conformance suite are defined in
 [Security and Conformance Spec](security-and-conformance-spec.md).
 
-## 15. CLI Agent Adapter Contract
+## 16. CLI Agent Adapter Contract
 
 External coding-agent CLIs such as Codex CLI or Claude Code are not required to
 speak the fbt protocol directly. The supported integration shape is a thin
@@ -612,7 +627,7 @@ Claude Code, Gemini CLI, provider SDK agents, or internal tools can all be used
 when a wrapper implements the same stdio protocol and satisfies the safety
 rules.
 
-## 16. Commit Boundary
+## 17. Commit Boundary
 
 ```text
 runner output candidate
@@ -625,7 +640,7 @@ runner output candidate
 
 This keeps official state safe across retries, failures, and interruptions.
 
-## 17. Dry Run and Cost Estimate
+## 18. Dry Run and Cost Estimate
 
 LLM and agent transforms need a good planning experience.
 
@@ -638,7 +653,7 @@ In `plan` or `dry_run` mode, runners may return:
 - policy risks
 - whether the runner supports the requested artifact types
 
-## 18. Versioning
+## 19. Versioning
 
 Protocol versioning:
 
@@ -651,7 +666,7 @@ Static runner manifests are advisory. The `initialize` response is authoritative
 for the current process. Authoritative artifact descriptors and digests are
 computed by core, not by runners.
 
-## 19. MVP Required Capabilities
+## 20. MVP Required Capabilities
 
 Required:
 
@@ -671,7 +686,7 @@ Not required in MVP:
 - gRPC
 - plugin marketplace
 
-## 20. Bundled Demo AI Runner Examples
+## 21. Bundled Demo AI Runner Examples
 
 The repository includes optional protocol-compatible demo examples:
 
@@ -695,7 +710,7 @@ Use `make real-llm-smoke` with `FBT_REAL_LLM_RUNNER_COMMAND` to opt into a
 local smoke against one of those external commands. This target is intentionally
 not part of `make verify`.
 
-## 21. Remaining Protocol Decisions
+## 22. Remaining Protocol Decisions
 
 MVP is fixed as JSON-RPC 2.0 compatible messages over stdio, JSONL framing,
 runner process isolation, project/plugin/PATH discovery, and core-owned

@@ -83,6 +83,11 @@ Explicit rebuild control is intentionally one bit: `--force` on `plan` and
 `build`. There is no general cache engine, cache invalidation subcommand, or
 full-refresh concept in core.
 
+Semantic and LLM-judge evals remain outside core. MVP core runs deterministic
+evals, records `semantic` and `llm_judge` eval declarations as skipped, and
+grants no confidence from them. Model-based judging should be implemented as an
+external runner transform that produces a normal judge report artifact.
+
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
 OpenLineage/OTel export language. Remaining review/approval command references
@@ -98,6 +103,8 @@ The checked-in examples cover:
   operational brief through a command transform.
 - `examples/runner_adapter_scaffold`: minimal external runner adapter skeleton
   with strict conformance coverage.
+- `examples/semantic_eval_boundary`: pattern doc for deterministic core evals
+  versus external model-judge report artifacts.
 - `examples/incident_response_runbook`: optional OpenAI runner flow for turning
   incident evidence into a runbook.
 - `examples/support_resolution_manual`: optional OpenAI runner flow for turning
@@ -123,7 +130,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-009` to keep semantic evaluation outside core.
+1. Run `FBT-UNIX-010` to use standard visualization backends in examples.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

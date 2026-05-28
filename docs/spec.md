@@ -214,10 +214,16 @@ Implemented eval execution:
 
 - `deterministic`
 
-Delegated/future eval types:
+Reserved delegated eval types:
 
 - `semantic`
 - `llm_judge`
+
+MVP core records `semantic` and `llm_judge` evals as skipped and grants no
+confidence from them. Model-based judging belongs in an external runner
+transform that produces a judge report artifact, or in a future delegated
+eval-runner protocol. Core keeps the receipt, confidence gate, and lineage; it
+does not implement model-judge logic.
 
 Initial confidence classes:
 
