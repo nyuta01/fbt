@@ -104,9 +104,11 @@ The practical local MVP is complete. The external runner hardening backlog is
 complete. `FBT-REL-002` is complete: `origin` is configured for
 `github.com:nyuta01/fbt`, `git ls-remote --heads origin` succeeds, and SSH
 signing is configured locally for release-baseline commits and tags without
-rewriting existing local history. `FBT-REL-003` is the remaining tracked task:
-publish artifacts and checksums after the signed `v0.1.0` tag verifies and is
-pushed.
+rewriting existing local history. `FBT-REL-003` is complete: the signed
+`v0.1.0` tag is pushed, the GitHub release is published at
+`https://github.com/nyuta01/fbt/releases/tag/v0.1.0`, cross-platform CLI
+archives and `SHA256SUMS` are attached, and the GitHub `verify` workflow passed
+for both `main` and `v0.1.0`.
 
 ## Verification
 
@@ -133,16 +135,14 @@ This runs:
 ## Next Steps
 
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Complete maintainer-owned `FBT-REL-002` and `FBT-REL-003` when release
-   credentials, signing setup, and release baseline are available.
-3. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
+2. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
-4. Keep fbt-native state as the internal source of truth and delegate graph,
+3. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.
-5. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+4. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-6. Keep `make verify` green after each bounded task.
+5. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 

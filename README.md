@@ -1,6 +1,6 @@
 # fbt
 
-Status: MVP-ready local release candidate  
+Status: MVP v0.1.0 released
 Created: 2026-05-28  
 Service name: `fbt`  
 Scope: a filesystem transformation control plane for unstructured and semi-structured documents
@@ -167,6 +167,6 @@ artifact diffs, and static Markdown project docs. `make verify` runs harness,
 docs, Go, CLI smoke, knowledge-loop smoke, runner conformance, product
 conformance, and local release-binary checks.
 
-Release publication is not complete until a maintainer configures the public
-remote, signing setup, and signed `v0.1.0` tag. See `CONTRIBUTING.md` and the
-release tasks in `docs/exec-plans/feature-list.json`.
+The MVP release is published at
+`https://github.com/nyuta01/fbt/releases/tag/v0.1.0` with signed tag
+verification, cross-platform CLI archives, and `SHA256SUMS`.

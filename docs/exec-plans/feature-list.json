@@ -575,7 +575,7 @@
       "id": "FBT-REL-003",
       "title": "Publish MVP release artifacts and checksums",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-REL-001",
@@ -589,11 +589,11 @@
         "README.md"
       ],
       "verification": {
-        "release_workflow": false,
-        "dist_check": false,
-        "checksum_check": false
+        "release_workflow": true,
+        "dist_check": true,
+        "checksum_check": true
       },
-      "notes": "Pending signed v0.1.0 tag verification and push; then publish release artifacts and checksums for that tag."
+      "notes": "Published https://github.com/nyuta01/fbt/releases/tag/v0.1.0 with darwin/linux/windows amd64/arm64 archives, SHA256SUMS, and version metadata. Local checksum verification passed, and GitHub verify workflows for main and v0.1.0 completed successfully."
     },
     {
       "id": "FBT-DOCS-001",
