@@ -21,7 +21,35 @@ fbt export otel --output target/telemetry/otel.json
 The first file is OpenLineage RunEvent NDJSON for artifact, job, and dataset
 lineage. The second file is an OTLP/JSON trace payload for execution telemetry.
 
-## 2. Marquez / OpenLineage
+## 2. Reproducible Local Export
+
+Create a support fixture and export both standard files:
+
+```sh
+fbt init /tmp/fbt-viz-knowledge --template support
+fbt build --project-dir /tmp/fbt-viz-knowledge --select case_summaries
+fbt build --project-dir /tmp/fbt-viz-knowledge --select weekly_support_insights
+mkdir -p /tmp/fbt-viz-knowledge/target/lineage /tmp/fbt-viz-knowledge/target/telemetry
+fbt export openlineage \
+  --project-dir /tmp/fbt-viz-knowledge \
+  --output /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
+fbt export otel \
+  --project-dir /tmp/fbt-viz-knowledge \
+  --output /tmp/fbt-viz-knowledge/target/telemetry/otel.json
+```
+
+Quick checks:
+
+```sh
+wc -l /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
+python3 -m json.tool /tmp/fbt-viz-knowledge/target/telemetry/otel.json >/dev/null
+```
+
+When documentation needs an image, capture it from the actual standard backend
+after ingesting these files. Do not use a custom fbt-drawn graph as a substitute
+for backend output.
+
+## 3. Marquez / OpenLineage
 
 Use OpenLineage when you want to inspect:
 
@@ -58,7 +86,7 @@ References:
 - OpenLineage getting started: <https://openlineage.io/getting-started/>
 - Marquez project: <https://marquezproject.ai/>
 
-## 3. Jaeger / OTLP JSON
+## 4. Jaeger / OTLP JSON
 
 Use OTel traces when you want to inspect:
 
@@ -88,7 +116,7 @@ References:
 - Jaeger API docs: <https://www.jaegertracing.io/docs/latest/architecture/apis/>
 - OpenTelemetry Collector configuration: <https://opentelemetry.io/docs/collector/configuration/>
 
-## 4. Grafana Tempo / Grafana
+## 5. Grafana Tempo / Grafana
 
 Tempo is a trace backend and Grafana is the UI. The usual standard path is:
 
@@ -128,7 +156,7 @@ References:
 - Grafana Tempo tracing setup: <https://grafana.com/docs/tempo/latest/set-up-for-tracing/>
 - Grafana Tempo collector setup: <https://grafana.com/docs/tempo/latest/set-up-for-tracing/instrument-send/set-up-collector/>
 
-## 5. OpenMetadata
+## 6. OpenMetadata
 
 OpenMetadata is the catalog and governance target for teams that already run
 OpenMetadata. fbt does not provide a direct OpenMetadata export command in core.
@@ -197,7 +225,7 @@ References:
 - OpenMetadata catalog export evaluation:
   [OpenMetadata Catalog Export Evaluation](research/openmetadata-catalog-export-evaluation.md)
 
-## 6. Troubleshooting
+## 7. Troubleshooting
 
 If Marquez shows no graph:
 

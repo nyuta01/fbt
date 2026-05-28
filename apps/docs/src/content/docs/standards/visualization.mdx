@@ -5,11 +5,6 @@ description: Use standard lineage and trace tools instead of a custom graph UI.
 
 fbt deliberately avoids owning a custom lineage UI in core.
 
-<figure className="fbt-figure">
-  <img src="/fbt/graphs/standard-exports.svg" alt="fbt local state exports OpenLineage NDJSON to lineage tools and OTLP JSON to trace tools." />
-  <figcaption>fbt keeps `.fbt/state` as the local source of truth and emits standard records for existing visualization systems.</figcaption>
-</figure>
-
 Use standard outputs:
 
 | Need | fbt output | Common target |
@@ -22,23 +17,40 @@ Use standard outputs:
 This keeps fbt local-first while still letting teams use existing observability
 and catalog systems.
 
-The quickstart creates both files:
+Create a local fixture and export both files:
 
 ```sh
+fbt init /tmp/fbt-viz-knowledge --template support
+fbt build --project-dir /tmp/fbt-viz-knowledge --select case_summaries
+fbt build --project-dir /tmp/fbt-viz-knowledge --select weekly_support_insights
+mkdir -p /tmp/fbt-viz-knowledge/target/lineage /tmp/fbt-viz-knowledge/target/telemetry
 fbt export openlineage \
-  --project-dir knowledge_ops \
-  --output knowledge_ops/target/lineage/openlineage.ndjson
+  --project-dir /tmp/fbt-viz-knowledge \
+  --output /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
 fbt export otel \
-  --project-dir knowledge_ops \
-  --output knowledge_ops/target/telemetry/otel.json
+  --project-dir /tmp/fbt-viz-knowledge \
+  --output /tmp/fbt-viz-knowledge/target/telemetry/otel.json
 ```
 
-Expected local output:
+Post OpenLineage events to a local Marquez API:
 
-```text
-OpenLineage events written to knowledge_ops/target/lineage/openlineage.ndjson
-Events: 2
-
-OTel traces written to knowledge_ops/target/telemetry/otel.json
-Spans: 4
+```sh
+MARQUEZ_URL=http://localhost:5000
+while IFS= read -r event; do
+  curl -sS -X POST "$MARQUEZ_URL/api/v1/lineage" \
+    -H 'Content-Type: application/json' \
+    --data "$event" >/dev/null
+done < /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
 ```
+
+Post OTLP/JSON traces to an OTLP HTTP endpoint:
+
+```sh
+curl -sS -X POST http://localhost:4318/v1/traces \
+  -H 'Content-Type: application/json' \
+  --data-binary @/tmp/fbt-viz-knowledge/target/telemetry/otel.json
+```
+
+Then use Marquez, Jaeger, Tempo, Grafana, or OpenMetadata as the visualization
+surface. Any screenshot in fbt docs should come from one of those actual
+backends after running the recipe, not from a custom fbt diagram.

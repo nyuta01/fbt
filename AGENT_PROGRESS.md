@@ -88,6 +88,12 @@ evals, records `semantic` and `llm_judge` eval declarations as skipped, and
 grants no confidence from them. Model-based judging should be implemented as an
 external runner transform that produces a normal judge report artifact.
 
+Standard visualization is documented as command-first backend integration.
+`examples/standard_visualization` shows how to create OpenLineage and OTLP/JSON
+exports from the offline template and post them to Marquez or an OTLP HTTP
+endpoint. Docs should use screenshots captured from real standard backends, not
+custom fbt diagrams.
+
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
 OpenLineage/OTel export language. Remaining review/approval command references
@@ -105,6 +111,8 @@ The checked-in examples cover:
   with strict conformance coverage.
 - `examples/semantic_eval_boundary`: pattern doc for deterministic core evals
   versus external model-judge report artifacts.
+- `examples/standard_visualization`: standard OpenLineage and OTel export
+  ingestion recipes for Marquez, Jaeger, Tempo, Grafana, or OpenMetadata paths.
 - `examples/incident_response_runbook`: optional OpenAI runner flow for turning
   incident evidence into a runbook.
 - `examples/support_resolution_manual`: optional OpenAI runner flow for turning
@@ -130,15 +138,14 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-010` to use standard visualization backends in examples.
-2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+2. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-4. Improve source-window ergonomics and artifact explanations without turning
+3. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-5. Keep graph, trace, and catalog visualization on standard-compatible exports
+4. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-6. Add CLI surface only when backed by a spec and verification.
+5. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

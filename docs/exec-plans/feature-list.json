@@ -1977,13 +1977,13 @@
       "id": "FBT-UNIX-010",
       "title": "Use standard visualization backends in examples",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-005",
         "FBT-UNIX-000"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-010-plan.md",
       "paths": [
         "docs/standard-visualization-guide.md",
         "apps/docs/src/content/docs/standards",
@@ -1994,7 +1994,7 @@
         "docs_site_build": true,
         "make_verify": true
       },
-      "notes": "Replace invented product diagrams with reproducible recipes and screenshots from standard backends such as Marquez, Jaeger, Tempo, Grafana, or OpenMetadata ingestion paths when visualization is needed."
+      "notes": "Added examples/standard_visualization and rewrote standard visualization docs around reproducible OpenLineage/OTel export plus Marquez and OTLP HTTP ingestion recipes. The docs now require screenshots to come from real standard backends, not custom fbt diagrams."
     },
     {
       "id": "FBT-UNIX-011",

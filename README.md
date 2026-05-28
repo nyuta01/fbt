@@ -153,9 +153,9 @@ The commands are checkpoints, not a script to memorize:
    fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
    ```
 
-The short version: `plan` is for deciding, `build` is for producing artifacts
-and receipts, `artifact` is for inspection, `diff` is for comparison, and
-`export` is for standard lineage/telemetry handoff.
+The short version: `plan` decides, `build` produces artifacts and receipts,
+`artifact` inspects, `diff` compares, and `export` hands standard
+lineage/telemetry to Marquez, Jaeger, Tempo, Grafana, or OpenMetadata.
 
 This example uses a real runner, so `build` requires the configured runner and
 credentials. The quickstart below uses demo runners and works offline.
@@ -200,7 +200,7 @@ artifact_version...sha256_a5b4...
   confidence: structural
 ```
 
-The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).
+The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx); standard backend recipes are in [examples/standard_visualization](examples/standard_visualization/).
 
 ## Install
 
