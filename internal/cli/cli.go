@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	buildmgr "github.com/nyuta01/fbt/internal/build"
 	"github.com/nyuta01/fbt/internal/graph"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
@@ -23,6 +25,7 @@ const Version = "0.0.0-dev"
 var implementedCommands = []string{
 	"parse",
 	"plan",
+	"build",
 	"state",
 	"artifact",
 	"runner",
@@ -30,7 +33,6 @@ var implementedCommands = []string{
 
 var plannedCommands = []string{
 	"init",
-	"build",
 	"run",
 	"eval",
 	"diff",
@@ -70,6 +72,8 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runParse(opts, stdout, stderr)
 	case "plan":
 		return runPlan(opts, stdout, stderr)
+	case "build":
+		return runBuild(opts, stdout, stderr)
 	case "state":
 		return runState(opts, commandArgs[1:], stdout, stderr)
 	case "artifact":
@@ -85,6 +89,37 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		printHelp(stderr)
 		return 2
 	}
+}
+
+func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
+	result, err := buildmgr.RunBuild(context.Background(), buildmgr.Options{
+		ProjectDir: opts.ProjectDir,
+		StateDir:   opts.StateDir,
+		Select:     opts.Select,
+		FBTVersion: Version,
+	})
+	if err != nil {
+		printError("build", err, stderr, opts.JSON)
+		return 1
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "build", "status": "success", "summary": result.Plan.Summary, "runs": result.Runs})
+		if result.Plan.Summary.Blocked > 0 {
+			return 3
+		}
+		return 0
+	}
+	fmt.Fprintf(stdout, "Build: %d selected, %d run, %d skipped, %d blocked\n", result.Plan.Summary.Selected, result.Plan.Summary.Run, result.Plan.Summary.Skipped, result.Plan.Summary.Blocked)
+	for _, run := range result.Runs {
+		fmt.Fprintf(stdout, "%s %s\n", run.Status, run.TransformID)
+		for _, version := range run.CommittedVersions {
+			fmt.Fprintf(stdout, "  committed: %s\n", version)
+		}
+	}
+	if result.Plan.Summary.Blocked > 0 {
+		return 3
+	}
+	return 0
 }
 
 func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) int {

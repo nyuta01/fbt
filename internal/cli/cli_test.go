@@ -47,7 +47,7 @@ func TestRunPlannedCommand(t *testing.T) {
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 
-	code := Run([]string{"build"}, &stdout, &stderr)
+	code := Run([]string{"run"}, &stdout, &stderr)
 	if code != 2 {
 		t.Fatalf("expected exit code 2, got %d", code)
 	}

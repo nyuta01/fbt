@@ -25,12 +25,11 @@ fbt docs generate
 ```
 
 Implementation status: the current CLI implements `help`, `version`, the first
-product inspection commands (`parse`, `plan`, `state`, `artifact`), and runner
-discovery diagnostics (`runner list`, `runner doctor`, `runner validate`).
-The JSON-RPC stdio runner protocol client exists but is not wired into build
-execution yet. Local fake and command runners are available for tests and local
-MVP wiring. Build execution, evals, review, diff, and docs generation are
-specified but not implemented yet.
+product inspection commands (`parse`, `plan`, `state`, `artifact`), runner
+discovery diagnostics (`runner list`, `runner doctor`, `runner validate`), and
+the first `build` lifecycle through protocol runners. Local fake and command
+runners are available for tests and local MVP wiring. Full policy enforcement,
+evals, review, diff, and docs generation are specified but not implemented yet.
 
 The base runtime should work with only the local filesystem.
 
@@ -155,6 +154,7 @@ This repository currently contains design and specification drafts, a baseline
 AI-first engineering harness, a Go CLI scaffold, project/resource parsing,
 manifest graph generation, descriptor and state primitives, dirty-state
 planning, initial CLI inspection commands, and runner discovery diagnostics.
-The JSON-RPC stdio runner protocol client is implemented, but build execution,
-evals, review, diff, and docs generation are still pending. Local fake and
-command runners exist for deterministic protocol and future build tests.
+The first build lifecycle can invoke protocol runners, commit output candidates,
+and update local state. Full policy enforcement, evals, review, diff, and docs
+generation are still pending. Local fake and command runners exist for
+deterministic protocol and build tests.

@@ -15,7 +15,12 @@ go run ./cmd/fbt version >"$tmpdir/version.txt"
 grep -q "^fbt 0.0.0-dev$" "$tmpdir/version.txt"
 
 project="$tmpdir/project"
-mkdir -p "$project"/{sources,transforms,assets,policies,evals,prompts,data/support/tickets}
+mkdir -p "$project"/{bin,sources,transforms,assets,policies,evals,prompts,data/support/tickets}
+cat >"$project/bin/fbt-fake-runner" <<SH
+#!/usr/bin/env sh
+exec go run "$ROOT_DIR/runners/fake"
+SH
+chmod +x "$project/bin/fbt-fake-runner"
 cat >"$project/fs_project.yml" <<'YAML'
 name: knowledge_ops
 config_version: 1
@@ -29,7 +34,7 @@ runners:
   - name: openai.responses
     type: llm
     protocol: stdio_jsonrpc
-    command: fbt-openai-runner
+    command: bin/fbt-fake-runner
 YAML
 cat >"$project/sources/support.yml" <<'YAML'
 sources:
@@ -97,10 +102,14 @@ go run ./cmd/fbt artifact ls --project-dir "$project" >"$tmpdir/artifact-ls.txt"
 go run ./cmd/fbt runner list --project-dir "$project" >"$tmpdir/runner-list.txt"
 grep -q "openai.responses" "$tmpdir/runner-list.txt"
 
-if go run ./cmd/fbt build >"$tmpdir/build.out" 2>"$tmpdir/build.err"; then
-  echo "expected fbt build to be a planned-but-unimplemented command" >&2
+go run ./cmd/fbt build --project-dir "$project" >"$tmpdir/build.txt"
+grep -q "committed:" "$tmpdir/build.txt"
+test -f "$project/target/artifacts/support/case_summaries/index.md"
+
+if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
+  echo "expected fbt run to be a planned-but-unimplemented command" >&2
   exit 1
 fi
-grep -q "not implemented yet" "$tmpdir/build.err"
+grep -q "not implemented yet" "$tmpdir/run.err"
 
 echo "cli-smoke: ok"

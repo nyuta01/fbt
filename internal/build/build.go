@@ -1,0 +1,405 @@
+package build
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/nyuta01/fbt/internal/artifact"
+	"github.com/nyuta01/fbt/internal/manifest"
+	"github.com/nyuta01/fbt/internal/parser"
+	"github.com/nyuta01/fbt/internal/planner"
+	"github.com/nyuta01/fbt/internal/protocol"
+	"github.com/nyuta01/fbt/internal/runner"
+	"github.com/nyuta01/fbt/internal/security"
+	"github.com/nyuta01/fbt/internal/state"
+)
+
+type Options struct {
+	ProjectDir string
+	StateDir   string
+	Select     string
+	FBTVersion string
+}
+
+type Result struct {
+	InvocationID string
+	Plan         planner.Plan
+	Runs         []Run
+}
+
+type Run struct {
+	TransformID       string
+	TransformRunID    string
+	Status            string
+	CommittedVersions []string
+}
+
+type outputCandidate struct {
+	Name         string `json:"name"`
+	ArtifactType string `json:"artifact_type"`
+	Path         string `json:"path"`
+	DeclaredPath string `json:"declared_path"`
+}
+
+func RunBuild(ctx context.Context, options Options) (Result, error) {
+	if options.FBTVersion == "" {
+		options.FBTVersion = "0.0.0-dev"
+	}
+	parseResult, err := parser.ParseProject(parser.Options{ProjectDir: options.ProjectDir})
+	if err != nil {
+		return Result{}, err
+	}
+	currentManifest, err := manifest.Build(parseResult, manifest.BuildOptions{FBTVersion: options.FBTVersion})
+	if err != nil {
+		return Result{}, err
+	}
+	stateDir := options.StateDir
+	if stateDir == "" {
+		stateDir = filepath.Join(parseResult.ProjectDir, parseResult.Config.State.Path)
+	}
+	store := state.Open(stateDir)
+	lock, err := store.AcquireLock(newID("inv"), 30*time.Minute)
+	if err != nil {
+		return Result{}, err
+	}
+	defer lock.Release()
+
+	invocationID := newID("inv")
+	result := Result{InvocationID: invocationID}
+	var previous *manifest.Manifest
+	if prev, err := store.ReadManifest(); err == nil {
+		previous = &prev
+	}
+	snapshot, err := store.ReadState()
+	if err != nil {
+		return result, err
+	}
+	if err := store.WriteManifest(currentManifest); err != nil {
+		return result, err
+	}
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":   "invocation_started",
+		"invocation_id": invocationID,
+		"started_at":    time.Now().UTC().Format(time.RFC3339),
+		"command":       "build",
+		"project_name":  parseResult.Config.Name,
+		"target_name":   "local",
+	}); err != nil {
+		return result, err
+	}
+
+	selected, err := selectedTransformIDs(currentManifest, options.Select)
+	if err != nil {
+		return result, err
+	}
+	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected})
+	result.Plan = plan
+
+	for _, node := range plan.Nodes {
+		if node.Action != planner.ActionRun {
+			continue
+		}
+		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, node.TransformID, invocationID)
+		if err != nil {
+			return result, err
+		}
+		result.Runs = append(result.Runs, run)
+	}
+
+	if err := store.WriteState(snapshot); err != nil {
+		return result, err
+	}
+	status := "success"
+	if plan.Summary.Blocked > 0 {
+		status = "blocked"
+	}
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":   "invocation_completed",
+		"invocation_id": invocationID,
+		"completed_at":  time.Now().UTC().Format(time.RFC3339),
+		"status":        status,
+		"summary": map[string]any{
+			"selected": plan.Summary.Selected,
+			"success":  len(result.Runs),
+			"blocked":  plan.Summary.Blocked,
+			"skipped":  plan.Summary.Skipped,
+		},
+	}); err != nil {
+		return result, err
+	}
+	return result, nil
+}
+
+func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, transformID string, invocationID string) (Run, error) {
+	transform := m.Transforms[transformID]
+	runnerName := strings.TrimPrefix(transform.Runner, "runner."+parseResult.Config.Name+".")
+	discovery := runner.NewDiscovery(parseResult.ProjectDir, parseResult.Config)
+	resolved, err := discovery.Resolve(runnerName)
+	if err != nil {
+		return Run{}, err
+	}
+	client, err := runner.StartProtocolClient(ctx, resolved)
+	if err != nil {
+		return Run{}, err
+	}
+	defer client.Close()
+	if _, err := client.Initialize(ctx, protocol.InitializeParams{
+		Core: map[string]string{"name": "fbt-core", "version": "0.0.0-dev"},
+		Protocol: map[string]any{
+			"versions": []string{"0.1"},
+			"framing":  "jsonl",
+		},
+		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
+	}); err != nil {
+		return Run{}, err
+	}
+
+	transformRunID := newID("transform_run.run")
+	workRootRel := filepath.Join(".fbt", "work", invocationID, transform.Name)
+	workRoot := filepath.Join(parseResult.ProjectDir, workRootRel)
+	workTemp := filepath.Join(workRoot, "tmp")
+	workOutputs := filepath.Join(workRoot, "outputs")
+	if err := os.MkdirAll(workTemp, 0o755); err != nil {
+		return Run{}, err
+	}
+	if err := os.MkdirAll(workOutputs, 0o755); err != nil {
+		return Run{}, err
+	}
+
+	outcome, err := client.RunTransform(ctx, protocol.RunTransformParams{
+		Mode:           "run",
+		InvocationID:   invocationID,
+		TransformRunID: transformRunID,
+		Transform: map[string]any{
+			"unique_id": transform.UniqueID,
+			"name":      transform.Name,
+			"type":      transform.TransformType,
+		},
+		Outputs: protocolOutputs(transform),
+		Work: map[string]any{
+			"root":    workRoot,
+			"temp":    workTemp,
+			"outputs": workOutputs,
+		},
+	})
+	if err != nil {
+		return Run{}, err
+	}
+	candidates, err := decodeOutputCandidates(outcome)
+	if err != nil {
+		return Run{}, err
+	}
+	declared := declaredOutputs(transform)
+	run := Run{TransformID: transformID, TransformRunID: transformRunID, Status: outcome.Result.Status}
+	for _, candidate := range candidates {
+		if err := security.RequireWithin(workOutputs, candidate.Path); err != nil {
+			return Run{}, fmt.Errorf("output candidate outside work outputs: %w", err)
+		}
+		output, ok := declared[candidate.Name]
+		if !ok {
+			return Run{}, fmt.Errorf("undeclared output candidate: %s", candidate.Name)
+		}
+		relCandidate, err := filepath.Rel(parseResult.ProjectDir, candidate.Path)
+		if err != nil {
+			return Run{}, err
+		}
+		descriptor, err := artifact.Describe(parseResult.ProjectDir, relCandidate, output.ArtifactType)
+		if err != nil {
+			return Run{}, err
+		}
+		versionID, err := artifact.VersionID(parseResult.Config.Name, output.Name, descriptor.Digest)
+		if err != nil {
+			return Run{}, err
+		}
+		logicalAbs := filepath.Join(parseResult.ProjectDir, output.DeclaredPath)
+		if err := commitPath(candidate.Path, logicalAbs); err != nil {
+			return Run{}, err
+		}
+		approvalStatus := "not_required"
+		confidence := "structural"
+		if reviewRequired(transform) {
+			approvalStatus = "pending"
+			confidence = "experimental"
+		}
+		version := state.ArtifactVersion{
+			VersionID:      versionID,
+			ArtifactID:     output.UniqueID,
+			LogicalPath:    output.DeclaredPath,
+			StoragePath:    output.DeclaredPath,
+			Descriptor:     descriptor,
+			GeneratedBy:    transformRunID,
+			Confidence:     confidence,
+			ApprovalStatus: approvalStatus,
+			CreatedAt:      time.Now().UTC().Format(time.RFC3339),
+			CommittedAt:    time.Now().UTC().Format(time.RFC3339),
+		}
+		if err := store.PutArtifactVersion(version); err != nil {
+			return Run{}, err
+		}
+		snapshot.CurrentArtifacts[output.UniqueID] = state.ArtifactPointer{
+			ArtifactID:       output.UniqueID,
+			CurrentVersionID: versionID,
+			CurrentDigest:    descriptor.Digest,
+			LogicalPath:      output.DeclaredPath,
+			Confidence:       confidence,
+			ApprovalStatus:   approvalStatus,
+			CommittedAt:      version.CommittedAt,
+			GeneratedBy:      transformRunID,
+		}
+		run.CommittedVersions = append(run.CommittedVersions, versionID)
+	}
+	snapshot.LatestRuns[transformID] = state.LatestRun{
+		LatestRunID:                transformRunID,
+		LatestSuccessfulRunID:      transformRunID,
+		LatestStatus:               outcome.Result.Status,
+		LatestEffectiveFingerprint: transform.Fingerprint["effective"],
+	}
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":        "transform_run",
+		"invocation_id":      invocationID,
+		"run_id":             transformRunID,
+		"transform_id":       transformID,
+		"status":             outcome.Result.Status,
+		"committed_versions": run.CommittedVersions,
+	}); err != nil {
+		return Run{}, err
+	}
+	return run, nil
+}
+
+func protocolOutputs(transform manifest.TransformResource) []any {
+	outputs := make([]any, 0, len(transform.Outputs))
+	for _, output := range transform.Outputs {
+		outputs = append(outputs, map[string]any{
+			"name":          output.Name,
+			"artifact_type": output.ArtifactType,
+			"declared_path": output.DeclaredPath,
+		})
+	}
+	return outputs
+}
+
+func declaredOutputs(transform manifest.TransformResource) map[string]manifest.TransformOutput {
+	outputs := map[string]manifest.TransformOutput{}
+	for _, output := range transform.Outputs {
+		outputs[output.Name] = output
+	}
+	return outputs
+}
+
+func decodeOutputCandidates(outcome protocol.RunOutcome) ([]outputCandidate, error) {
+	var candidates []outputCandidate
+	for _, notification := range outcome.OutputCandidates {
+		for _, raw := range notification.Outputs {
+			data, err := json.Marshal(raw)
+			if err != nil {
+				return nil, err
+			}
+			var candidate outputCandidate
+			if err := json.Unmarshal(data, &candidate); err != nil {
+				return nil, err
+			}
+			candidates = append(candidates, candidate)
+		}
+	}
+	if len(candidates) == 0 {
+		for _, raw := range outcome.Result.Outputs {
+			data, err := json.Marshal(raw)
+			if err != nil {
+				return nil, err
+			}
+			var candidate outputCandidate
+			if err := json.Unmarshal(data, &candidate); err != nil {
+				return nil, err
+			}
+			candidates = append(candidates, candidate)
+		}
+	}
+	return candidates, nil
+}
+
+func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}, error) {
+	if expr == "" {
+		return nil, nil
+	}
+	selected := map[string]struct{}{}
+	for id, transform := range m.Transforms {
+		if transform.Name == strings.Trim(expr, "+") || id == expr {
+			selected[id] = struct{}{}
+		}
+	}
+	return selected, nil
+}
+
+func reviewRequired(transform manifest.TransformResource) bool {
+	required, _ := transform.Cache["review_required"].(bool)
+	if required {
+		return true
+	}
+	value, ok := transform.Fingerprint["review_required"]
+	return ok && value == "true"
+}
+
+func commitPath(src, dst string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if err := os.RemoveAll(dst); err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return copyDir(src, dst)
+	}
+	return copyFile(src, dst)
+}
+
+func copyDir(src, dst string) error {
+	return filepath.WalkDir(src, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(dst, rel)
+		if d.IsDir() {
+			return os.MkdirAll(target, 0o755)
+		}
+		if d.Type()&os.ModeSymlink != 0 {
+			return fmt.Errorf("cannot commit symlink: %s", path)
+		}
+		return copyFile(path, target)
+	})
+}
+
+func copyFile(src, dst string) error {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
+		return err
+	}
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		_ = out.Close()
+		return err
+	}
+	return out.Close()
+}
+
+func newID(prefix string) string {
+	return fmt.Sprintf("%s_%d", prefix, time.Now().UTC().UnixNano())
+}

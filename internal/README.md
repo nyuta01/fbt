@@ -10,7 +10,8 @@ classify transforms as run, skip, or blocked. The CLI now exposes the first
 product inspection commands for parse, plan, state, and artifact records, plus
 runner discovery diagnostics. The protocol package can start JSON-RPC stdio
 runners and collect events/output candidates. Local fake and command runners
-live outside `internal/` under `runners/`.
+live outside `internal/` under `runners/`. The build package wires the current
+parse-plan-run-commit-state lifecycle for local protocol runners.
 
 Planned package boundaries:
 

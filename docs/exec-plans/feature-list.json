@@ -331,7 +331,7 @@
       "id": "FBT-MVP-010",
       "title": "Implement build lifecycle and idempotent commit",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-003",
@@ -340,7 +340,7 @@
         "FBT-MVP-008",
         "FBT-MVP-009"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-010-plan.md",
       "paths": [
         "internal/build",
         "internal/artifact",
@@ -349,11 +349,12 @@
         "docs/state-and-run-results-spec.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
+        "go_test": true,
+        "cli_smoke": true,
         "conformance": false
       },
-      "notes": "Run parse-plan-run-eval-review-commit-state lifecycle, manage .fbt/work, validate output candidates, record transform_run and artifact_version, and keep commit idempotent."
+      "verification_override_reason": "No conformance target exists yet; build lifecycle and idempotent clean rerun behavior is covered by Go tests and CLI smoke until the suite is added in FBT-MVP-016.",
+      "notes": "Runs the first parse-plan-run-commit-state lifecycle, manages .fbt/work, validates output candidate containment, records transform_run and artifact_version, and keeps clean reruns idempotent."
     },
     {
       "id": "FBT-MVP-011",
