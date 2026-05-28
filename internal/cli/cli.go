@@ -499,6 +499,9 @@ func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 	}
 	fmt.Fprintf(stdout, "Initialized %s project at %s\n", result.Template, result.ProjectDir)
 	fmt.Fprintf(stdout, "Files: %d\n", len(result.Files))
+	if result.Template == "support" || result.Template == "incident" {
+		fmt.Fprintln(stdout, "Demo runners: configured as demo.*; replace runner commands in fs_project.yml for real provider execution")
+	}
 	return 0
 }
 

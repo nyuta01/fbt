@@ -11,5 +11,7 @@ fbt export openlineage --project-dir examples/knowledge_ops --output examples/kn
 fbt export otel --project-dir examples/knowledge_ops --output examples/knowledge_ops/target/telemetry/otel.json
 ```
 
-The project uses bundled local protocol runners and does not call external
-model providers.
+The project uses deterministic demo protocol runners (`demo.llm` and
+`demo.agent`) and does not call external model providers. Replace the runner
+entries in `fs_project.yml` with external commands before using real provider
+or agent execution.

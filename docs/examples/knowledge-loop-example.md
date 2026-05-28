@@ -10,8 +10,8 @@ A core `fbt` use case is turning primary operational documents into reusable, re
 
 A runnable local version of the support flow can be created with
 `fbt init --template support`; a committed copy also exists under
-`examples/knowledge_ops`. The runnable MVP uses bundled local protocol runners
-and does not require provider accounts.
+`examples/knowledge_ops`. The runnable MVP uses bundled deterministic demo
+protocol runners and does not require provider accounts.
 
 Primary documents:
 
@@ -105,8 +105,8 @@ knowledge_ops/
   assets/support_style_guide.md
   policies/support.yml
   evals/support.yml
-  bin/fbt-local-llm-runner
-  bin/fbt-local-agent-runner
+  bin/fbt-demo-llm-runner
+  bin/fbt-demo-agent-runner
 ```
 
 Larger support projects can extend the same layout:
@@ -188,15 +188,15 @@ defaults:
     required: false
 
 runners:
-  - name: local.llm
+  - name: demo.llm
     type: llm
     protocol: stdio_jsonrpc
-    command: bin/fbt-local-llm-runner
+    command: bin/fbt-demo-llm-runner
 
-  - name: local.agent
+  - name: demo.agent
     type: agent
     protocol: stdio_jsonrpc
-    command: bin/fbt-local-agent-runner
+    command: bin/fbt-demo-agent-runner
 
 selectors:
   - name: support_daily
@@ -222,9 +222,11 @@ runners:
     command: fbt-langgraph-runner
 ```
 
-The bundled local examples are deterministic external processes. They emit
+The bundled demo examples are deterministic external processes. They emit
 usage, cost, provenance, and agent tool-call events for testing the
-control-plane flow, but they do not call real model providers.
+control-plane flow, but they do not call real model providers. Replace the
+`demo.*` runners with external commands before using real provider or agent
+execution.
 
 ## 6. Sources
 
@@ -397,10 +399,10 @@ can be extended after adding more prompts and eval runners.
 transforms:
   - name: case_summaries
     type: llm
-    runner: local.llm
+    runner: demo.llm
     model:
-      provider: local
-      name: mock-gpt
+      provider: demo
+      name: deterministic-demo-llm
     inputs:
       - source: support.raw_tickets
     outputs:
@@ -427,7 +429,7 @@ transforms:
 transforms:
   - name: faq_candidates
     type: llm
-    runner: local.llm
+    runner: demo.llm
     inputs:
       - ref: case_summaries
         require:
@@ -457,10 +459,10 @@ transforms:
 transforms:
   - name: weekly_support_insights
     type: agent
-    runner: local.agent
+    runner: demo.agent
     model:
-      provider: local
-      name: mock-agent
+      provider: demo
+      name: deterministic-demo-agent
     inputs:
       - ref: case_summaries
         require:
@@ -486,7 +488,7 @@ transforms:
 transforms:
   - name: runbook_update_proposals
     type: agent
-    runner: local.agent
+    runner: demo.agent
     inputs:
       - ref: weekly_support_insights
         require:

@@ -120,9 +120,11 @@ Flags:
 | `--template NAME` | `blank`, `knowledge_ops`, `support`, or `incident` |
 | `--force` | Allow overwriting existing files |
 
-The `support` and `knowledge_ops` templates include local runner wrappers for
-the bundled LLM and agent examples. They are suitable for local smoke runs from
-a source checkout without provider credentials.
+The `support` and `knowledge_ops` templates include `demo.llm` and
+`demo.agent` runner wrappers; `incident` includes `demo.llm`. They are
+deterministic protocol examples for local smoke runs from a source checkout
+without provider credentials, and should be replaced with external runner
+commands for real provider-backed execution.
 
 ### 5.2 fbt parse
 

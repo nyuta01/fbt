@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Deterministic demo runner wrapper for the checked-in example.
+# Replace the matching runner entry in fs_project.yml for real provider execution.
+ROOT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+exec go run "$ROOT_DIR/runners/llm" "$@"

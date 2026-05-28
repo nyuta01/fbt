@@ -1,3 +1,0 @@
-#!/usr/bin/env sh
-ROOT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
-exec go run "$ROOT_DIR/runners/llm" "$@"

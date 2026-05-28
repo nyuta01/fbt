@@ -1,10 +1,10 @@
 transforms:
   - name: case_summaries
     type: llm
-    runner: local.llm
+    runner: demo.llm
     model:
-      provider: local
-      name: mock-gpt
+      provider: demo
+      name: deterministic-demo-llm
     inputs:
       - source: support.raw_tickets
     outputs:

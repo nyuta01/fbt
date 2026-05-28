@@ -11,14 +11,14 @@ state:
   backend: local
   path: .fbt/state
 runners:
-  - name: local.llm
+  - name: demo.llm
     type: llm
     protocol: stdio_jsonrpc
-    command: bin/fbt-local-llm-runner
-  - name: local.agent
+    command: bin/fbt-demo-llm-runner
+  - name: demo.agent
     type: agent
     protocol: stdio_jsonrpc
-    command: bin/fbt-local-agent-runner
+    command: bin/fbt-demo-agent-runner
 selectors:
   - name: support_daily
     definition:

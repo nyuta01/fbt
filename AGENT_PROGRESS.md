@@ -59,6 +59,11 @@ coverage verify outside-work candidates fail before official commit.
 `tests/runner-conformance/fixtures`, and `make runner-conformance`, which runs
 a strict black-box stdio protocol check against the source fake runner inside
 `make verify`.
+`FBT-RUNNER-006` is complete: generated support/incident projects and the
+checked-in knowledge example now use `demo.llm`, `demo.agent`, and
+`bin/fbt-demo-*-runner`, CLI init prints a demo-runner replacement hint, and
+the docs describe the shortest path from demo wrappers to external runner
+commands.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -111,8 +116,8 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue external runner hardening with `FBT-RUNNER-006`, then proceed
-   through optional provider adapter packaging.
+3. Complete external runner hardening with `FBT-RUNNER-007` optional provider
+   adapter packaging.
 4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
 5. Keep fbt-native state as the internal source of truth and delegate graph,

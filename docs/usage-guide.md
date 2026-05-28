@@ -41,9 +41,9 @@ cd knowledge_ops
 ```
 
 The MVP CLI implements `blank`, `support`, `knowledge_ops`, and `incident`
-templates. The `support` and `knowledge_ops` templates include local runner
-wrappers so the build/review loop can run without external services from a
-source checkout.
+templates. The `support`, `knowledge_ops`, and `incident` templates include
+deterministic demo runner wrappers so the build/review loop can run without
+external services from a source checkout.
 
 Generated layout:
 
@@ -244,10 +244,10 @@ unless an external eval runner is introduced.
 transforms:
   - name: case_summaries
     type: llm
-    runner: local.llm
+    runner: demo.llm
     model:
-      provider: local
-      name: mock-gpt
+      provider: demo
+      name: deterministic-demo-llm
     inputs:
       - source: support.raw_tickets
     outputs:
@@ -274,10 +274,10 @@ transforms:
 transforms:
   - name: weekly_support_insights
     type: agent
-    runner: local.agent
+    runner: demo.agent
     model:
-      provider: local
-      name: mock-agent
+      provider: demo
+      name: deterministic-demo-agent
     inputs:
       - ref: case_summaries
         require:
@@ -302,7 +302,37 @@ transforms:
 
 The downstream transform requires the current `case_summaries` artifact version to be reviewed and approved.
 
-## 7. Parse
+## 7. Replace Demo Runners
+
+Generated runnable templates use demo runner names:
+
+```yaml
+runners:
+  - name: demo.llm
+    type: llm
+    protocol: stdio_jsonrpc
+    command: bin/fbt-demo-llm-runner
+
+  - name: demo.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: bin/fbt-demo-agent-runner
+```
+
+These commands run deterministic protocol fixtures from the source checkout.
+They prove the control-plane workflow, not provider quality.
+
+To switch to real execution:
+
+1. Install or write an external runner command.
+2. Run `FBT_RUNNER_CONFORMANCE_COMMAND='your-runner' make runner-conformance`.
+3. Add the runner to `fs_project.yml` with required `args`, `cwd`, and `env`
+   names.
+4. Change transform `runner:` values from `demo.*` to the external logical
+   runner names.
+5. Run `fbt doctor`, then `fbt plan` before building.
+
+## 8. Parse
 
 ```sh
 fbt parse
@@ -325,7 +355,7 @@ artifact types, or outputs outside `artifact_path`.
 acquisition, runner discovery, and runner protocol initialization. It exits
 with code `6` when a runner or dependency readiness check fails.
 
-## 8. Plan
+## 9. Plan
 
 ```sh
 fbt plan --select tag:support
@@ -365,7 +395,7 @@ fbt artifact show case_summaries
 fbt artifact history case_summaries
 ```
 
-## 9. Build
+## 10. Build
 
 ```sh
 fbt build --select case_summaries
@@ -390,7 +420,7 @@ State files updated:
 .fbt/state/policy_decisions.json
 ```
 
-## 10. Review
+## 11. Review
 
 ```sh
 fbt review status case_summaries
@@ -420,7 +450,7 @@ fbt review approve case_summaries --comment "Citations and customer impact revie
 
 Approval is bound to the current `artifact_version`, not just the logical path.
 
-## 11. Build Downstream Artifacts
+## 12. Build Downstream Artifacts
 
 ```sh
 fbt build --select weekly_support_insights
@@ -428,7 +458,7 @@ fbt build --select weekly_support_insights
 
 Because `case_summaries` is approved, downstream transforms that require reviewed inputs can now run.
 
-## 12. Inspect Diffs
+## 13. Inspect Diffs
 
 After new source files arrive:
 
@@ -439,7 +469,7 @@ fbt diff case_summaries --against last-approved
 
 This makes AI-generated document changes reviewable.
 
-## 13. Generate Docs
+## 14. Generate Docs
 
 ```sh
 fbt docs generate
@@ -488,7 +518,7 @@ exporter by default; feed the JSON file to your collector/backend workflow.
 For backend-specific steps, see
 [Standard Visualization Guide](standard-visualization-guide.md).
 
-## 14. Opt-In Real LLM Smoke
+## 15. Opt-In Real LLM Smoke
 
 The default verification gate uses local deterministic runners. To smoke-test an
 external real LLM runner that implements the fbt stdio JSON-RPC runner protocol:
@@ -510,7 +540,7 @@ Provider credentials, endpoints, and SDK dependencies belong to the external
 runner and its environment. If `FBT_REAL_LLM_RUNNER_COMMAND` is unset, the smoke
 prints `skipped` and exits successfully.
 
-## 15. Use External CLI Agents Safely
+## 16. Use External CLI Agents Safely
 
 External coding-agent CLIs can be used behind an fbt runner adapter. Do not set
 `runner.command` directly to an arbitrary interactive agent command unless that
@@ -550,7 +580,7 @@ Before using a custom runner in a project, run the protocol fixture:
 FBT_RUNNER_CONFORMANCE_COMMAND='my-fbt-runner --flag value' make runner-conformance
 ```
 
-## 16. Day-2 Operation
+## 17. Day-2 Operation
 
 The operating loop:
 
@@ -567,7 +597,7 @@ The operating loop:
 
 The purpose is to turn messy primary documents into reusable, reviewed knowledge artifacts that continuously improve operational work.
 
-## 17. What fbt Does Not Do
+## 18. What fbt Does Not Do
 
 `fbt` core does not implement:
 

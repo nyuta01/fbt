@@ -673,21 +673,23 @@ Not required in MVP:
 - gRPC
 - plugin marketplace
 
-## 20. Bundled Local AI Runner Examples
+## 20. Bundled Demo AI Runner Examples
 
-The repository includes optional protocol-compatible local examples:
+The repository includes optional protocol-compatible demo examples:
 
-- `runners/llm`: deterministic mock LLM output with usage, estimated cost, and
+- `runners/llm`: deterministic demo LLM output with usage, estimated cost, and
   provenance fields
-- `runners/agent`: deterministic mock agent output with usage, provenance, and
+- `runners/agent`: deterministic demo agent output with usage, provenance, and
   redacted `tool_call.completed` events
 
 These runners are out-of-process stdio JSON-RPC programs. They are intended for
 local development, tests, templates, and protocol compatibility checks. They do
 not call model providers and do not add provider SDK dependencies to `fbt`
-core. Real OpenAI, Anthropic, local-model, LangGraph, or other provider runners
-should be installed or invoked as separate external commands that satisfy the
-same protocol.
+core. Templates expose them as `demo.llm` and `demo.agent` through
+`bin/fbt-demo-*-runner` wrappers so they are visibly distinct from
+provider-backed runners. Real OpenAI, Anthropic, local-model, LangGraph, or
+other provider runners should be installed or invoked as separate external
+commands that satisfy the same protocol.
 
 Use `make real-llm-smoke` with `FBT_REAL_LLM_RUNNER_COMMAND` to opt into a
 local smoke against one of those external commands. This target is intentionally

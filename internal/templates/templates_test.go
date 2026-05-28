@@ -3,6 +3,7 @@ package templates
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/nyuta01/fbt/internal/parser"
@@ -19,6 +20,16 @@ func TestCreateSupportProjectParses(t *testing.T) {
 	}
 	if _, err := parser.ParseProject(parser.Options{ProjectDir: root}); err != nil {
 		t.Fatalf("parse generated project: %v", err)
+	}
+	config, err := os.ReadFile(filepath.Join(root, "fs_project.yml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(config), "name: demo.llm") || !strings.Contains(string(config), "command: bin/fbt-demo-llm-runner") {
+		t.Fatalf("support template should use visibly demo runner names:\n%s", string(config))
+	}
+	if _, err := os.Stat(filepath.Join(root, "bin", "fbt-demo-agent-runner")); err != nil {
+		t.Fatalf("expected demo agent runner wrapper: %v", err)
 	}
 }
 

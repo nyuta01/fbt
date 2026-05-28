@@ -118,6 +118,9 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(stdout.String(), "Initialized support project") {
 		t.Fatalf("unexpected init output: %q", stdout.String())
 	}
+	if !strings.Contains(stdout.String(), "Demo runners: configured as demo.*") {
+		t.Fatalf("expected demo runner hint, got %q", stdout.String())
+	}
 	if _, err := os.Stat(filepath.Join(root, "fs_project.yml")); err != nil {
 		t.Fatalf("expected project config: %v", err)
 	}

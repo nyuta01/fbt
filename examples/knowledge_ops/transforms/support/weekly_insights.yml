@@ -1,10 +1,10 @@
 transforms:
   - name: weekly_support_insights
     type: agent
-    runner: local.agent
+    runner: demo.agent
     model:
-      provider: local
-      name: mock-agent
+      provider: demo
+      name: deterministic-demo-agent
     inputs:
       - ref: case_summaries
         require:

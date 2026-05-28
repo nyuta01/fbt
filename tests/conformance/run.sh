@@ -73,12 +73,12 @@ grep -q "next: fbt review approve case_summaries" "$tmpdir/build-weekly-blocked.
 
 capability_mismatch="$tmpdir/capability-mismatch"
 "$FBT_BIN" init "$capability_mismatch" --template support >"$tmpdir/init-capability-mismatch.txt"
-cat >"$capability_mismatch/bin/fbt-local-llm-runner" <<EOF_RUNNER
+cat >"$capability_mismatch/bin/fbt-demo-llm-runner" <<EOF_RUNNER
 #!/usr/bin/env sh
 export FBT_FAKE_RUNNER_ARTIFACT_TYPES=text
 exec go run "$ROOT_DIR/runners/fake" "\$@"
 EOF_RUNNER
-chmod +x "$capability_mismatch/bin/fbt-local-llm-runner"
+chmod +x "$capability_mismatch/bin/fbt-demo-llm-runner"
 set +e
 "$FBT_BIN" build --project-dir "$capability_mismatch" --select case_summaries >"$tmpdir/build-capability-mismatch.txt" 2>"$tmpdir/build-capability-mismatch.err"
 capability_mismatch_code=$?
@@ -93,12 +93,12 @@ grep -q "runner capability incompatible" "$tmpdir/build-capability-mismatch.err"
 
 candidate_escape="$tmpdir/candidate-escape"
 "$FBT_BIN" init "$candidate_escape" --template support >"$tmpdir/init-candidate-escape.txt"
-cat >"$candidate_escape/bin/fbt-local-llm-runner" <<EOF_RUNNER
+cat >"$candidate_escape/bin/fbt-demo-llm-runner" <<EOF_RUNNER
 #!/usr/bin/env sh
 export FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1
 exec go run "$ROOT_DIR/runners/fake" "\$@"
 EOF_RUNNER
-chmod +x "$candidate_escape/bin/fbt-local-llm-runner"
+chmod +x "$candidate_escape/bin/fbt-demo-llm-runner"
 set +e
 "$FBT_BIN" build --project-dir "$candidate_escape" --select case_summaries >"$tmpdir/build-candidate-escape.txt" 2>"$tmpdir/build-candidate-escape.err"
 candidate_escape_code=$?

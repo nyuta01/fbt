@@ -28,8 +28,9 @@ Implementation status: the CLI implements `help`, `version`, `init`, `parse`,
 `runner` diagnostics. The local MVP includes protocol runners, deterministic
 evals, pending review gates, approval state, confidence promotion, immutable
 artifact versions, artifact diffing, static docs generation, runnable templates,
-and conformance plus local release-binary checks. Optional local LLM and agent
-runner examples live under `runners/` without provider SDK dependencies.
+and conformance plus local release-binary checks. Optional deterministic demo
+LLM and agent runner examples live under `runners/` without provider SDK
+dependencies.
 
 The base runtime works with only the local filesystem.
 

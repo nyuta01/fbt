@@ -1293,28 +1293,32 @@
       "id": "FBT-RUNNER-006",
       "title": "Clarify demo runners and external runner UX",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-014",
         "FBT-RUNNER-000"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-006-plan.md",
       "paths": [
         "runners",
         "internal/templates",
         "README.md",
         "docs/usage-guide.md",
         "docs/cli-reference.md",
-        "docs/runner-discovery-spec.md"
+        "docs/runner-discovery-spec.md",
+        "docs/runner-protocol-spec.md",
+        "docs/examples/knowledge-loop-example.md",
+        "examples/knowledge_ops"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "e2e_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "e2e_smoke": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Make local deterministic LLM/agent runners visibly demo-only, document the shortest path to replace them with external runners, and consider template flags or naming that distinguish `demo` from provider-backed `external` runner setups."
+      "notes": "Renames generated support/incident runner identities and wrappers to `demo.llm`, `demo.agent`, and `bin/fbt-demo-*-runner`, updates bundled demo runner metadata and checked-in examples, and documents the replacement path through runner conformance, project runner config, doctor, and plan."
     },
     {
       "id": "FBT-RUNNER-007",
