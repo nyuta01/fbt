@@ -49,6 +49,26 @@ excerpts, and standard export commands. Future diagrams should be tied to a
 standard visualization, an actual UI/output screenshot, or a clearly named
 conceptual claim before publication.
 
+## F-003 Quickstart scope ambiguity
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-003`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-003-plan.md`
+
+### Observation
+
+The quickstart page showed real commands and outputs but did not say what the
+support scenario was meant to represent. It could be read as a product demo,
+model-quality benchmark, architecture explanation, or realistic manual
+generation workflow.
+
+### Permanent fix
+
+Quickstart now opens by defining itself as a control-plane acceptance demo and
+lists what each lifecycle stage proves. README, usage guide, and the
+"What you can do today" page now say it is not a realistic manual-generation
+workflow or model-quality benchmark.
+
 ## Entry Template
 
 ```markdown

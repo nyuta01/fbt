@@ -70,8 +70,10 @@ contracts are [project config](docs/project-config-spec.md),
 
 ## Quickstart
 
-This support loop runs offline from a source checkout with deterministic demo
-runners. The output proves the fbt control plane, not model quality.
+The quickstart is a control-plane demo. It uses a tiny support fixture and
+deterministic demo runners to prove that fbt can parse, plan, build, review,
+inspect, and export local artifact state. It is not a model-quality benchmark
+or a realistic support-manual workflow.
 
 ```bash
 fbt init knowledge_ops --template support
@@ -125,6 +127,8 @@ Spans: 4
 The detailed walkthrough is in
 [What you can do today](apps/docs/src/content/docs/get-started/what-you-can-do.mdx)
 and the [Quickstart](apps/docs/src/content/docs/get-started/quickstart.mdx).
+For real incident-runbook or support-manual generation, start from
+[Manual generation](apps/docs/src/content/docs/get-started/manual-generation.mdx).
 
 ## Install
 

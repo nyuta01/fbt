@@ -37,6 +37,18 @@ The support quickstart is intentionally small, but it exercises the implemented
 control-plane loop. This guide uses command output and generated files as the
 evidence, not a custom product diagram.
 
+The quickstart represents a local control-plane acceptance path:
+
+- project parsing and runner readiness
+- build output committed as an artifact version
+- review approval bound to that exact version
+- downstream transform unblocked by that approval
+- local artifact inspection and standard exports
+
+It does not represent model quality or the full manual-generation use case.
+Use the practical examples for incident runbooks and support resolution
+manuals.
+
 Captured result from the same flow on 2026-05-28, with long hashes shortened:
 
 ```text

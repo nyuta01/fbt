@@ -56,7 +56,7 @@ export default defineConfig({
           items: [
             { label: "Installation", slug: "get-started/installation" },
             { label: "What you can do", slug: "get-started/what-you-can-do" },
-            { label: "Quickstart", slug: "get-started/quickstart" },
+            { label: "Quickstart demo", slug: "get-started/quickstart" },
             { label: "Manual generation", slug: "get-started/manual-generation" },
           ],
         },

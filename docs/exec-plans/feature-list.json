@@ -1518,6 +1518,36 @@
       "notes": "Removes the ambiguous support-loop graphic from README and docs-site entry pages. The quickstart is now explained through actual command output, generated files, and standard export commands instead of an invented product diagram."
     },
     {
+      "id": "FBT-DOCS-UX-003",
+      "title": "Define quickstart scope",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-001",
+        "FBT-DOCS-UX-002"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-003-plan.md",
+      "paths": [
+        "README.md",
+        "docs/usage-guide.md",
+        "apps/docs/astro.config.mjs",
+        "apps/docs/src/content/docs/get-started/quickstart.mdx",
+        "apps/docs/src/content/docs/get-started/what-you-can-do.mdx",
+        "docs/exec-plans/active/FBT-DOCS-UX-003-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "docs_site_build": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Defines quickstart as a small control-plane acceptance demo rather than a support-product demo, model-quality benchmark, realistic manual-generation workflow, or architecture walkthrough. Adds lifecycle-stage explanation and per-step intent text."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

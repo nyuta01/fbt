@@ -22,6 +22,11 @@ quickstart with captured command output and artifact excerpts, practical
 manual-generation guidance, and a standards-export graph image. The ambiguous
 custom support-loop diagram was removed; quickstart behavior is documented
 through actual CLI output and generated files.
+The quickstart is now explicitly scoped as a small control-plane acceptance
+demo: it verifies parse, doctor, plan, build, artifact versioning, review
+gating, local inspection, and standard exports. It is not presented as a model
+quality benchmark, support-product demo, or realistic manual-generation
+workflow.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -131,6 +136,8 @@ images.
 from README and docs entry pages. Quickstart behavior is now shown with actual
 command output, generated file paths, artifact excerpts, and standard export
 commands instead of a custom invented diagram.
+`FBT-DOCS-UX-003` is complete: quickstart now states what it represents, what
+it does not represent, and what each step proves in the fbt lifecycle.
 
 ## Verification
 
