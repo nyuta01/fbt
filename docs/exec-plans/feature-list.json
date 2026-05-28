@@ -264,13 +264,13 @@
       "id": "FBT-MVP-007",
       "title": "Implement runner discovery and diagnostics",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-H-003",
         "FBT-MVP-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-007-plan.md",
       "paths": [
         "internal/runner",
         "internal/plugin",
@@ -278,10 +278,10 @@
         "docs/cli-reference.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false
+        "go_test": true,
+        "cli_smoke": true
       },
-      "notes": "Resolve project runners, plugin manifests, user-local plugins, and PATH conventions; implement runner list/doctor/validate diagnostics and missing-runner exit code 6."
+      "notes": "Resolves project runners, project/user plugin manifests, and PATH conventions; implements runner list/doctor/validate diagnostics and missing-runner exit code 6."
     },
     {
       "id": "FBT-MVP-008",

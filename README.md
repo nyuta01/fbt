@@ -24,10 +24,11 @@ fbt review approve case_summaries --comment "Reviewed"
 fbt docs generate
 ```
 
-Implementation status: the current CLI implements `help`, `version`, and the
-first product inspection commands: `parse`, `plan`, `state`, and `artifact`.
-Build execution, runners, evals, review, diff, and docs generation are specified
-but not implemented yet.
+Implementation status: the current CLI implements `help`, `version`, the first
+product inspection commands (`parse`, `plan`, `state`, `artifact`), and runner
+discovery diagnostics (`runner list`, `runner doctor`, `runner validate`). Build
+execution, runner protocol invocation, evals, review, diff, and docs generation
+are specified but not implemented yet.
 
 The base runtime should work with only the local filesystem.
 
@@ -151,5 +152,6 @@ Mapping to dbt:
 This repository currently contains design and specification drafts, a baseline
 AI-first engineering harness, a Go CLI scaffold, project/resource parsing,
 manifest graph generation, descriptor and state primitives, dirty-state
-planning, and initial CLI inspection commands. Build execution, runner
-invocation, evals, review, diff, and docs generation are still pending.
+planning, initial CLI inspection commands, and runner discovery diagnostics.
+Build execution, runner protocol invocation, evals, review, diff, and docs
+generation are still pending.

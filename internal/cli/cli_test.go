@@ -157,6 +157,46 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 }
 
+func TestRunRunnerListAndDoctor(t *testing.T) {
+	root := writeCLIProject(t)
+	var listOut bytes.Buffer
+	var listErr bytes.Buffer
+	if code := Run([]string{"runner", "list", "--project-dir", root}, &listOut, &listErr); code != 0 {
+		t.Fatalf("runner list failed: code=%d stderr=%q", code, listErr.String())
+	}
+	if !strings.Contains(listOut.String(), "openai.responses") {
+		t.Fatalf("expected runner list output, got %q", listOut.String())
+	}
+
+	var doctorOut bytes.Buffer
+	var doctorErr bytes.Buffer
+	if code := Run([]string{"runner", "doctor", "openai.responses", "--project-dir", root}, &doctorOut, &doctorErr); code != 6 {
+		t.Fatalf("expected missing runner exit code 6, got %d; stdout=%q stderr=%q", code, doctorOut.String(), doctorErr.String())
+	}
+	if !strings.Contains(doctorOut.String(), "RUNNER_COMMAND_NOT_FOUND") {
+		t.Fatalf("expected missing command diagnostic, got %q", doctorOut.String())
+	}
+}
+
+func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
+	root := writeCLIProject(t)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexit 0\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner"))
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"runner", "doctor", "openai.responses", "--project-dir", root}, &stdout, &stderr); code != 0 {
+		t.Fatalf("runner doctor failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "RUNNER_COMMAND_OK") {
+		t.Fatalf("expected ok diagnostic, got %q", stdout.String())
+	}
+}
+
 func writeCLIProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
@@ -235,4 +275,13 @@ func writeFile(t *testing.T, root, relative, content string) {
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
 }

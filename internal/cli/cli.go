@@ -14,6 +14,7 @@ import (
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
+	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/state"
 )
 
@@ -24,6 +25,7 @@ var implementedCommands = []string{
 	"plan",
 	"state",
 	"artifact",
+	"runner",
 }
 
 var plannedCommands = []string{
@@ -34,7 +36,6 @@ var plannedCommands = []string{
 	"diff",
 	"review",
 	"docs",
-	"runner",
 	"debug",
 }
 
@@ -73,6 +74,8 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runState(opts, commandArgs[1:], stdout, stderr)
 	case "artifact":
 		return runArtifact(opts, commandArgs[1:], stdout, stderr)
+	case "runner":
+		return runRunner(opts, commandArgs[1:], stdout, stderr)
 	default:
 		if isPlannedCommand(commandArgs[0]) {
 			fmt.Fprintf(stderr, "fbt %s: not implemented yet\n", commandArgs[0])
@@ -80,6 +83,71 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stderr, "unknown command: %s\n\n", commandArgs[0])
 		printHelp(stderr)
+		return 2
+	}
+}
+
+func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	discovery := runnermgr.NewDiscovery(ctx.ParseResult.ProjectDir, ctx.ParseResult.Config)
+	subcommand := "list"
+	if len(args) > 0 {
+		subcommand = args[0]
+	}
+	switch subcommand {
+	case "list":
+		resolved, err := discovery.List()
+		if err != nil {
+			printError("runner list", err, stderr, opts.JSON)
+			return 6
+		}
+		if opts.JSON {
+			writeJSON(stdout, map[string]any{"command": "runner list", "status": "success", "runners": resolved})
+			return 0
+		}
+		for _, runner := range resolved {
+			fmt.Fprintf(stdout, "%s\n", runner.Name)
+			fmt.Fprintf(stdout, "  source: %s\n", runner.Source)
+			fmt.Fprintf(stdout, "  command: %s\n", runner.Command)
+			for _, diagnostic := range runner.Diagnostics {
+				fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
+			}
+		}
+		return 0
+	case "doctor", "validate":
+		if len(args) < 2 {
+			fmt.Fprintf(stderr, "Error: runner %s requires a runner name\n", subcommand)
+			return 2
+		}
+		resolved, err := discovery.Resolve(args[1])
+		if err != nil {
+			printError("runner "+subcommand, err, stderr, opts.JSON)
+			return 6
+		}
+		diagnostics := runnermgr.Diagnose(resolved)
+		status := "success"
+		code := 0
+		if runnermgr.HasErrors(diagnostics) {
+			status = "error"
+			code = 6
+		}
+		if opts.JSON {
+			writeJSON(stdout, map[string]any{"command": "runner " + subcommand, "status": status, "runner": resolved, "diagnostics": diagnostics})
+			return code
+		}
+		fmt.Fprintf(stdout, "%s\n", resolved.Name)
+		fmt.Fprintf(stdout, "  source: %s\n", resolved.Source)
+		fmt.Fprintf(stdout, "  command: %s\n", resolved.Command)
+		for _, diagnostic := range diagnostics {
+			fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
+		}
+		return code
+	default:
+		fmt.Fprintf(stderr, "unknown runner command: %s\n", subcommand)
 		return 2
 	}
 }

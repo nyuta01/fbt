@@ -14,8 +14,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-006` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-007` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-007` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-008` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -37,9 +37,9 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-007` with a plan for runner discovery and diagnostics.
-2. Implement project/plugin/PATH runner resolution and `runner list`,
-   `runner doctor`, and `runner validate` diagnostics.
+1. Start `FBT-MVP-008` with a plan for the JSON-RPC runner protocol client.
+2. Implement runner process startup, initialize negotiation, JSONL messages,
+   output candidates, timeouts, cancellation, and protocol errors.
 3. Expand the Go CLI only when `FBT-MVP-006` has a spec-backed acceptance
    criterion.
 4. Keep `make verify` green after each bounded MVP task.

@@ -94,6 +94,9 @@ grep -q "State dir:" "$tmpdir/state.txt"
 
 go run ./cmd/fbt artifact ls --project-dir "$project" >"$tmpdir/artifact-ls.txt"
 
+go run ./cmd/fbt runner list --project-dir "$project" >"$tmpdir/runner-list.txt"
+grep -q "openai.responses" "$tmpdir/runner-list.txt"
+
 if go run ./cmd/fbt build >"$tmpdir/build.out" 2>"$tmpdir/build.err"; then
   echo "expected fbt build to be a planned-but-unimplemented command" >&2
   exit 1
