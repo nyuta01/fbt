@@ -21,8 +21,8 @@ conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication, MVP-ready docs, actionable blocked/skipped
-guidance, artifact explain/path/show/history, safer review inspection,
+repository/release publication, actionable blocked/skipped guidance,
+artifact explain/path/show/history, safer review inspection,
 project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
 command-surface cleanup, OpenLineage/OpenTelemetry/OpenMetadata export planning,
 standard-compatible visualization recipes, expanded conformance, full

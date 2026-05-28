@@ -599,13 +599,13 @@
       "id": "FBT-DOCS-001",
       "title": "Update documentation from draft to MVP-ready status",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-016",
         "FBT-REL-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-001-plan.md",
       "paths": [
         "README.md",
         "docs/usage-guide.md",
@@ -614,8 +614,8 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "validate_docs": false,
-        "e2e_smoke": false
+        "validate_docs": true,
+        "e2e_smoke": true
       },
       "notes": "Replace draft/scaffold language with MVP-ready status, make the quick start reflect implemented commands, document local knowledge-loop usage, and keep non-goals/limitations explicit."
     },

@@ -1,6 +1,6 @@
 # fbt Knowledge Loop Example
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: users applying `fbt` to customer support, incident response, and agile management workflows
 
@@ -8,9 +8,10 @@ Audience: users applying `fbt` to customer support, incident response, and agile
 
 A core `fbt` use case is turning primary operational documents into reusable, reviewed knowledge artifacts. The goal is a feedback loop for knowledge management and continuous improvement, not a domain-specific support or incident-response product.
 
-A runnable local version of the support flow is committed under
-`examples/knowledge_ops`. It uses the bundled local protocol runners and can be
-used without provider accounts.
+A runnable local version of the support flow can be created with
+`fbt init --template support`; a committed copy also exists under
+`examples/knowledge_ops`. The runnable MVP uses bundled local protocol runners
+and does not require provider accounts.
 
 Primary documents:
 
@@ -37,7 +38,30 @@ Generated artifacts:
 
 `fbt` does not encode domain knowledge in core. Domain-specific behavior lives in prompts, style guides, rubrics, evals, policies, and runners.
 
-## 2. Primary Example: Customer Support Knowledge Loop
+## 2. Runnable MVP: Customer Support Knowledge Loop
+
+From a source checkout:
+
+```sh
+fbt init knowledge_ops --template support
+fbt parse --project-dir knowledge_ops
+fbt plan --project-dir knowledge_ops --select tag:support
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+fbt docs generate --project-dir knowledge_ops
+```
+
+The runnable graph is:
+
+```text
+support ticket JSONL
+  -> case summaries
+  -> reviewed approval
+  -> weekly support insights
+```
+
+## 3. Extended Pattern: Customer Support Knowledge Loop
 
 Goal:
 
@@ -60,7 +84,26 @@ new support interactions
   -> new interactions become sources
 ```
 
-## 3. Directory Tree
+## 4. Directory Tree
+
+The committed runnable example is intentionally compact:
+
+```text
+knowledge_ops/
+  fs_project.yml
+  data/support/tickets/2026-05-28.jsonl
+  sources/support.yml
+  transforms/support/case_summaries.yml
+  transforms/support/weekly_insights.yml
+  assets/support.yml
+  assets/support_style_guide.md
+  policies/support.yml
+  evals/support.yml
+  bin/fbt-local-llm-runner
+  bin/fbt-local-agent-runner
+```
+
+Larger support projects can extend the same layout:
 
 ```text
 knowledge_ops/
@@ -106,7 +149,7 @@ knowledge_ops/
     state/
 ```
 
-## 4. Project Config
+## 5. Project Config
 
 `fs_project.yml`:
 
@@ -139,6 +182,27 @@ defaults:
     required: false
 
 runners:
+  - name: local.llm
+    type: llm
+    protocol: stdio_jsonrpc
+    command: bin/fbt-local-llm-runner
+
+  - name: local.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: bin/fbt-local-agent-runner
+
+selectors:
+  - name: support_daily
+    definition:
+      method: tag
+      value: support
+```
+
+Provider-backed runners can replace the local commands when available:
+
+```yaml
+runners:
   - name: openai.responses
     type: llm
     protocol: stdio_jsonrpc
@@ -150,35 +214,13 @@ runners:
     type: agent
     protocol: stdio_jsonrpc
     command: fbt-langgraph-runner
-
-selectors:
-  - name: support_daily
-    definition:
-      method: tag
-      value: support
 ```
 
-For local MVP development without provider accounts, those runner commands can
-be replaced by the bundled protocol examples:
+The bundled local examples are deterministic external processes. They emit
+usage, cost, provenance, and agent tool-call events for testing the
+control-plane flow, but they do not call real model providers.
 
-```yaml
-runners:
-  - name: openai.responses
-    type: llm
-    protocol: stdio_jsonrpc
-    command: go run ../../runners/llm
-
-  - name: langgraph.agent
-    type: agent
-    protocol: stdio_jsonrpc
-    command: go run ../../runners/agent
-```
-
-The bundled examples are deterministic external processes. They emit usage,
-cost, provenance, and agent tool-call events for testing the control-plane flow,
-but they do not call real model providers.
-
-## 5. Sources
+## 6. Sources
 
 `sources/support.yml`:
 
@@ -210,7 +252,7 @@ sources:
           - exists
 ```
 
-## 6. Assets
+## 7. Assets
 
 `assets/assets.yml`:
 
@@ -260,7 +302,7 @@ Each case must include:
 - Citations
 ```
 
-## 7. Policies
+## 8. Policies
 
 `policies/support.yml`:
 
@@ -291,7 +333,7 @@ policies:
       group: support_leads
 ```
 
-## 8. Evals
+## 9. Evals
 
 `evals/support.yml`:
 
@@ -335,9 +377,13 @@ evals:
     grants_confidence: semantic
 ```
 
-## 9. Transforms
+## 10. Transforms
 
-### 9.1 Case Summaries
+`case_summaries` and `weekly_support_insights` are the compact runnable MVP
+path. `faq_candidates` and `runbook_update_proposals` show how the same graph
+can be extended after adding more prompts and eval runners.
+
+### 10.1 Case Summaries
 
 `transforms/support/case_summaries.yml`:
 
@@ -345,16 +391,12 @@ evals:
 transforms:
   - name: case_summaries
     type: llm
-    runner: openai.responses
+    runner: local.llm
     model:
-      provider: openai
-      name: gpt-5
-      parameters:
-        temperature: 0.2
+      provider: local
+      name: mock-gpt
     inputs:
       - source: support.raw_tickets
-      - source: support.raw_chats
-      - source: support.raw_call_notes
     outputs:
       - name: case_summaries
         type: markdown_directory
@@ -365,8 +407,6 @@ transforms:
     policy: support_summary_scope
     evals:
       - required_case_sections
-      - citation_coverage
-      - no_unsupported_claims
     review:
       required: true
       group: support_leads
@@ -375,13 +415,13 @@ transforms:
     tags: ["support", "knowledge"]
 ```
 
-### 9.2 FAQ Candidates
+### 10.2 FAQ Candidates
 
 ```yaml
 transforms:
   - name: faq_candidates
     type: llm
-    runner: openai.responses
+    runner: local.llm
     inputs:
       - ref: case_summaries
         require:
@@ -405,48 +445,42 @@ transforms:
     tags: ["support", "faq"]
 ```
 
-### 9.3 Weekly Insights
+### 10.3 Weekly Insights
 
 ```yaml
 transforms:
   - name: weekly_support_insights
     type: agent
-    runner: langgraph.agent
+    runner: local.agent
+    model:
+      provider: local
+      name: mock-agent
     inputs:
       - ref: case_summaries
         require:
           confidence: reviewed
-      - ref: faq_candidates
-        require:
-          confidence: reviewed
     tools:
       - read_artifact
-      - search_project
-      - write_markdown
+      - write_artifact
     outputs:
       - name: weekly_support_insights
         type: markdown
         path: target/artifacts/support/weekly_insights.md
     assets:
-      - ref: weekly_insights_prompt
       - ref: support_style_guide
     policy: support_summary_scope
     evals:
       - required_insight_sections
-      - no_unsupported_claims
-    review:
-      required: true
-      group: support_leads
     tags: ["support", "weekly"]
 ```
 
-### 9.4 Runbook Update Proposals
+### 10.4 Runbook Update Proposals
 
 ```yaml
 transforms:
   - name: runbook_update_proposals
     type: agent
-    runner: langgraph.agent
+    runner: local.agent
     inputs:
       - ref: weekly_support_insights
         require:
@@ -474,15 +508,14 @@ transforms:
     tags: ["support", "runbook"]
 ```
 
-## 10. Daily Workflow
+## 11. Daily Workflow
 
 ```sh
 fbt parse
 fbt plan --select selector:support_daily
 fbt build --select case_summaries
-fbt diff case_summaries --against last-approved
 fbt review approve case_summaries --comment "Reviewed by support lead"
-fbt build --select faq_candidates+
+fbt build --select weekly_support_insights
 fbt review status
 fbt docs generate
 ```
@@ -490,12 +523,12 @@ fbt docs generate
 Important behavior:
 
 - New tickets, chats, or call notes make `case_summaries` dirty.
-- Pending review of `case_summaries` can block `faq_candidates` and `weekly_support_insights`.
+- Pending review of `case_summaries` can block `weekly_support_insights`.
 - Prompt or style guide changes make downstream transforms dirty.
 - Failed evals prevent confidence grants.
 - Approval is bound to artifact versions, so regenerated outputs require review.
 
-## 11. Incident Response Variation
+## 12. Incident Response Variation
 
 Primary documents:
 
@@ -525,7 +558,7 @@ source.incident.investigation_notes
   -> transform.runbook_update_proposals
 ```
 
-## 12. Agile Development Management Variation
+## 13. Agile Development Management Variation
 
 Primary documents:
 
@@ -554,7 +587,7 @@ source.agile.pr_summaries
   -> transform.backlog_grooming_proposal
 ```
 
-## 13. Why fbt Fits
+## 14. Why fbt Fits
 
 Operational primary documents vary in format and quality. Reusable knowledge artifacts need consistent structure, evidence, review state, and lineage.
 

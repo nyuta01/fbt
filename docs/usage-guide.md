@@ -1,12 +1,15 @@
 # fbt Usage Guide
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: users defining and operating an `fbt` filesystem transformation project
 
 ## 1. Assumptions
 
-This guide describes the target `fbt` user experience. `fbt` core is a control plane, not a transform engine. LLM calls, agent runtimes, document converters, OCR, and SaaS connectors are provided by external runners or plugins.
+This guide describes the implemented local MVP workflow. `fbt` core is a
+control plane, not a transform engine. LLM calls, agent runtimes, document
+converters, OCR, and SaaS connectors are provided by external runners or
+plugins.
 
 Base usage assumes:
 
@@ -16,6 +19,18 @@ Base usage assumes:
 - No cloud account
 - Local filesystem state
 - `fbt build` as the primary command
+
+Runnable local loop from a source checkout:
+
+```sh
+fbt init knowledge_ops --template support
+fbt parse --project-dir knowledge_ops
+fbt plan --project-dir knowledge_ops --select tag:support
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+fbt docs generate --project-dir knowledge_ops
+```
 
 ## 2. Initialize a Project
 
@@ -66,7 +81,9 @@ state:
 
 ## 3. Add Primary Documents
 
-For a customer support workflow, primary documents may include tickets, chat exports, and call notes.
+For the runnable support workflow, the template includes ticket JSONL data. A
+larger support project may also add chat exports and call notes through extra
+sources and runners.
 
 ```text
 data/support/tickets/2026-05-28.jsonl
@@ -104,7 +121,10 @@ Sources are read-only. Transforms must not mutate source files directly.
 
 ## 4. Add Transform Assets
 
-LLM and agent transforms depend on prompts, style guides, rubrics, examples, schemas, and scripts. These are `transform_asset` resources.
+LLM and agent transforms depend on prompts, style guides, rubrics, examples,
+schemas, and scripts. These are `transform_asset` resources. The support
+template keeps the runnable MVP small and uses a style guide plus deterministic
+evals.
 
 `prompts/case_summary.md`:
 
@@ -211,6 +231,10 @@ evals:
     grants_confidence: semantic
 ```
 
+MVP runs deterministic evals in core. Semantic, LLM-judge, and human-review
+eval declarations are accepted as project metadata and recorded as skipped
+unless an external eval runner is introduced.
+
 ## 6. Define Transforms
 
 `transforms/support/case_summaries.yml`:
@@ -219,16 +243,12 @@ evals:
 transforms:
   - name: case_summaries
     type: llm
-    runner: openai.responses
+    runner: local.llm
     model:
-      provider: openai
-      name: gpt-5
-      parameters:
-        temperature: 0.2
+      provider: local
+      name: mock-gpt
     inputs:
       - source: support.raw_tickets
-      - source: support.raw_chats
-      - source: support.raw_call_notes
     outputs:
       - name: case_summaries
         type: markdown_directory
@@ -239,8 +259,6 @@ transforms:
     policy: support_agent_scope
     evals:
       - required_case_sections
-      - citation_coverage
-      - no_unsupported_claims
     review:
       required: true
       group: support_leads
@@ -255,7 +273,10 @@ transforms:
 transforms:
   - name: weekly_support_insights
     type: agent
-    runner: langgraph.agent
+    runner: local.agent
+    model:
+      provider: local
+      name: mock-agent
     inputs:
       - ref: case_summaries
         require:
@@ -274,10 +295,7 @@ transforms:
       - ref: support_style_guide
     policy: support_agent_scope
     evals:
-      - no_unsupported_claims
-    review:
-      required: true
-      group: support_leads
+      - required_agent_sections
     tags: ["support", "weekly"]
 ```
 
@@ -292,8 +310,8 @@ fbt parse
 Expected output:
 
 ```text
-Parsed 13 resources
-Manifest written to .fbt/state/manifest.json
+Parsed 11 resources
+Manifest written to <project>/.fbt/state/manifest.json
 ```
 
 Parse errors exit with code `2`.
@@ -307,15 +325,14 @@ fbt plan --select tag:support
 Example output:
 
 ```text
-Plan: 1 selected, 1 blocked
+Plan: 2 selected, 1 run, 0 skipped, 1 blocked
 
 run transform.knowledge_ops.case_summaries
+  reason: no previous successful run
   reason: output missing
-  runner: openai.responses
-  review: required, group support_leads
 
 blocked transform.knowledge_ops.weekly_support_insights
-  reason: requires artifact.knowledge_ops.case_summaries confidence reviewed
+  blocked: requires artifact.knowledge_ops.case_summaries current artifact
 ```
 
 `fbt plan` explains both what will run and why something is blocked.
@@ -329,16 +346,9 @@ fbt build --select case_summaries
 Example output:
 
 ```text
-Running transform.knowledge_ops.case_summaries
-  runner: openai.responses
-  model: gpt-5
-  eval: required_case_sections pass
-  eval: citation_coverage pass 0.94
-  eval: no_unsupported_claims pass
-
-Created artifact_version.knowledge_ops.case_summaries.sha256_abcd
-Status: pending review
-Output: target/artifacts/support/case_summaries/
+Build: 1 selected, 1 run, 0 skipped, 0 blocked
+success transform.knowledge_ops.case_summaries
+  committed: artifact_version.knowledge_ops.case_summaries.sha256_abcd
 ```
 
 State files updated:
@@ -362,8 +372,9 @@ Example output:
 
 ```text
 artifact.knowledge_ops.case_summaries
-  current: artifact_version.knowledge_ops.case_summaries.sha256_abcd
+  version: artifact_version.knowledge_ops.case_summaries.sha256_abcd
   status: pending
+  confidence: structural
   group: support_leads
 ```
 
@@ -408,13 +419,11 @@ target/docs/
 
 Docs show:
 
-- Source-to-artifact lineage
-- Transform asset, policy, eval, runner, and model dependencies
-- Token and cost summaries
+- Transform outputs, runner, model, tools, and eval dependencies
+- Current artifact pointers with path, confidence, and approval state
 - Artifact versions
 - Eval results
-- Review state
-- Downstream block reasons
+- Review approvals
 
 ## 14. Day-2 Operation
 

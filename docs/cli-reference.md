@@ -1,6 +1,6 @@
 # fbt CLI Reference
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: users and implementers of the `fbt` command-line interface
 
@@ -35,15 +35,11 @@ Release version contract:
 |---|---|
 | `--project-dir PATH` | Directory containing `fs_project.yml`; defaults to the current directory |
 | `--state-dir PATH` | Local state directory; defaults to `.fbt/state` |
-| `--target NAME` | Target name; defaults to `local` |
 | `--select EXPR` | Select resources |
-| `--exclude EXPR` | Exclude resources |
-| `--vars JSON_OR_YAML` | Runtime variables |
-| `--dry-run` | Validate without committing outputs |
 | `--json` | Machine-readable JSON output |
-| `--log-level LEVEL` | `debug`, `info`, `warn`, or `error` |
-| `--no-color` | Disable color output |
-| `--quiet` | Suppress non-summary human output |
+
+MVP does not accept `--exclude`, `--target`, `--vars`, `--dry-run`,
+`--log-level`, `--no-color`, or `--quiet`.
 
 ## 3. Exit Codes
 
@@ -63,22 +59,20 @@ Release version contract:
 | Expression | Meaning |
 |---|---|
 | `case_summaries` | Resource with matching name |
-| `+case_summaries` | Include ancestors |
-| `case_summaries+` | Include descendants |
-| `+case_summaries+` | Include ancestors and descendants |
+| `+case_summaries` | Select the matching transform name; ancestor expansion is reserved |
+| `case_summaries+` | Select the matching transform name; descendant expansion is reserved |
+| `+case_summaries+` | Select the matching transform name; graph expansion is reserved |
 | `tag:support` | Tag selector |
 | `path:transforms/support/` | Path selector |
-| `source:support.raw_tickets` | Source selector |
-| `state:modified` | Dirty resources |
-| `state:pending_review` | Artifacts waiting for review |
+| `resource_type:transform` | Resource type selector |
 | `selector:support_daily` | Named project selector |
 
 Examples:
 
 ```sh
-fbt plan --select state:modified
-fbt build --select tag:support --exclude state:pending_review
-fbt run --select +weekly_support_insights
+fbt plan --select tag:support
+fbt build --select case_summaries
+fbt build --select selector:support_daily
 ```
 
 ## 5. Commands
@@ -151,7 +145,7 @@ Main steps:
 Compare current manifest and state to show what will run.
 
 ```sh
-fbt plan [--select EXPR] [--exclude EXPR]
+fbt plan [--select EXPR]
 ```
 
 Shows:
@@ -160,21 +154,16 @@ Shows:
 - Skipped transforms
 - Dirty reasons
 - Blocked reasons
-- Estimated token and cost
-- Required review
 - Confidence requirements
-- Output commit mode
+- Required review through blocked/pending state
 
 Example:
 
 ```text
-Plan: 2 selected, 1 skipped, 1 blocked
+Plan: 2 selected, 1 run, 0 skipped, 1 blocked
 
 run transform.knowledge_ops.case_summaries
-  reason: source support.raw_tickets changed
-  runner: openai.responses
-  estimate: 13k tokens, $0.42
-  review: required, group support_leads
+  reason: no previous run
 
 blocked transform.knowledge_ops.weekly_support_insights
   reason: requires artifact.knowledge_ops.case_summaries confidence reviewed
@@ -185,7 +174,7 @@ blocked transform.knowledge_ops.weekly_support_insights
 Run the full lifecycle.
 
 ```sh
-fbt build [--select EXPR] [--exclude EXPR]
+fbt build [--select EXPR]
 ```
 
 Lifecycle:
@@ -198,13 +187,13 @@ Example:
 
 ```sh
 fbt build --select tag:support
-fbt build --select state:modified
 fbt build --select +weekly_support_insights
 ```
 
 ### 5.5 fbt run
 
-Run selected transforms directly. In MVP, `build` is the primary user-facing command and `run` is an advanced command.
+Reserved for direct transform execution. MVP returns a not-implemented error;
+use `fbt build` as the user-facing execution command.
 
 ```sh
 fbt run --select EXPR
@@ -243,13 +232,11 @@ fbt diff TARGET [--against REF]
 
 `--against` values:
 
-- `current`
-- `last-run`
+- `previous`
 - `last-approved`
 - explicit `artifact_version...`
-- file path
 
-MVP should prioritize raw text diff and Markdown heading-aware diff.
+MVP supports raw text diff and Markdown heading-aware diff.
 
 ### 5.8 fbt review
 
@@ -292,10 +279,7 @@ Inspect local state.
 fbt state status
 fbt state ls
 fbt state current TARGET
-fbt state clean
 ```
-
-`state clean` cleans cache and work directories. It should not delete artifact versions or approvals by default.
 
 ### 5.11 fbt artifact
 
@@ -327,28 +311,18 @@ run `fbt runner doctor`.
 
 ### 5.13 fbt debug
 
-Print diagnostics.
+Reserved for project diagnostics. MVP returns a not-implemented error; use
+`fbt parse`, `fbt state status`, and `fbt runner doctor` for current checks.
 
 ```sh
 fbt debug
 ```
 
-Checks:
-
-- fbt version
-- project directory
-- state directory
-- target
-- OS / architecture
-- runner executable availability
-- state lock
-- config validation
-
 ## 6. JSON Output
 
 With `--json`, stdout contains machine-readable JSON and human logs go to stderr.
 
-`fbt plan --json` example:
+`fbt plan --json` returns the same plan shape used by the text output:
 
 ```json
 {
@@ -356,16 +330,17 @@ With `--json`, stdout contains machine-readable JSON and human logs go to stderr
   "status": "success",
   "summary": {
     "selected": 2,
+    "run": 1,
     "skipped": 1,
     "blocked": 1
   },
   "nodes": [
     {
-      "unique_id": "transform.knowledge_ops.case_summaries",
+      "transform_id": "transform.knowledge_ops.case_summaries",
+      "name": "case_summaries",
       "action": "run",
       "dirty_reasons": ["source support.raw_tickets changed"],
-      "estimated_cost_usd": 0.42,
-      "review_required": true
+      "blocked_reasons": []
     }
   ]
 }
@@ -387,17 +362,13 @@ JSON:
 {
   "command": "build",
   "status": "error",
-  "error": {
-    "code": "RUNNER_NOT_INSTALLED",
-    "message": "runner not installed: openai.responses",
-    "retryable": false
-  }
+  "error": "runner not installed: openai.responses"
 }
 ```
 
 ## 8. Primary Commands
 
-The main user-facing path should stay small:
+The main user-facing path stays small:
 
 - `fbt parse`
 - `fbt plan`
@@ -407,4 +378,5 @@ The main user-facing path should stay small:
 - `fbt review`
 - `fbt docs generate`
 
-`run`, `state`, `artifact`, `runner`, and `debug` are advanced or diagnostic commands.
+`state`, `artifact`, and `runner` are advanced or diagnostic commands. `run`
+and `debug` are reserved command names in the MVP CLI.

@@ -1,6 +1,6 @@
 # fbt
 
-Status: Draft  
+Status: MVP-ready local release candidate  
 Created: 2026-05-28  
 Service name: `fbt`  
 Scope: a filesystem transformation control plane for unstructured and semi-structured documents
@@ -11,32 +11,27 @@ Scope: a filesystem transformation control plane for unstructured and semi-struc
 
 ## Quick Start
 
-Target user experience:
+Runnable local MVP flow from a source checkout:
 
 ```sh
 fbt init knowledge_ops --template support
-cd knowledge_ops
-fbt parse
-fbt plan --select tag:support
-fbt build --select case_summaries
-fbt diff case_summaries --against last-approved
-fbt review approve case_summaries --comment "Reviewed"
-fbt docs generate
+fbt parse --project-dir knowledge_ops
+fbt plan --project-dir knowledge_ops --select tag:support
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+fbt docs generate --project-dir knowledge_ops
 ```
 
-Implementation status: the current CLI implements `help`, `version`, the first
-product inspection commands (`parse`, `plan`, `state`, `artifact`), runner
-discovery diagnostics (`runner list`, `runner doctor`, `runner validate`), and
-the first `build` lifecycle through protocol runners. Local fake and command
-runners are available for tests and local MVP wiring. Baseline policy checks are
-wired into build commit. Deterministic evals, pending review gates, approval
-state, confidence promotion, `fbt init` templates, and a runnable local
-knowledge-loop example are wired into build and CLI flows. Optional local LLM
-and agent runner examples are available under `runners/` without provider SDK
-dependencies. Diff and docs generation are implemented for local state. The
-default verification gate includes conformance and local release-binary checks.
+Implementation status: the CLI implements `help`, `version`, `init`, `parse`,
+`plan`, `build`, `eval`, `review`, `diff`, `docs`, `state`, `artifact`, and
+`runner` diagnostics. The local MVP includes protocol runners, deterministic
+evals, pending review gates, approval state, confidence promotion, immutable
+artifact versions, artifact diffing, static docs generation, runnable templates,
+and conformance plus local release-binary checks. Optional local LLM and agent
+runner examples live under `runners/` without provider SDK dependencies.
 
-The base runtime should work with only the local filesystem.
+The base runtime works with only the local filesystem.
 
 - No daemon
 - No scheduler
@@ -155,15 +150,15 @@ Mapping to dbt:
 
 ## Current Status
 
-This repository currently contains design and specification drafts, a baseline
-AI-first engineering harness, a Go CLI scaffold, project/resource parsing,
-manifest graph generation, descriptor and state primitives, dirty-state
-planning, initial CLI inspection commands, and runner discovery diagnostics.
-The first build lifecycle can invoke protocol runners, apply baseline policy
-checks, run deterministic evals, commit pending-review outputs, update local
-state, promote reviewed artifacts through `fbt review approve`, and scaffold
-blank/support/incident projects through `fbt init`. Optional local fake,
-command, LLM, and agent runners exist for deterministic protocol and build
-tests, and `examples/knowledge_ops` exercises the local review loop. The CLI
-can compare artifact versions and generate static Markdown project docs.
-Conformance and local release-binary checks are wired into `make verify`.
+This repository contains the MVP implementation and source-of-truth
+specifications. It includes the Go CLI, project/resource parsing, manifest graph
+generation, descriptor and state primitives, dirty-state planning, runner
+discovery diagnostics, protocol runners, deterministic evals, review gates,
+artifact approvals, immutable artifact version storage, local templates,
+artifact diffs, and static Markdown project docs. `make verify` runs harness,
+docs, Go, CLI smoke, knowledge-loop smoke, conformance, and local release-binary
+checks.
+
+Release publication is not complete until a maintainer configures the public
+remote, signing setup, and signed `v0.1.0` tag. See `CONTRIBUTING.md` and the
+release tasks in `docs/exec-plans/feature-list.json`.
