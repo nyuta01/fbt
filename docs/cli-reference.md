@@ -430,7 +430,8 @@ fbt export openmetadata [--output PATH]
 
 The contract keeps fbt-native state as the source of truth and delegates
 lineage, trace, and catalog visualization to standard-compatible tools. See
-[Standard Export Spec](standard-export-spec.md).
+[Standard Export Spec](standard-export-spec.md) and
+[Standard Visualization Guide](standard-visualization-guide.md).
 
 ## 6. JSON Output
 

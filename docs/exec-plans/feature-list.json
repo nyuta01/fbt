@@ -972,26 +972,28 @@
       "id": "FBT-STD-006",
       "title": "Document standard visualization integrations",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-002",
         "FBT-STD-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-006-plan.md",
       "paths": [
+        "README.md",
+        "docs/standard-visualization-guide.md",
         "docs/usage-guide.md",
         "docs/cli-reference.md",
         "docs/examples/knowledge-loop-example.md",
-        "scripts",
-        "examples"
+        "examples/knowledge_ops/README.md"
       ],
       "verification": {
-        "validate_docs": false,
+        "validate_docs": true,
         "manual_marquez_smoke": false,
         "manual_otel_backend_smoke": false
       },
-      "notes": "Provide user-facing recipes for visualizing fbt lineage and telemetry through standard tools: OpenLineage events in Marquez for artifact/job/run lineage, OTel traces in Jaeger/Tempo/Grafana for execution traces, and OpenMetadata catalog lineage if FBT-STD-004 selects that path. Keep fbt's own docs/explain surfaces lightweight and avoid implementing a custom graph visualization UI."
+      "verification_override_reason": "Manual Marquez, Jaeger, Tempo, and Grafana backend smokes are intentionally outside the default local gate; docs link official integration paths and `make verify` validates references.",
+      "notes": "Adds user-facing recipes for visualizing fbt lineage and telemetry through standard tools: OpenLineage events in Marquez for artifact/job/run lineage, OTLP/JSON traces in Jaeger, and Tempo/Grafana via a Collector or Alloy pipeline. Keeps fbt's own docs/explain surfaces lightweight and avoids implementing a custom graph UI."
     },
     {
       "id": "FBT-AI-001",

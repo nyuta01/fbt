@@ -50,6 +50,8 @@ fbt build --project-dir knowledge_ops --select case_summaries
 fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
 fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt docs generate --project-dir knowledge_ops
+fbt export openlineage --project-dir knowledge_ops --output knowledge_ops/target/lineage/openlineage.ndjson
+fbt export otel --project-dir knowledge_ops --output knowledge_ops/target/telemetry/otel.json
 ```
 
 The runnable graph is:
@@ -60,6 +62,10 @@ support ticket JSONL
   -> reviewed approval
   -> weekly support insights
 ```
+
+Use the OpenLineage export with Marquez to inspect artifact/job/dataset lineage.
+Use the OTel export with Jaeger, Tempo, or Grafana to inspect execution traces.
+See [Standard Visualization Guide](../standard-visualization-guide.md).
 
 ## 3. Extended Pattern: Customer Support Knowledge Loop
 

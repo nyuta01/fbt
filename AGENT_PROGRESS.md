@@ -26,6 +26,9 @@ OpenLineage RunEvent NDJSON with fbt lineage facets for artifact versions.
 including invocation/transform spans, usage attributes, and safe runner events.
 The conformance suite now checks OpenLineage and OTel standard-export payload
 shape plus redaction of raw source content and marker secrets.
+`docs/standard-visualization-guide.md` now documents Marquez/OpenLineage,
+Jaeger/OTLP, and Tempo/Grafana visualization recipes without adding a custom fbt
+graph UI or backend service.
 `fbt doctor` now checks project readiness, state writability/lock acquisition,
 runner discovery, and runner protocol initialization. YAML authoring diagnostics
 now include line numbers where available and actionable hints for common parse
@@ -38,9 +41,8 @@ conformance scenarios.
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
 repository/release publication, opt-in real LLM smoke, command-surface cleanup,
-OpenMetadata evaluation, standard-compatible visualization recipes, expanded
-conformance, full policy-decision records, and semantic descriptors.
-`FBT-REL-002` is blocked on
+OpenMetadata evaluation, expanded conformance, full policy-decision records,
+and semantic descriptors. `FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
 or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
 release baseline exists.
@@ -71,7 +73,8 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue with `FBT-STD-006` if prioritizing standard visualization docs.
+3. Continue with the remaining P1 tasks, or `FBT-STD-004` when returning to
+   standard catalog/OpenMetadata evaluation.
 4. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.

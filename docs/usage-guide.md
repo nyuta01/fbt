@@ -483,6 +483,8 @@ The OTel export emits an OTLP/JSON trace payload. Build invocations and
 transform runs become spans, runner events become span events, and usage/cost
 plus model metadata becomes span attributes. fbt does not start a network
 exporter by default; feed the JSON file to your collector/backend workflow.
+For backend-specific steps, see
+[Standard Visualization Guide](standard-visualization-guide.md).
 
 ## 14. Day-2 Operation
 

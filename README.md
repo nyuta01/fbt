@@ -64,6 +64,7 @@ Specifications:
 | [Runner Discovery Spec](docs/runner-discovery-spec.md) | Runner resolution, plugin manifest shape, and diagnostics |
 | [Security and Conformance Spec](docs/security-and-conformance-spec.md) | Core security model and MVP conformance scenarios |
 | [Standard Export Spec](docs/standard-export-spec.md) | OpenLineage, OpenTelemetry, OpenMetadata, and visualization export contracts |
+| [Standard Visualization Guide](docs/standard-visualization-guide.md) | Marquez/OpenLineage and OTel backend visualization recipes |
 
 Research:
 
