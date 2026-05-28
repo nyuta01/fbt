@@ -151,22 +151,22 @@
       "id": "FBT-MVP-002",
       "title": "Implement manifest graph and selectors",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-002-plan.md",
       "paths": [
         "internal/manifest",
         "internal/graph",
         "docs/manifest-spec.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false
+        "go_test": true,
+        "cli_smoke": true
       },
-      "notes": "Build manifest resources, parent/child maps, resource IDs, selector support for name/tag/path/resource_type/parent/child, and deterministic manifest JSON."
+      "notes": "Builds manifest resources, parent/child maps, resource IDs, selector support for name/tag/path/resource_type/parent/child, selector unions, and deterministic manifest JSON."
     },
     {
       "id": "FBT-MVP-003",

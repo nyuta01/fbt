@@ -2,8 +2,8 @@
 
 `internal/` contains Go implementation packages for `fbt-core`. Product
 packages should be added only when backed by an accepted spec or execution-plan
-task. The current codebase includes the CLI scaffold plus the first
-project/config/resource parser baseline.
+task. The current codebase includes the CLI scaffold, project/config/resource
+parser baseline, manifest resource generation, and selector helpers.
 
 Planned package boundaries:
 

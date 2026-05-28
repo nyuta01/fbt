@@ -78,6 +78,7 @@ type Artifact struct {
 	Contract map[string]any `yaml:"contract"`
 	Owner    string         `yaml:"owner"`
 	Tags     []string       `yaml:"tags"`
+	Meta     map[string]any `yaml:"meta"`
 	File     string         `yaml:"-"`
 }
 

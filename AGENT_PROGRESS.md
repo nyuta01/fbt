@@ -14,8 +14,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` is complete. The remaining practical-MVP work is registered as
-`FBT-MVP-002` through `FBT-MVP-016` in
+`FBT-MVP-001` and `FBT-MVP-002` are complete. The remaining practical-MVP work
+is registered as `FBT-MVP-003` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -37,9 +37,10 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-002` with a plan for manifest graph and selectors.
-2. Convert parser resources into deterministic manifest resources, parent/child
-   maps, and selector-ready metadata.
+1. Start `FBT-MVP-003` with a plan for artifact descriptors and safe path
+   handling.
+2. Compute file and canonical directory descriptors, artifact version IDs, and
+   symlink/path escape rejection before build lifecycle work.
 3. Expand the Go CLI only when `FBT-MVP-006` has a spec-backed acceptance
    criterion.
 4. Keep `make verify` green after each bounded MVP task.
