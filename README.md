@@ -49,6 +49,7 @@ Start here:
 | Document | Purpose |
 |---|---|
 | [Usage Guide](docs/usage-guide.md) | End-to-end workflow from project initialization to build, review, and docs generation |
+| [Docs Site Source](apps/docs/README.md) | Folio-inspired Astro/Starlight documentation site for GitHub Pages |
 | [Knowledge Loop Example](docs/examples/knowledge-loop-example.md) | Customer support, incident response, and agile management examples |
 | [Practical Manual Generation Examples](docs/examples/practical-manual-generation-examples.md) | External-runner examples for incident runbooks and support manuals |
 | [Design Doc](docs/design-doc.md) | Background, principles, architecture, roadmap, and remaining decisions |
@@ -163,9 +164,10 @@ specifications. It includes the Go CLI, project/resource parsing, manifest graph
 generation, descriptor and state primitives, dirty-state planning, runner
 discovery diagnostics, protocol runners, deterministic evals, review gates,
 artifact approvals, immutable artifact version storage, local templates,
-artifact diffs, and static Markdown project docs. `make verify` runs harness,
-docs, Go, CLI smoke, knowledge-loop smoke, runner conformance, product
-conformance, and local release-binary checks.
+artifact diffs, static Markdown project docs, and an Astro/Starlight docs site
+under `apps/docs`. `make verify` runs harness, docs, Go, CLI smoke,
+knowledge-loop smoke, docs-site build, runner conformance, product conformance,
+and local release-binary checks.
 
 The MVP release is published at
 `https://github.com/nyuta01/fbt/releases/tag/v0.1.0` with signed tag

@@ -1,0 +1,37 @@
+---
+title: Installation
+description: Install fbt from the release or build it from source.
+---
+
+## Download a release binary
+
+The MVP release is published on GitHub:
+
+```text
+https://github.com/nyuta01/fbt/releases/tag/v0.1.0
+```
+
+Download the archive for your platform and verify it with `SHA256SUMS`.
+
+```sh
+shasum -a 256 -c SHA256SUMS
+```
+
+## Build from source
+
+```sh
+git clone https://github.com/nyuta01/fbt.git
+cd fbt
+make build
+./bin/fbt version
+```
+
+## Verify the checkout
+
+```sh
+make verify
+```
+
+The verification gate runs harness checks, docs checks, Go formatting and
+tests, CLI smoke tests, practical example smoke tests, runner conformance,
+product conformance, and a local release binary smoke.

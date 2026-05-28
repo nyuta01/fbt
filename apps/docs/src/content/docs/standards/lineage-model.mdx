@@ -1,0 +1,34 @@
+---
+title: Lineage model
+description: What fbt records for each generated artifact.
+---
+
+fbt records lineage locally as part of state. The model connects:
+
+- source descriptors
+- transform assets
+- transform runs
+- runner metadata
+- output candidates
+- committed artifact versions
+- eval results
+- review approvals
+- policy decisions
+
+## Local commands
+
+```sh
+fbt artifact show case_summaries
+fbt artifact history case_summaries
+fbt artifact explain weekly_support_insights
+```
+
+## Standard exports
+
+fbt does not require a custom visualization backend. Export lineage to standard
+formats instead:
+
+```sh
+fbt export openlineage
+fbt export otel
+```

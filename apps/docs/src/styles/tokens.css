@@ -1,0 +1,41 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
+
+:root {
+  --fbt-bg: #f8fafc;
+  --fbt-surface: #ffffff;
+  --fbt-surface-muted: #f1f5f9;
+  --fbt-surface-sunken: #e2e8f0;
+  --fbt-ink: #1f2937;
+  --fbt-ink-strong: #0f172a;
+  --fbt-ink-muted: #64748b;
+  --fbt-ink-subtle: #94a3b8;
+  --fbt-border: #d8dee9;
+  --fbt-border-strong: #b8c2d0;
+  --fbt-accent: #0f766e;
+  --fbt-accent-hover: #115e59;
+  --fbt-accent-soft: #ccfbf1;
+  --fbt-accent-ink: #134e4a;
+  --fbt-blue: #2563eb;
+  --fbt-amber: #b7791f;
+  --fbt-sans: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --fbt-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+:root[data-theme="dark"] {
+  --fbt-bg: #0b1120;
+  --fbt-surface: #111827;
+  --fbt-surface-muted: #172033;
+  --fbt-surface-sunken: #1e293b;
+  --fbt-ink: #e5e7eb;
+  --fbt-ink-strong: #f8fafc;
+  --fbt-ink-muted: #a9b5c7;
+  --fbt-ink-subtle: #7b8798;
+  --fbt-border: #253044;
+  --fbt-border-strong: #374151;
+  --fbt-accent: #2dd4bf;
+  --fbt-accent-hover: #5eead4;
+  --fbt-accent-soft: #123b3a;
+  --fbt-accent-ink: #ccfbf1;
+  --fbt-blue: #60a5fa;
+  --fbt-amber: #fbbf24;
+}

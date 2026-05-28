@@ -1,0 +1,46 @@
+---
+title: What is fbt
+description: The product boundary and the job fbt does.
+---
+
+`fbt` stands for file build tool. It is a local-first control plane for
+filesystem artifact transformations.
+
+It is useful when the important object is a file or directory: support tickets,
+incident logs, Markdown notes, Word documents, Excel files, prompt assets,
+rubrics, generated runbooks, reports, and manuals.
+
+## What fbt owns
+
+fbt owns the inspectable control layer:
+
+- project configuration and resource parsing
+- dependency graph and selectors
+- dirty/clean planning
+- runner discovery and protocol execution
+- immutable artifact versions
+- eval and review state
+- lineage and standard exports
+- static project documentation
+
+## What fbt does not own
+
+fbt core intentionally does not implement:
+
+- OCR
+- document conversion
+- LLM providers
+- agent runtimes
+- SaaS connectors
+- hosted scheduling
+- metadata databases
+
+Those capabilities belong in external runners or optional packages. The base
+tool remains a local binary that can operate on the filesystem.
+
+## When to use it
+
+Use fbt when you want AI or script-generated knowledge artifacts to be
+reviewable, rebuildable, and explainable. A typical project declares sources,
+transforms, prompts, policies, evals, and review gates, then runs `fbt plan` and
+`fbt build` as the operational loop.

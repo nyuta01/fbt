@@ -1,0 +1,45 @@
+---
+title: Concepts
+description: Core nouns used by fbt projects.
+---
+
+## Source
+
+A `source` is an external input file, glob, or directory. Sources are read-only.
+Examples include logs, exported tickets, chat transcripts, spreadsheets, PDFs,
+and notes.
+
+## Artifact
+
+An `artifact` is a logical output managed by fbt. It may be a Markdown file, a
+directory of Markdown files, text, JSONL, or another registered artifact type.
+
+## Artifact version
+
+An `artifact_version` is an immutable content snapshot identified by a digest.
+Versions are stored in local state and can be inspected with `fbt artifact
+history` and `fbt artifact show`.
+
+## Transform
+
+A `transform` turns source artifacts or upstream artifacts into output
+artifacts. It declares its runner, assets, policies, evals, and review
+requirements.
+
+## Runner
+
+A `runner` is an external process that executes transform logic. fbt sends the
+runner a protocol request containing sources, current artifact versions, assets,
+policy context, and work directories. The runner returns output candidates.
+
+## Eval
+
+An `eval` checks generated artifacts. MVP evals are deterministic checks such
+as required sections, file existence, and content requirements. Human review is
+modeled as a gate.
+
+## Lineage
+
+Lineage connects sources, assets, transforms, runs, output candidates, artifact
+versions, evals, and approvals. fbt can export lineage as OpenLineage events and
+OpenTelemetry traces.

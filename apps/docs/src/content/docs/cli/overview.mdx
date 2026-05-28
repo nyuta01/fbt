@@ -1,0 +1,37 @@
+---
+title: CLI overview
+description: Command surface for the MVP CLI.
+---
+
+The `fbt` CLI is the main interface for local projects.
+
+## Core commands
+
+| Command | Purpose |
+|---|---|
+| `fbt init` | Create a project from a template |
+| `fbt parse` | Parse resources and write the manifest |
+| `fbt doctor` | Check project readiness and runner setup |
+| `fbt plan` | Show what will run, skip, or block |
+| `fbt build` | Execute selected transforms |
+| `fbt eval` | Run eval checks |
+| `fbt review` | Inspect and approve review gates |
+| `fbt diff` | Compare artifact versions |
+| `fbt docs generate` | Generate project docs |
+| `fbt artifact` | Inspect paths, versions, and explanations |
+| `fbt runner` | Diagnose runner discovery and protocol compatibility |
+| `fbt export` | Export standard lineage and trace data |
+
+## Global flags
+
+```sh
+fbt plan --project-dir knowledge_ops --select tag:support
+fbt build --project-dir knowledge_ops --select case_summaries --json
+```
+
+Common flags:
+
+- `--project-dir PATH`
+- `--state-dir PATH`
+- `--select EXPR`
+- `--json`

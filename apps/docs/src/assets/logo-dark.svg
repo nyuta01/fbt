@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 40" role="img" aria-label="fbt">
+  <rect x="2" y="6" width="28" height="28" rx="6" fill="#2dd4bf"/>
+  <path d="M9 15h14M9 20h10M9 25h14" stroke="#082f2e" stroke-width="2.4" stroke-linecap="round"/>
+  <text x="40" y="27" fill="#f8fafc" font-family="Inter, system-ui, sans-serif" font-size="25" font-weight="700">fbt</text>
+</svg>

@@ -1,0 +1,51 @@
+---
+title: Architecture
+description: How fbt separates core state from external execution.
+---
+
+fbt has a small core and an explicit runner boundary.
+
+```text
+CLI
+  -> parser
+  -> manifest graph
+  -> planner
+  -> runner protocol client
+  -> state and artifact version store
+  -> eval/review/lineage/export
+
+external runner process
+  -> LLM provider, CLI agent, script, converter, or custom tool
+  -> writes output candidates under the assigned work directory
+```
+
+## Core responsibilities
+
+The core is responsible for deterministic, inspectable behavior:
+
+- read project YAML and validate references
+- build the manifest graph
+- decide what is dirty, clean, blocked, or skipped
+- enforce path and policy boundaries before committing outputs
+- store run results, artifact versions, evals, approvals, and lineage
+- export standard metadata
+
+## Runner responsibilities
+
+Runners do work that should not live in core:
+
+- call model providers
+- invoke external CLI agents
+- convert documents
+- run scripts
+- collect tool events
+- stage final files as output candidates
+
+The runner protocol keeps this boundary testable. A runner can be local,
+installed from a package, wrapped around an existing CLI agent, or implemented
+inside another language.
+
+## State model
+
+MVP state is local filesystem state under `.fbt/state`. There is no daemon,
+scheduler, required server, cloud account, or metadata database.

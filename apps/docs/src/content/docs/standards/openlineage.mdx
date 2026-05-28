@@ -1,0 +1,22 @@
+---
+title: OpenLineage export
+description: Export fbt runs as OpenLineage RunEvent NDJSON.
+---
+
+`fbt export openlineage` emits OpenLineage RunEvent NDJSON.
+
+```sh
+fbt export openlineage --project-dir knowledge_ops > openlineage.ndjson
+```
+
+The export includes fbt-specific facets for artifact versions and lineage
+context while keeping raw source content out of the payload.
+
+## Where to send it
+
+Use OpenLineage-compatible tools such as Marquez directly, or route the events
+through an OpenLineage ingestion path into OpenMetadata.
+
+fbt core does not add a direct OpenMetadata publisher because that would require
+server credentials, entity upsert semantics, and an OpenMetadata-specific SDK or
+API dependency.

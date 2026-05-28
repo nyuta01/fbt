@@ -1,0 +1,97 @@
+---
+title: fbt
+description: Local-first file build tool for knowledge artifacts.
+template: splash
+tableOfContents: false
+hero:
+  title: fbt
+  tagline: Local-first control plane for transforming filesystem artifacts with external runners, lineage, evals, and review gates.
+  actions:
+    - text: Get started
+      link: /fbt/get-started/quickstart/
+      variant: primary
+    - text: Read the concepts
+      link: /fbt/introduction/concepts/
+      variant: secondary
+---
+
+import FeatureGrid from "../../components/FeatureGrid.astro";
+
+## Why fbt
+
+`fbt` is a file build tool for operational knowledge work. It turns logs,
+tickets, Markdown, spreadsheets, PDFs, prompts, rubrics, and generated manuals
+into an inspectable local project with a manifest, build plan, immutable
+artifact versions, review gates, and lineage.
+
+The core stays small. It does not contain OCR, document conversion, LLM
+providers, or agent runtimes. Those live behind external runners.
+
+<FeatureGrid
+  items={[
+    {
+      tag: "Core",
+      title: "Filesystem artifact graph",
+      body: "Sources, transforms, assets, policies, evals, and artifacts are parsed into a deterministic local graph.",
+      href: "/fbt/introduction/concepts/",
+    },
+    {
+      tag: "Runners",
+      title: "Bring your own execution",
+      body: "Use demo runners, command runners, OpenAI, Claude Code, Codex, or any adapter that speaks the protocol.",
+      href: "/fbt/runners/external-runners/",
+    },
+    {
+      tag: "Trust",
+      title: "Lineage and review",
+      body: "Every build records inputs, output candidates, artifact versions, evals, approvals, and policy decisions.",
+      href: "/fbt/standards/lineage-model/",
+    },
+    {
+      tag: "Standards",
+      title: "Export without a custom backend",
+      body: "Export OpenLineage events and OTLP/JSON traces for Marquez, OpenMetadata, Jaeger, Tempo, and Grafana.",
+      href: "/fbt/standards/visualization/",
+    },
+  ]}
+/>
+
+## From zero to a working project
+
+```sh
+# 1. Create a local project.
+fbt init knowledge_ops --template support
+
+# 2. Parse resources and inspect what will run.
+fbt parse --project-dir knowledge_ops
+fbt doctor --project-dir knowledge_ops
+fbt plan --project-dir knowledge_ops --select tag:support
+
+# 3. Build, review, rebuild downstream artifacts, and generate docs.
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+fbt docs generate --project-dir knowledge_ops
+```
+
+## Architecture at a glance
+
+```text
+project/
+├── fs_project.yml        Project contract and paths
+├── sources/              Read-only input artifact declarations
+├── transforms/           Outputs, refs, runner, assets, policy, evals
+├── prompts/              Prompt assets used by LLM/agent runners
+├── assets/               Style guides, schemas, rubrics, examples
+├── policies/             Read/write/network/review constraints
+├── evals/                Deterministic checks and review gates
+├── target/               Materialized artifact files
+└── .fbt/state/           Manifest, run results, versions, approvals
+```
+
+## Where to next
+
+- New to fbt? Start with [concepts](/fbt/introduction/concepts/) and then run the [quickstart](/fbt/get-started/quickstart/).
+- Generating runbooks or manuals from logs? Use the [manual generation guide](/fbt/get-started/manual-generation/).
+- Wiring a real model or CLI agent? Read [external runners](/fbt/runners/external-runners/) and the [authoring contract](/fbt/runners/authoring-contract/).
+- Need lineage in standard tools? Start with [OpenLineage export](/fbt/standards/openlineage/) and [visualization](/fbt/standards/visualization/).

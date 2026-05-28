@@ -1,0 +1,41 @@
+---
+title: OpenAI runner
+description: Optional OpenAI Responses adapter for practical examples.
+---
+
+The source tree includes an optional OpenAI Responses runner at
+`runners/openai`.
+
+It is intentionally outside fbt core. The base tool still has no OpenAI SDK or
+provider dependency.
+
+## Requirements
+
+```sh
+export OPENAI_API_KEY=...
+```
+
+The runner reads the key from the environment and does not store it in project
+state.
+
+## Practical examples
+
+The incident and support manual examples use project-local wrappers:
+
+```text
+examples/incident_response_runbook/bin/fbt-runner-openai
+examples/support_resolution_manual/bin/fbt-runner-openai
+```
+
+Run:
+
+```sh
+fbt doctor --project-dir examples/incident_response_runbook
+fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+```
+
+## Verification model
+
+Default verification does not call the live provider. The runner has process
+tests with an HTTP test server, and the practical examples have parse/plan smoke
+coverage.

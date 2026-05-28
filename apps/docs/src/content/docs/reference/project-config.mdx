@@ -1,0 +1,31 @@
+---
+title: Project config
+description: The fs_project.yml shape.
+---
+
+Every project starts with `fs_project.yml`.
+
+```yaml
+name: knowledge_ops
+config_version: 1
+version: 0.1.0
+
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["prompts", "assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+
+target_path: "target"
+artifact_path: "target/artifacts"
+
+state:
+  backend: local
+  path: .fbt/state
+```
+
+Resources under the configured paths declare sources, transforms, assets,
+policies, evals, and runners.
+
+The full source-of-truth spec lives in `docs/project-config-spec.md` in the
+repository.

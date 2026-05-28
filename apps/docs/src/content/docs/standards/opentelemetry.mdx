@@ -1,0 +1,21 @@
+---
+title: OpenTelemetry export
+description: Export local fbt run results as OTLP/JSON traces.
+---
+
+`fbt export otel` emits local-first OTLP/JSON traces from fbt run results.
+
+```sh
+fbt export otel --project-dir knowledge_ops > traces.json
+```
+
+The export includes invocation spans, transform spans, usage attributes, policy
+decision references, and safe runner events.
+
+Raw source content and known marker secrets are redacted by conformance tests.
+
+## Typical backends
+
+- Jaeger
+- Tempo and Grafana
+- any collector that accepts OTLP/JSON after conversion or forwarding

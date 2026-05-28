@@ -11,11 +11,12 @@ protocol client, local fake/command/LLM/agent runners, an optional OpenAI
 Responses external runner, the first build lifecycle, deterministic evals,
 review approvals, confidence promotion, init templates, a runnable local
 knowledge-loop example, practical external-runner manual-generation examples,
-artifact diffing, and static Markdown docs generation.
+artifact diffing, static Markdown docs generation, and a Folio-inspired
+Astro/Starlight docs site under `apps/docs`.
 The current verification gate also includes practical example parse/plan smoke,
-deterministic conformance, and local release-binary smoke checks. The MVP
-source default is `0.1.0`, and release builds can stamp version, commit, and
-build date metadata into the CLI.
+docs-site build, deterministic conformance, and local release-binary smoke
+checks. The MVP source default is `0.1.0`, and release builds can stamp
+version, commit, and build date metadata into the CLI.
 Plan and build output now include concrete `next:` commands for blocked and
 skipped work, and `fbt artifact explain TARGET` gives a focused explanation of
 one artifact's plan decision. Artifact inspection now includes `artifact path`,
@@ -128,6 +129,7 @@ This runs:
 - `make cli-smoke`
 - `make e2e-smoke`
 - `make practical-examples-smoke`
+- `make docs-site-build`
 - `make runner-conformance`
 - `make conformance`
 - `make dist-check`

@@ -1,0 +1,18 @@
+---
+title: Visualization
+description: Use standard lineage and trace tools instead of a custom graph UI.
+---
+
+fbt deliberately avoids owning a custom lineage UI in core.
+
+Use standard outputs:
+
+| Need | fbt output | Common target |
+|---|---|---|
+| Dataset/job lineage | OpenLineage NDJSON | Marquez |
+| Catalog integration | OpenLineage events | OpenMetadata ingestion |
+| Execution traces | OTLP/JSON | Jaeger, Tempo, Grafana |
+| Local audit | fbt state | `fbt artifact`, `fbt state`, generated docs |
+
+This keeps fbt local-first while still letting teams use existing observability
+and catalog systems.

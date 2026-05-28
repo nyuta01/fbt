@@ -1,0 +1,31 @@
+---
+title: External runners
+description: How fbt delegates execution outside core.
+---
+
+fbt core is not an LLM provider, document converter, or agent runtime. It
+delegates execution to external runners.
+
+## Runner examples
+
+- deterministic demo runners for local smoke tests
+- command runner for shell-backed transforms
+- optional OpenAI Responses runner under `runners/openai`
+- adapter packages such as `fbt-runner-claude-code`, `fbt-runner-codex-cli`,
+  `fbt-runner-anthropic`, or `fbt-runner-gemini`
+
+## Why the boundary matters
+
+The runner boundary keeps fbt lightweight:
+
+- no provider SDKs in core
+- no embedded agent runtime
+- no required cloud account
+- runner conformance can be tested independently
+- adapters can evolve without changing the project graph
+
+## Project configuration
+
+A transform declares the runner it needs. fbt resolves runner commands from
+project config, plugin manifests, and `PATH`, then validates capabilities during
+doctor/build.

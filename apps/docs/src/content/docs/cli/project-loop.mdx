@@ -1,0 +1,40 @@
+---
+title: Project loop
+description: Parse, plan, build, review, and document a project.
+---
+
+The normal fbt loop is:
+
+```sh
+fbt parse
+fbt doctor
+fbt plan
+fbt build
+fbt review status
+fbt docs generate
+```
+
+## Parse
+
+`fbt parse` reads `fs_project.yml` plus source, transform, asset, policy, eval,
+and runner YAML files. It writes `.fbt/state/manifest.json`.
+
+## Plan
+
+`fbt plan` compares the manifest and local state. It reports dirty artifacts,
+clean artifacts, review-blocked artifacts, and skipped work.
+
+## Build
+
+`fbt build` invokes external runners, validates output candidates, records run
+results, commits artifact versions, and runs configured evals.
+
+## Review
+
+Review gates prevent downstream work from using unapproved artifacts. Use
+`fbt review show`, `fbt review status`, and `fbt review approve`.
+
+## Docs
+
+`fbt docs generate` writes project-local Markdown docs with artifact lineage,
+eval results, review state, and policy decision references.

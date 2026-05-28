@@ -1397,6 +1397,31 @@
       "notes": "Adds an optional source-checkout `runners/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
     },
     {
+      "id": "FBT-DOCSITE-001",
+      "title": "Add Folio-inspired documentation site",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-001",
+        "FBT-REL-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCSITE-001-plan.md",
+      "paths": [
+        "apps/docs",
+        ".github/workflows/release-docs.yml",
+        ".github/workflows/verify.yml",
+        "Makefile",
+        "README.md"
+      ],
+      "verification": {
+        "docs_site_build": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Adds an Astro/Starlight documentation site modeled after Folio's docs structure, with intro, get-started, CLI, runners, lineage/standards, and reference sections. GitHub Pages deployment and docs-site build are wired into the verification gate."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

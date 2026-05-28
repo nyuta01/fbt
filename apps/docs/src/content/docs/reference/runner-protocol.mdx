@@ -1,0 +1,27 @@
+---
+title: Runner protocol
+description: The core/runner JSON-RPC boundary.
+---
+
+The runner protocol is a stdio JSON-RPC protocol between fbt core and an
+external runner process.
+
+## Main methods
+
+| Method | Purpose |
+|---|---|
+| `initialize` | Negotiate protocol version and capabilities |
+| `fbt/runTransform` | Execute a transform or dry-run/plan behavior |
+
+## Notifications
+
+Runners may emit safe events such as:
+
+- progress
+- usage
+- tool calls
+- output candidate discovery
+
+Events must not leak raw source content or secrets.
+
+The full protocol spec lives in `docs/runner-protocol-spec.md`.

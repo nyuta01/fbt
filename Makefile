@@ -70,6 +70,10 @@ practical-examples-smoke: ## Parse and plan external-runner practical examples w
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
 
+.PHONY: docs-site-build
+docs-site-build: ## Build the Astro/Starlight documentation site.
+	@cd apps/docs && npm ci --no-audit --fund=false && SITE="https://nyuta01.github.io" BASE="/fbt" npm run build
+
 .PHONY: runner-conformance
 runner-conformance: ## Run the minimal external runner protocol conformance fixture.
 	@bash scripts/runner-conformance.sh --strict
@@ -83,5 +87,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke runner-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

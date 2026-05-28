@@ -1,0 +1,30 @@
+---
+title: Authoring contract
+description: Contract external runner authors must satisfy.
+---
+
+An fbt runner is an external process that speaks the stdio JSON-RPC protocol.
+
+## Runner must
+
+- implement `initialize`
+- advertise protocol version and capabilities
+- implement `fbt/runTransform`
+- write output files only under the assigned `work.outputs` directory
+- return output candidates with artifact names and paths
+- emit safe, redacted progress and usage events
+- fail closed when policy cannot be translated safely
+
+## CLI-agent adapters
+
+Adapters for tools such as Claude Code or Codex should run the agent in a
+staging workspace, translate fbt policies into agent constraints, collect final
+files, and copy only approved candidates into `work.outputs`.
+
+## Conformance
+
+Use the conformance harness before publishing a runner:
+
+```sh
+FBT_RUNNER_CONFORMANCE_COMMAND="your-runner command" make runner-conformance
+```

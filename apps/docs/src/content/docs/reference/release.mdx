@@ -1,0 +1,29 @@
+---
+title: Release
+description: Current MVP release and verification.
+---
+
+The current MVP release is:
+
+```text
+v0.1.0
+https://github.com/nyuta01/fbt/releases/tag/v0.1.0
+```
+
+Release assets include darwin, linux, and windows CLI archives for amd64 and
+arm64, plus `SHA256SUMS`.
+
+## Verify a download
+
+```sh
+shasum -a 256 -c SHA256SUMS
+```
+
+## Verify the tag locally
+
+```sh
+git fetch --tags
+git tag -v v0.1.0
+```
+
+The release tag is signed with Git SSH signing.

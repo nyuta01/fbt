@@ -1,0 +1,40 @@
+---
+title: Inspection
+description: Commands for explaining artifacts and runs.
+---
+
+fbt is designed for inspectability. These commands are useful after a build:
+
+```sh
+fbt state summary
+fbt artifact path case_summaries
+fbt artifact show case_summaries
+fbt artifact history case_summaries
+fbt artifact explain weekly_support_insights
+fbt diff case_summaries --from previous --to latest
+```
+
+## Explain a plan decision
+
+```sh
+fbt artifact explain weekly_support_insights --project-dir knowledge_ops
+```
+
+This reports why an artifact is dirty, clean, blocked, or skipped.
+
+## Inspect generated files
+
+```sh
+fbt artifact path case_summaries --project-dir knowledge_ops
+```
+
+Use the path command when a user wants to open or hand off the generated file.
+
+## Inspect lineage
+
+Use standard export commands when lineage needs to leave the local project:
+
+```sh
+fbt export openlineage --project-dir knowledge_ops
+fbt export otel --project-dir knowledge_ops
+```
