@@ -103,7 +103,8 @@ conformance scenarios.
 The practical local MVP is complete. The external runner hardening backlog is
 complete. Remaining tracked work is maintainer-owned release publication.
 `FBT-REL-002` is blocked on maintainer release credentials and signing setup:
-no Git remote, signing config, or `v0.1.0` tag is present locally.
+`origin` is configured for `github.com:nyuta01/fbt` and `git ls-remote --heads
+origin` succeeds, but no signing config or `v0.1.0` tag is present locally.
 `FBT-REL-003` is blocked until that signed release baseline exists.
 
 ## Verification

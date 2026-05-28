@@ -2,9 +2,9 @@
 
 ## Observation
 
-Release artifact publication depends on `FBT-REL-002`: a public remote, a
-maintainer signing setup, and a signed `v0.1.0` tag. Those prerequisites are
-not present locally, so there is no trusted release target for attaching
+Release artifact publication depends on `FBT-REL-002`: the public remote is now
+configured, but the maintainer signing setup and signed `v0.1.0` tag are still
+not present locally. There is still no trusted release baseline for attaching
 artifacts or checksums.
 
 ## Decision

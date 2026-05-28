@@ -565,11 +565,11 @@
         ".github/workflows/verify.yml"
       ],
       "verification": {
-        "manual_remote_check": false,
+        "manual_remote_check": true,
         "signed_commit_check": false,
         "make_verify": true
       },
-      "notes": "Blocked on maintainer credentials and release-history decision: no git remote, no signing config, latest local commits are unsigned, and no v0.1.0 tag exists. Local docs and tag-triggered verify workflow are prepared."
+      "notes": "Remote is configured for github.com:nyuta01/fbt and non-interactive ls-remote succeeds. Still blocked on maintainer signing setup and release-history decision: no signing config, latest local commits are unsigned, and no v0.1.0 tag exists. Local docs and tag-triggered verify workflow are prepared."
     },
     {
       "id": "FBT-REL-003",
@@ -593,7 +593,7 @@
         "dist_check": false,
         "checksum_check": false
       },
-      "notes": "Blocked until FBT-REL-002 provides a public remote, maintainer signing setup, and signed v0.1.0 tag; artifacts and checksums should not be published from the current unsigned local-only state."
+      "notes": "Blocked until FBT-REL-002 provides maintainer signing setup and a signed v0.1.0 tag; artifacts and checksums should not be published from the current unsigned local state."
     },
     {
       "id": "FBT-DOCS-001",
