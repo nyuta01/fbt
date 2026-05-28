@@ -5,7 +5,8 @@ packages should be added only when backed by an accepted spec or execution-plan
 task. The current codebase includes the CLI scaffold, project/config/resource
 parser baseline, manifest resource generation, selector helpers, artifact
 descriptor computation, reusable path-safety helpers, and a local filesystem
-state store.
+state store. The planner baseline can compare manifests and state snapshots to
+classify transforms as run, skip, or blocked.
 
 Planned package boundaries:
 

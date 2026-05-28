@@ -14,8 +14,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-004` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-005` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-005` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-006` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -37,9 +37,10 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-005` with a plan for planner and dirty-state semantics.
-2. Compare current manifests and state snapshots to explain dirty, skipped, and
-   blocked transforms.
+1. Start `FBT-MVP-006` with a plan for parse, plan, state, and artifact CLI
+   surfaces.
+2. Wire parser, manifest, planner, and state packages into user-facing commands
+   with human and JSON output.
 3. Expand the Go CLI only when `FBT-MVP-006` has a spec-backed acceptance
    criterion.
 4. Keep `make verify` green after each bounded MVP task.

@@ -218,23 +218,23 @@
       "id": "FBT-MVP-005",
       "title": "Implement planner and dirty-state semantics",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-002",
         "FBT-MVP-004"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-005-plan.md",
       "paths": [
         "internal/planner",
         "docs/spec.md",
         "docs/manifest-spec.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false
+        "go_test": true,
+        "cli_smoke": true
       },
-      "notes": "Select runnable transforms, compute dirty reasons for source/assets/policy/eval/runner/model/upstream/output changes, and report blocked review/confidence requirements."
+      "notes": "Selects runnable transforms, computes dirty reasons for source/assets/policy/eval/runner/model/effective/output changes, and reports blocked review/confidence requirements."
     },
     {
       "id": "FBT-MVP-006",
