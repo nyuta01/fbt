@@ -42,6 +42,11 @@ identifies the runner contract used by transforms. One package may provide
 multiple logical runners when they share the same executable and dependency
 set.
 
+The source tree includes `runners/openai` as an optional source-checkout
+adapter for the practical examples. It is outside `internal/`, is invoked as an
+external process, and reads `OPENAI_API_KEY` from the environment. Separately
+packaged adapters should follow the same protocol and credential boundary.
+
 ## 3. Distribution
 
 Installation is out-of-band in MVP. Acceptable distribution paths include:

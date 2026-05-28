@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Project-local external runner wrapper for source-checkout examples.
+# Requires OPENAI_API_KEY in the environment.
+ROOT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+exec go run "$ROOT_DIR/runners/openai" "$@"

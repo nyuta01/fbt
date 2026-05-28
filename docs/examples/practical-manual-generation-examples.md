@@ -7,8 +7,10 @@ Audience: teams applying fbt to operational manuals and runbooks
 ## 1. Purpose
 
 These examples show fbt projects shaped for real business workflows, not demo
-runner output. They use external runner configuration and require a compatible
-runner such as `fbt-runner-openai` before `fbt doctor` or `fbt build` can pass.
+runner output. They use external runner configuration and, from a source
+checkout, include project-local wrappers that call the optional
+`runners/openai` implementation. `fbt doctor` and `fbt build` require
+`OPENAI_API_KEY`.
 
 The examples are:
 
@@ -39,21 +41,23 @@ runners:
   - name: openai.responses
     type: llm
     protocol: stdio_jsonrpc
-    command: fbt-runner-openai
+    command: bin/fbt-runner-openai
     args: ["responses"]
     env:
       - OPENAI_API_KEY
 ```
 
-Install and validate the runner before building:
+Validate the runner before building:
 
 ```sh
-FBT_RUNNER_CONFORMANCE_COMMAND='fbt-runner-openai responses' make runner-conformance
+FBT_RUNNER_CONFORMANCE_COMMAND='examples/incident_response_runbook/bin/fbt-runner-openai responses' make runner-conformance
 OPENAI_API_KEY=... fbt doctor --project-dir examples/incident_response_runbook
 ```
 
-The runner package owns provider SDKs and credentials. fbt core owns state,
-policy/eval/review checks, lineage, and official artifact commits.
+The runner owns the provider API call and credentials. fbt core owns state,
+policy/eval/review checks, lineage, and official artifact commits. If you
+install a separately packaged runner, replace the project-local `command` with
+the installed command.
 
 ## 3. Incident Response Runbook
 

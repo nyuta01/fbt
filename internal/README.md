@@ -11,8 +11,8 @@ transforms as run, skip, or blocked. The CLI now exposes init, parse, plan,
 build, eval, review, state, artifact, and runner diagnostics. The protocol
 package can start JSON-RPC stdio runners and collect events/output candidates.
 Local fake and command runners live outside `internal/` under `runners/`,
-alongside deterministic demo LLM and agent runner examples. The build package wires
-the current
+alongside deterministic demo LLM/agent examples and the optional OpenAI
+Responses external runner. The build package wires the current
 parse-plan-run-commit-state lifecycle for local protocol runners, with baseline
 policy checks, deterministic evals, pending-review approval state, and runner
 usage/provenance records before official commit.

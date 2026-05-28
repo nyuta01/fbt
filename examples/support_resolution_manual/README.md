@@ -4,8 +4,9 @@ This example is a production-shaped fbt project for turning user inquiries,
 support responses, product references, and existing macros into an approved
 support resolution manual.
 
-It does not use the bundled demo runners. It expects an external fbt-compatible
-LLM runner such as `fbt-runner-openai` to be installed and configured.
+It does not use the bundled demo runners. From a source checkout it uses the
+project-local `bin/fbt-runner-openai` wrapper, which calls the optional
+`runners/openai` external runner implementation and requires `OPENAI_API_KEY`.
 
 ## Workflow
 
@@ -25,16 +26,19 @@ fbt review approve support_resolution_manual --project-dir examples/support_reso
 fbt docs generate --project-dir examples/support_resolution_manual
 ```
 
-`fbt doctor` and `fbt build` require the external runner and credentials. The
-example is intentionally configured for a real runner boundary:
+`fbt doctor` and `fbt build` require credentials. The example is intentionally
+configured for a real runner boundary:
 
 ```yaml
 runners:
   - name: openai.responses
-    command: fbt-runner-openai
+    command: bin/fbt-runner-openai
     args: ["responses"]
     env: ["OPENAI_API_KEY"]
 ```
+
+If you install a separately packaged runner, replace `command` with that
+installed command.
 
 ## Output
 

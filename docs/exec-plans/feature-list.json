@@ -1370,6 +1370,33 @@
       "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, review gates, and a parse/plan smoke that runs without provider calls."
     },
     {
+      "id": "FBT-RUNNER-008",
+      "title": "Add optional OpenAI Responses runner",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-005",
+        "FBT-RUNNER-007",
+        "FBT-EXAMPLE-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-008-plan.md",
+      "paths": [
+        "runners/openai",
+        "examples/incident_response_runbook",
+        "examples/support_resolution_manual",
+        "docs/examples/practical-manual-generation-examples.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "practical_examples_smoke": true,
+        "validate_docs": true,
+        "real_openai_smoke": false
+      },
+      "verification_override_reason": "Real OpenAI API calls require a user-provided secret and are intentionally outside `make verify`; runner behavior is covered by an httptest Responses API fixture plus parse/plan example smoke.",
+      "notes": "Adds an optional source-checkout `runners/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

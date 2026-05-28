@@ -7,11 +7,11 @@ Last updated: 2026-05-28
 The repository contains the English design/specification set for `fbt`, a
 baseline AI-first engineering harness, repo governance files, a Go CLI, parser,
 manifest graph, planner, descriptor/state primitives, runner discovery,
-protocol client, local fake/command/LLM/agent runners, the first build
-lifecycle, deterministic evals, review approvals, confidence promotion, init
-templates, a runnable local knowledge-loop example, practical external-runner
-manual-generation examples, artifact diffing, and static Markdown docs
-generation.
+protocol client, local fake/command/LLM/agent runners, an optional OpenAI
+Responses external runner, the first build lifecycle, deterministic evals,
+review approvals, confidence promotion, init templates, a runnable local
+knowledge-loop example, practical external-runner manual-generation examples,
+artifact diffing, and static Markdown docs generation.
 The current verification gate also includes practical example parse/plan smoke,
 deterministic conformance, and local release-binary smoke checks. The MVP
 source default is `0.1.0`, and release builds can stamp version, commit, and
@@ -77,6 +77,10 @@ inquiry/response logs to an approved support resolution manual. Both examples
 include realistic source records, format assets, policies, deterministic
 section evals, review gates, and parse/plan smoke coverage without provider
 calls.
+`FBT-RUNNER-008` is complete: `runners/openai` now provides an optional
+out-of-core OpenAI Responses runner that reads `OPENAI_API_KEY`, calls
+`/v1/responses`, writes output candidates under `work.outputs`, and is wired
+into the practical examples through project-local wrappers.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export

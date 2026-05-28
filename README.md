@@ -30,7 +30,8 @@ evals, pending review gates, approval state, confidence promotion, immutable
 artifact versions, artifact diffing, static docs generation, runnable templates,
 and conformance plus local release-binary checks. Optional deterministic demo
 LLM and agent runner examples live under `runners/` without provider SDK
-dependencies.
+dependencies. The optional `runners/openai` adapter is an out-of-core external
+runner used by the practical examples when `OPENAI_API_KEY` is provided.
 
 The base runtime works with only the local filesystem.
 
