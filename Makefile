@@ -62,6 +62,10 @@ cli-smoke: ## Run a deterministic fbt CLI smoke.
 e2e-smoke: ## Run the local knowledge-loop smoke.
 	@bash scripts/smoke-knowledge-loop.sh
 
+.PHONY: real-llm-smoke
+real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
+	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
+
 .PHONY: conformance
 conformance: build ## Run deterministic MVP conformance scenarios.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash tests/conformance/run.sh

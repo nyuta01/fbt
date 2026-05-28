@@ -486,7 +486,29 @@ exporter by default; feed the JSON file to your collector/backend workflow.
 For backend-specific steps, see
 [Standard Visualization Guide](standard-visualization-guide.md).
 
-## 14. Day-2 Operation
+## 14. Opt-In Real LLM Smoke
+
+The default verification gate uses local deterministic runners. To smoke-test an
+external real LLM runner that implements the fbt stdio JSON-RPC runner protocol:
+
+```sh
+FBT_REAL_LLM_RUNNER_COMMAND='fbt-openai-runner' make real-llm-smoke
+```
+
+Optional environment variables:
+
+| Variable | Meaning |
+|---|---|
+| `FBT_REAL_LLM_RUNNER_COMMAND` | External command to execute; required to opt in |
+| `FBT_REAL_LLM_RUNNER_NAME` | Runner name in the temporary project; defaults to `real.llm` |
+| `FBT_REAL_LLM_MODEL_PROVIDER` | Model provider metadata; defaults to `external` |
+| `FBT_REAL_LLM_MODEL_NAME` | Model name metadata; defaults to `real-llm-smoke` |
+
+Provider credentials, endpoints, and SDK dependencies belong to the external
+runner and its environment. If `FBT_REAL_LLM_RUNNER_COMMAND` is unset, the smoke
+prints `skipped` and exits successfully.
+
+## 15. Day-2 Operation
 
 The operating loop:
 
@@ -503,7 +525,7 @@ The operating loop:
 
 The purpose is to turn messy primary documents into reusable, reviewed knowledge artifacts that continuously improve operational work.
 
-## 15. What fbt Does Not Do
+## 16. What fbt Does Not Do
 
 `fbt` core does not implement:
 
