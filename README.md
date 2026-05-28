@@ -114,13 +114,14 @@ The commands are checkpoints, not a script to memorize:
 
    ```text
    Plan
-     selected: 1  run: 1  skipped: 0  blocked: 0
+     selected  1
+     run       1
 
    RUN     incident_response_runbook
-           because: no previous successful run
-           because: output missing
-           output: incident_response_runbook
-           next: fbt build --select incident_response_runbook
+           because  no previous successful run
+           because  output missing
+           output   incident_response_runbook
+           next     fbt build --select incident_response_runbook
    ```
 
 2. Generate the runbook.
@@ -178,23 +179,24 @@ The output includes the same lifecycle signals, shortened here:
 
 ```text
 Plan
-  selected: 2  run: 1  skipped: 0  blocked: 1
+  selected  2
+  run       1
 
 RUN     case_summaries
-        because: no previous successful run
-        because: output missing
+        because  no previous successful run
+        because  output missing
 
 Build
-  selected: 1  run: 1  skipped: 0  blocked: 0
+  selected  1
+  run       1
 
 SUCCESS case_summaries
-        committed: case_summaries@sha256:a5b4dfd91df7
+        committed  case_summaries@sha256:a5b4dfd91df7
 
 Artifact: case_summaries
-  Status: current
-  Path: target/artifacts/support/case_summaries
-  Version: case_summaries@sha256:a5b4dfd91df7
-  Confidence: structural
+  Status      current
+  Path        target/artifacts/support/case_summaries
+  Version     case_summaries@sha256:a5b4dfd91df7
 ```
 
 The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx); standard backend recipes are in [examples/standard_visualization](examples/standard_visualization/).

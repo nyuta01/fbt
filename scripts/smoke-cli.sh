@@ -95,18 +95,18 @@ grep -q "Doctor: ok" "$tmpdir/doctor.txt"
 grep -q "RUNNER_PROTOCOL_OK" "$tmpdir/doctor.txt"
 
 go run ./cmd/fbt plan --project-dir "$project" --select tag:support >"$tmpdir/plan.txt"
-grep -q "selected: 1" "$tmpdir/plan.txt"
+grep -q "selected  1" "$tmpdir/plan.txt"
 grep -q "RUN     case_summaries" "$tmpdir/plan.txt"
 test ! -f "$project/.fbt/state/manifest.json"
 
 go run ./cmd/fbt artifact ls --project-dir "$project" >"$tmpdir/artifact-ls.txt"
 
 go run ./cmd/fbt build --project-dir "$project" >"$tmpdir/build.txt"
-grep -q "committed:" "$tmpdir/build.txt"
+grep -q "committed  " "$tmpdir/build.txt"
 test -f "$project/.fbt/state/manifest.json"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
 go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
-grep -q "Semantic descriptor:" "$tmpdir/artifact-show.txt"
+grep -q "Semantic descriptor  " "$tmpdir/artifact-show.txt"
 
 go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"

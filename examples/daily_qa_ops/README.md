@@ -60,16 +60,19 @@ Expected first-run shape:
 
 ```text
 Plan
-  selected: 2  run: 1  skipped: 0  blocked: 1
+  selected  2
+  run       1
+  skipped   0
+  blocked   1
 
 RUN     daily_qa_candidates
-        because: no previous successful run
-        because: output missing
-        output: faq_candidates, manual_patch_candidates, unresolved_questions
+        because  no previous successful run
+        because  output missing
+        output   faq_candidates, manual_patch_candidates, unresolved_questions
 
 BLOCK   promote_manual_update
-        blocked: requires manual_patch_candidates current artifact
-        output: manual_update
+        blocked  requires manual_patch_candidates current artifact
+        output   manual_update
 ```
 
 Build the daily candidates:

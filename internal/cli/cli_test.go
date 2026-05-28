@@ -169,7 +169,7 @@ func TestRunPlanIsReadOnly(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "Plan\n") || !strings.Contains(stdout.String(), "selected: 1") {
+	if !strings.Contains(stdout.String(), "Plan\n") || !strings.Contains(stdout.String(), "selected  1") {
 		t.Fatalf("expected plan output, got %q", stdout.String())
 	}
 	if _, err := os.Stat(filepath.Join(root, ".fbt", "state", "manifest.json")); !os.IsNotExist(err) {
@@ -201,7 +201,7 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if code := Run([]string{"plan", "--project-dir", root, "--select", "tag:support"}, &planOut, &planErr); code != 0 {
 		t.Fatalf("generated project should plan: code=%d stderr=%q", code, planErr.String())
 	}
-	if !strings.Contains(planOut.String(), "next: fbt build --select case_summaries") {
+	if !strings.Contains(planOut.String(), "next     fbt build --select case_summaries") {
 		t.Fatalf("expected blocked next step, got %q", planOut.String())
 	}
 
@@ -213,10 +213,10 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(explainOut.String(), "Decision: BLOCK") {
 		t.Fatalf("expected blocked explanation, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "Reason: requires case_summaries current artifact") {
+	if !strings.Contains(explainOut.String(), "Reason  requires case_summaries current artifact") {
 		t.Fatalf("expected decision explanation, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "missing input case_summaries") {
+	if !strings.Contains(explainOut.String(), "missing  input") || !strings.Contains(explainOut.String(), "case_summaries") {
 		t.Fatalf("expected upstream artifact input detail, got %q", explainOut.String())
 	}
 	if !strings.Contains(explainOut.String(), "fbt build --select case_summaries") {
@@ -259,7 +259,7 @@ func TestRunPlanForceShowsForcedRebuild(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "because: forced rebuild") {
+	if !strings.Contains(stdout.String(), "because  forced rebuild") {
 		t.Fatalf("expected forced rebuild reason, got %q", stdout.String())
 	}
 }
@@ -310,7 +310,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "path", "case_summaries", "--project-dir", root}, &pathOut, &pathErr); code != 0 {
 		t.Fatalf("artifact path failed: code=%d stderr=%q", code, pathErr.String())
 	}
-	if !strings.Contains(pathOut.String(), "Logical path: target/artifacts/support/case_summaries/") || !strings.Contains(pathOut.String(), "Immutable path: target/artifacts/support/case_summaries/") {
+	if !strings.Contains(pathOut.String(), "Logical path    target/artifacts/support/case_summaries/") || !strings.Contains(pathOut.String(), "Immutable path  target/artifacts/support/case_summaries/") {
 		t.Fatalf("unexpected artifact path output: %q", pathOut.String())
 	}
 
@@ -319,7 +319,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
 		t.Fatalf("artifact show failed: code=%d stderr=%q", code, showErr.String())
 	}
-	if !strings.Contains(showOut.String(), "Run: transform_run.run_1") || !strings.Contains(showOut.String(), "Runner: openai.responses") {
+	if !strings.Contains(showOut.String(), "Run        transform_run.run_1") || !strings.Contains(showOut.String(), "Runner     openai.responses") {
 		t.Fatalf("unexpected artifact show output: %q", showOut.String())
 	}
 
@@ -328,7 +328,7 @@ func TestRunArtifactCommands(t *testing.T) {
 	if code := Run([]string{"artifact", "history", "case_summaries", "--project-dir", root}, &historyOut, &historyErr); code != 0 {
 		t.Fatalf("artifact history failed: code=%d stderr=%q", code, historyErr.String())
 	}
-	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "Committed: 2026-05-28T00:00:00Z") {
+	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "Committed  2026-05-28T00:00:00Z") {
 		t.Fatalf("unexpected artifact history output: %q", historyOut.String())
 	}
 

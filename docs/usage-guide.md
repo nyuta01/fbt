@@ -39,18 +39,21 @@ Expected first plan shape:
 
 ```text
 Plan
-  selected: 2  run: 1  skipped: 0  blocked: 1
+  selected  2
+  run       1
+  skipped   0
+  blocked   1
 
 RUN     case_summaries
-        because: no previous successful run
-        because: output missing
-        output: case_summaries
-        next: fbt build --select case_summaries
+        because  no previous successful run
+        because  output missing
+        output   case_summaries
+        next     fbt build --select case_summaries
 
 BLOCK   weekly_support_insights
-        blocked: requires case_summaries current artifact
-        output: weekly_support_insights
-        next: fbt build --select case_summaries
+        blocked  requires case_summaries current artifact
+        output   weekly_support_insights
+        next     fbt build --select case_summaries
 ```
 
 After `case_summaries` exists, the downstream transform can run:

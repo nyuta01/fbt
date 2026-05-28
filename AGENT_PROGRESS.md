@@ -33,6 +33,11 @@ human output is intentionally not the JSON/state shape: `plan`, `build`, and
 confidence, and next commands. Full resource IDs remain available in `Details`
 sections and in `--json` output for automation.
 
+Human status output uses fixed-width key/value rows and `text/tabwriter` tables
+for dependencies and outputs. Glamour was considered for terminal Markdown
+rendering, but it is not part of the default status renderer because the current
+problem is structured row alignment rather than Markdown rendering.
+
 The public CLI no longer exposes `parse`, `eval`, `docs`, `state`, or `runner`
 subcommands. `doctor` handles readiness diagnostics, `plan` previews without
 writes, and `build` handles runner execution, evals, state writes, and artifact

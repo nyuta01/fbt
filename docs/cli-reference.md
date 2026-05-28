@@ -10,9 +10,9 @@ Audience: users and implementers of the `fbt` command-line interface
 require a daemon, scheduler, metadata database, web server, cloud account, or
 approval workflow.
 
-The command tree and flag parsing are implemented with Cobra. Human output is
-optimized for scanning; use `--json` when automation needs full internal IDs and
-structured fields.
+The command tree and flag parsing are implemented with Cobra. Human output uses
+fixed-width key/value rows and tables for scanning; use `--json` when
+automation needs full internal IDs and structured fields.
 
 Basic workflow:
 
@@ -130,23 +130,26 @@ confidence requirements, and next commands. Use `fbt artifact explain TARGET`
 to focus on one artifact.
 
 `--force` is read-only for `plan`: it previews selected clean transforms as
-`RUN` with `because: forced rebuild`.
+`RUN` with `because  forced rebuild`.
 
 Example:
 
 ```text
 Plan
-  selected: 2  run: 1  skipped: 0  blocked: 1
+  selected  2
+  run       1
+  skipped   0
+  blocked   1
 
 RUN     case_summaries
-        because: no previous successful run
-        output: case_summaries
-        next: fbt build --select case_summaries
+        because  no previous successful run
+        output   case_summaries
+        next     fbt build --select case_summaries
 
 BLOCK   weekly_support_insights
-        blocked: requires case_summaries current artifact
-        output: weekly_support_insights
-        next: fbt build --select case_summaries
+        blocked  requires case_summaries current artifact
+        output   weekly_support_insights
+        next     fbt build --select case_summaries
 ```
 
 ### 5.3 fbt build

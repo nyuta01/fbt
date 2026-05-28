@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/nyuta01/fbt/internal/artifact"
@@ -729,12 +730,14 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 	runNames := planNodeNames(result.Plan.Nodes)
 	for _, run := range result.Runs {
 		fmt.Fprintf(stdout, "%-7s %s\n", strings.ToUpper(run.Status), displayTransformName(run.TransformID, runNames))
+		var rows []displayRow
 		if run.TransformRunID != "" {
-			fmt.Fprintf(stdout, "        run: %s\n", shortenResourceID(run.TransformRunID))
+			rows = append(rows, displayRow{Label: "run", Value: shortenResourceID(run.TransformRunID)})
 		}
 		for _, version := range run.CommittedVersions {
-			fmt.Fprintf(stdout, "        committed: %s\n", shortVersionID(version))
+			rows = append(rows, displayRow{Label: "committed", Value: shortVersionID(version)})
 		}
+		printDisplayRows(stdout, "        ", rows)
 		fmt.Fprintln(stdout)
 	}
 	for _, node := range result.Plan.Nodes {
@@ -1037,24 +1040,49 @@ func parsePlanArgs(args []string) (planOptions, error) {
 
 func printPlanNode(stdout io.Writer, node planner.Node) {
 	fmt.Fprintf(stdout, "%-7s %s\n", actionLabel(node.Action), node.Name)
+	var rows []displayRow
 	for _, reason := range node.DirtyReasons {
-		fmt.Fprintf(stdout, "        because: %s\n", humanizeResourceIDs(reason))
+		rows = append(rows, displayRow{Label: "because", Value: humanizeResourceIDs(reason)})
 	}
 	for _, reason := range node.BlockedReasons {
-		fmt.Fprintf(stdout, "        blocked: %s\n", humanizeResourceIDs(reason))
+		rows = append(rows, displayRow{Label: "blocked", Value: humanizeResourceIDs(reason)})
 	}
 	if len(node.Outputs) > 0 {
-		fmt.Fprintf(stdout, "        output: %s\n", strings.Join(shortResourceIDs(node.Outputs), ", "))
+		rows = append(rows, displayRow{Label: "output", Value: strings.Join(shortResourceIDs(node.Outputs), ", ")})
 	}
 	for _, step := range node.NextSteps {
-		fmt.Fprintf(stdout, "        next: %s\n", step)
+		rows = append(rows, displayRow{Label: "next", Value: step})
 	}
+	printDisplayRows(stdout, "        ", rows)
 	fmt.Fprintln(stdout)
 }
 
 func printSummary(stdout io.Writer, title string, summary planner.Summary) {
 	fmt.Fprintf(stdout, "%s\n", title)
-	fmt.Fprintf(stdout, "  selected: %d  run: %d  skipped: %d  blocked: %d\n\n", summary.Selected, summary.Run, summary.Skipped, summary.Blocked)
+	printDisplayRows(stdout, "  ", []displayRow{
+		{Label: "selected", Value: fmt.Sprintf("%d", summary.Selected)},
+		{Label: "run", Value: fmt.Sprintf("%d", summary.Run)},
+		{Label: "skipped", Value: fmt.Sprintf("%d", summary.Skipped)},
+		{Label: "blocked", Value: fmt.Sprintf("%d", summary.Blocked)},
+	})
+	fmt.Fprintln(stdout)
+}
+
+type displayRow struct {
+	Label string
+	Value string
+}
+
+func printDisplayRows(stdout io.Writer, indent string, rows []displayRow) {
+	width := 0
+	for _, row := range rows {
+		if len(row.Label) > width {
+			width = len(row.Label)
+		}
+	}
+	for _, row := range rows {
+		fmt.Fprintf(stdout, "%s%-*s  %s\n", indent, width, row.Label, row.Value)
+	}
 }
 
 func actionLabel(action planner.Action) string {
@@ -1675,76 +1703,82 @@ func absoluteProjectPath(root, path string) string {
 
 func printArtifactPath(stdout io.Writer, record artifactRecord) {
 	fmt.Fprintf(stdout, "Artifact path: %s\n", shortenResourceID(record.ArtifactID))
-	fmt.Fprintf(stdout, "  Logical path: %s\n", record.LogicalPath)
+	rows := []displayRow{{Label: "Logical path", Value: record.LogicalPath}}
 	if record.StoragePath != "" {
-		fmt.Fprintf(stdout, "  Immutable path: %s\n", record.StoragePath)
+		rows = append(rows, displayRow{Label: "Immutable path", Value: record.StoragePath})
 	}
 	if record.VersionID != "" {
-		fmt.Fprintf(stdout, "  Version: %s\n", shortVersionID(record.VersionID))
+		rows = append(rows, displayRow{Label: "Version", Value: shortVersionID(record.VersionID)})
 	} else {
-		fmt.Fprintln(stdout, "  Version: none")
+		rows = append(rows, displayRow{Label: "Version", Value: "none"})
 	}
+	printDisplayRows(stdout, "  ", rows)
 }
 
 func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 	fmt.Fprintf(stdout, "Artifact: %s\n", shortenResourceID(record.ArtifactID))
+	var artifactRows []displayRow
 	if record.Current {
-		fmt.Fprintln(stdout, "  Status: current")
+		artifactRows = append(artifactRows, displayRow{Label: "Status", Value: "current"})
 	} else if record.VersionID != "" {
-		fmt.Fprintln(stdout, "  Status: historical")
+		artifactRows = append(artifactRows, displayRow{Label: "Status", Value: "historical"})
 	}
 	if record.LogicalPath != "" {
-		fmt.Fprintf(stdout, "  Path: %s\n", record.LogicalPath)
+		artifactRows = append(artifactRows, displayRow{Label: "Path", Value: record.LogicalPath})
 	}
 	if record.VersionID != "" {
-		fmt.Fprintf(stdout, "  Version: %s\n", shortVersionID(record.VersionID))
+		artifactRows = append(artifactRows, displayRow{Label: "Version", Value: shortVersionID(record.VersionID)})
 	}
 	if record.Confidence != "" {
-		fmt.Fprintf(stdout, "  Confidence: %s\n", record.Confidence)
+		artifactRows = append(artifactRows, displayRow{Label: "Confidence", Value: record.Confidence})
 	}
+	printDisplayRows(stdout, "  ", artifactRows)
 
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Build")
+	var buildRows []displayRow
 	if record.Runner != "" {
-		fmt.Fprintf(stdout, "  Runner: %s\n", shortenResourceID(record.Runner))
+		buildRows = append(buildRows, displayRow{Label: "Runner", Value: shortenResourceID(record.Runner)})
 	}
 	if len(record.Model) > 0 {
-		fmt.Fprintf(stdout, "  Model: %s\n", formatModel(record.Model))
+		buildRows = append(buildRows, displayRow{Label: "Model", Value: formatModel(record.Model)})
 	}
 	if record.GeneratedBy != "" {
-		fmt.Fprintf(stdout, "  Run: %s\n", shortenResourceID(record.GeneratedBy))
+		buildRows = append(buildRows, displayRow{Label: "Run", Value: shortenResourceID(record.GeneratedBy)})
 	}
 	if record.CommittedAt != "" {
-		fmt.Fprintf(stdout, "  Committed: %s\n", record.CommittedAt)
+		buildRows = append(buildRows, displayRow{Label: "Committed", Value: record.CommittedAt})
 	}
+	printDisplayRows(stdout, "  ", buildRows)
 
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Details")
-	fmt.Fprintf(stdout, "  Artifact ID: %s\n", record.ArtifactID)
+	detailRows := []displayRow{{Label: "Artifact ID", Value: record.ArtifactID}}
 	if record.VersionID != "" {
-		fmt.Fprintf(stdout, "  Version ID: %s\n", record.VersionID)
+		detailRows = append(detailRows, displayRow{Label: "Version ID", Value: record.VersionID})
 	}
 	if record.Digest != "" {
-		fmt.Fprintf(stdout, "  Digest: %s\n", record.Digest)
+		detailRows = append(detailRows, displayRow{Label: "Digest", Value: record.Digest})
 	}
 	if record.ArtifactType != "" {
-		fmt.Fprintf(stdout, "  Type: %s\n", record.ArtifactType)
+		detailRows = append(detailRows, displayRow{Label: "Type", Value: record.ArtifactType})
 	}
 	if record.StoragePath != "" {
-		fmt.Fprintf(stdout, "  Immutable path: %s\n", record.StoragePath)
+		detailRows = append(detailRows, displayRow{Label: "Immutable path", Value: record.StoragePath})
 	}
 	if len(record.SemanticDescriptor) > 0 {
-		fmt.Fprintf(stdout, "  Semantic descriptor: %s\n", compactJSON(record.SemanticDescriptor))
+		detailRows = append(detailRows, displayRow{Label: "Semantic descriptor", Value: compactJSON(record.SemanticDescriptor)})
 	}
+	printDisplayRows(stdout, "  ", detailRows)
 	for _, material := range record.Materials {
-		fmt.Fprintf(stdout, "  Material: %s", humanizeResourceIDs(material.ResourceID))
+		value := humanizeResourceIDs(material.ResourceID)
 		if material.ArtifactVersion != "" {
-			fmt.Fprintf(stdout, " %s", shortVersionID(material.ArtifactVersion))
+			value += " " + shortVersionID(material.ArtifactVersion)
 		}
 		if material.Digest != "" {
-			fmt.Fprintf(stdout, " %s", material.Digest)
+			value += " " + material.Digest
 		}
-		fmt.Fprintln(stdout)
+		printDisplayRows(stdout, "  ", []displayRow{{Label: "Material", Value: value}})
 	}
 	fmt.Fprintln(stdout)
 }
@@ -1761,48 +1795,45 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	fmt.Fprintf(stdout, "Artifact: %s\n", shortenResourceID(explanation.ArtifactID))
 	fmt.Fprintf(stdout, "Decision: %s\n", actionLabel(explanation.Action))
 	if explanation.Decision != "" {
-		fmt.Fprintf(stdout, "  Reason: %s\n", humanizeResourceIDs(shortDecisionReason(explanation.Decision)))
+		printDisplayRows(stdout, "  ", []displayRow{{Label: "Reason", Value: humanizeResourceIDs(shortDecisionReason(explanation.Decision))}})
 	}
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Producer")
-	fmt.Fprintf(stdout, "  Transform: %s\n", explanation.TransformName)
+	rows := []displayRow{{Label: "Transform", Value: explanation.TransformName}}
 	if explanation.Current != nil {
-		fmt.Fprintf(stdout, "  Current version: %s\n", shortVersionID(explanation.Current.CurrentVersionID))
-		fmt.Fprintf(stdout, "  Confidence: %s\n", explanation.Current.Confidence)
+		rows = append(rows,
+			displayRow{Label: "Current version", Value: shortVersionID(explanation.Current.CurrentVersionID)},
+			displayRow{Label: "Confidence", Value: explanation.Current.Confidence},
+		)
 	} else {
-		fmt.Fprintln(stdout, "  Current version: none")
+		rows = append(rows, displayRow{Label: "Current version", Value: "none"})
 	}
 	if explanation.PreviousRun != nil {
-		fmt.Fprintf(stdout, "  Previous run: %s %s\n", shortenResourceID(explanation.PreviousRun.LatestRunID), explanation.PreviousRun.LatestStatus)
+		rows = append(rows, displayRow{Label: "Previous run", Value: shortenResourceID(explanation.PreviousRun.LatestRunID) + " " + explanation.PreviousRun.LatestStatus})
 	} else {
-		fmt.Fprintln(stdout, "  Previous run: none")
+		rows = append(rows, displayRow{Label: "Previous run", Value: "none"})
 	}
+	printDisplayRows(stdout, "  ", rows)
 	if len(explanation.Dependencies) > 0 {
 		fmt.Fprintln(stdout)
 		fmt.Fprintln(stdout, "Inputs")
-		for _, dep := range explanation.Dependencies {
-			printExplanationDependency(stdout, dep)
-		}
+		printExplanationDependencies(stdout, explanation.Dependencies)
 	}
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Outputs")
-	for _, output := range explanation.Outputs {
-		fmt.Fprintf(stdout, "  %s", shortenResourceID(output.UniqueID))
-		if output.DeclaredPath != "" {
-			fmt.Fprintf(stdout, " -> %s", output.DeclaredPath)
-		}
-		fmt.Fprintln(stdout)
-	}
+	printExplanationOutputs(stdout, explanation.Outputs)
 	if len(explanation.DirtyReasons) > 0 || len(explanation.BlockedReasons) > 0 {
 		fmt.Fprintln(stdout)
 		fmt.Fprintln(stdout, "Reasons")
 	}
+	var reasonRows []displayRow
 	for _, reason := range explanation.DirtyReasons {
-		fmt.Fprintf(stdout, "  %s\n", humanizeResourceIDs(reason))
+		reasonRows = append(reasonRows, displayRow{Label: "because", Value: humanizeResourceIDs(reason)})
 	}
 	for _, reason := range explanation.BlockedReasons {
-		fmt.Fprintf(stdout, "  %s\n", humanizeResourceIDs(reason))
+		reasonRows = append(reasonRows, displayRow{Label: "blocked", Value: humanizeResourceIDs(reason)})
 	}
+	printDisplayRows(stdout, "  ", reasonRows)
 	if len(explanation.NextSteps) > 0 {
 		fmt.Fprintln(stdout)
 		fmt.Fprintln(stdout, "Next")
@@ -1812,11 +1843,22 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	}
 	fmt.Fprintln(stdout)
 	fmt.Fprintln(stdout, "Details")
-	fmt.Fprintf(stdout, "  Artifact ID: %s\n", explanation.ArtifactID)
-	fmt.Fprintf(stdout, "  Transform ID: %s\n", explanation.TransformID)
+	printDisplayRows(stdout, "  ", []displayRow{
+		{Label: "Artifact ID", Value: explanation.ArtifactID},
+		{Label: "Transform ID", Value: explanation.TransformID},
+	})
 }
 
-func printExplanationDependency(stdout io.Writer, dep explanationDependency) {
+func printExplanationDependencies(stdout io.Writer, deps []explanationDependency) {
+	tw := tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, "  Status\tRole\tResource\tDetails")
+	for _, dep := range deps {
+		fmt.Fprintf(tw, "  %s\t%s\t%s\t%s\n", dependencyStatus(dep), dep.Role, shortenResourceID(dep.ResourceID), dependencyDetails(dep))
+	}
+	tw.Flush()
+}
+
+func dependencyStatus(dep explanationDependency) string {
 	status := "ok"
 	if dep.Changed != nil && *dep.Changed {
 		status = "changed"
@@ -1824,26 +1866,39 @@ func printExplanationDependency(stdout io.Writer, dep explanationDependency) {
 	if dep.Role == "input" && strings.HasPrefix(dep.ResourceID, "artifact.") && dep.CurrentVersionID == "" {
 		status = "missing"
 	}
-	fmt.Fprintf(stdout, "  %-7s %s %s", status, dep.Role, shortenResourceID(dep.ResourceID))
+	return status
+}
+
+func dependencyDetails(dep explanationDependency) string {
+	var details []string
 	if dep.Name != "" && dep.Name != shortenResourceID(dep.ResourceID) {
-		fmt.Fprintf(stdout, " (%s)", dep.Name)
+		details = append(details, "name="+dep.Name)
 	}
 	if dep.Path != "" {
-		fmt.Fprintf(stdout, " path=%s", dep.Path)
+		details = append(details, "path="+dep.Path)
 	}
 	if dep.CurrentVersionID != "" {
-		fmt.Fprintf(stdout, " version=%s", shortVersionID(dep.CurrentVersionID))
+		details = append(details, "version="+shortVersionID(dep.CurrentVersionID))
 	}
 	if dep.Confidence != "" {
-		fmt.Fprintf(stdout, " confidence=%s", dep.Confidence)
+		details = append(details, "confidence="+dep.Confidence)
 	}
 	if dep.RequiredConfidence != "" {
-		fmt.Fprintf(stdout, " requires=%s", dep.RequiredConfidence)
+		details = append(details, "requires="+dep.RequiredConfidence)
 	}
 	if dep.Fingerprint != "" {
-		fmt.Fprintf(stdout, " fingerprint=%s", shortDigest(dep.Fingerprint))
+		details = append(details, "fingerprint="+shortDigest(dep.Fingerprint))
 	}
-	fmt.Fprintln(stdout)
+	return strings.Join(details, "  ")
+}
+
+func printExplanationOutputs(stdout io.Writer, outputs []manifest.TransformOutput) {
+	tw := tabwriter.NewWriter(stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(tw, "  Artifact\tPath")
+	for _, output := range outputs {
+		fmt.Fprintf(tw, "  %s\t%s\n", shortenResourceID(output.UniqueID), output.DeclaredPath)
+	}
+	tw.Flush()
 }
 
 func shortDecisionReason(decision string) string {

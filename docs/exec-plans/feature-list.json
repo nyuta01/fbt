@@ -841,6 +841,36 @@
       "notes": "Migrates command/flag/help handling to Cobra while preserving fbt's strict command surface. Human output for plan/build/artifact now uses concise status labels, aligned summaries, short resource names, and explicit Details sections instead of leading with full internal IDs."
     },
     {
+      "id": "FBT-UX-008",
+      "title": "Align human CLI output columns",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-007"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UX-008-plan.md",
+      "paths": [
+        "internal/cli",
+        "scripts",
+        "tests/conformance",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "README.md",
+        "apps/docs/src/content/docs/get-started/quickstart.mdx",
+        "examples"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "knowledge_loop_smoke": true,
+        "practical_examples_smoke": true,
+        "product_conformance": true,
+        "make_verify": true
+      },
+      "notes": "Keeps Glamour out of the default status output because the issue is structured row alignment, not Markdown rendering. Aligns summary, key/value, dependency, and output rows using fixed-width helpers and text/tabwriter while keeping --json unchanged."
+    },
+    {
       "id": "FBT-STD-000",
       "title": "Capture lineage standard export backlog",
       "priority": "P0",

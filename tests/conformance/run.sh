@@ -52,12 +52,13 @@ printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redac
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case.txt"
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
 "$FBT_BIN" artifact show case_summaries --project-dir "$happy" >"$tmpdir/artifact-show.txt"
-grep -q "Semantic descriptor:" "$tmpdir/artifact-show.txt"
+grep -q "Semantic descriptor  " "$tmpdir/artifact-show.txt"
 test -f "$happy/.fbt/state/policy_decisions.json"
 grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case-again.txt"
-grep -q "selected: 1  run: 0  skipped: 1  blocked: 0" "$tmpdir/build-case-again.txt"
+grep -q "selected  1" "$tmpdir/build-case-again.txt"
+grep -q "skipped   1" "$tmpdir/build-case-again.txt"
 
 "$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
 test -f "$happy/target/artifacts/support/weekly_insights.md"
