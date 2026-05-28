@@ -38,7 +38,7 @@ var primaryCommands = []commandHelp{
 	{"init", "Create a project"},
 	{"doctor", "Check project and runner readiness"},
 	{"plan", "Preview run, skip, and blocked transforms"},
-	{"build", "Run selected transforms and commit artifacts"},
+	{"build", "Build selected artifacts and write receipts"},
 	{"artifact", "Inspect artifact paths, versions, and lineage"},
 	{"diff", "Compare artifact versions"},
 	{"export", "Write standard lineage or trace records"},

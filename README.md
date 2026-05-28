@@ -29,6 +29,10 @@ sources + instructions + runner -> artifact + build receipt
 - `build receipt` is fbt's local record of the exact inputs, runner, output
   version, checks, and lineage.
 
+`build` is deliberate: fbt treats generated files as build outputs. `plan`
+previews changes; `build` produces selected artifacts, commits immutable
+versions, runs checks, and writes the local receipt. The runner is external.
+
 Use fbt when a generated file must be reproducible and explainable. Do not use
 it as a chat UI, CMS, ticket system, hosted knowledge base, scheduler, approval
 workflow, or LLM provider.
@@ -149,9 +153,9 @@ The commands are checkpoints, not a script to memorize:
    fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
    ```
 
-The short version: `plan` is for deciding, `build` is for generating, `artifact`
-is for inspection, `diff` is for comparison, and `export` is for standard
-lineage/telemetry handoff.
+The short version: `plan` is for deciding, `build` is for producing artifacts
+and receipts, `artifact` is for inspection, `diff` is for comparison, and
+`export` is for standard lineage/telemetry handoff.
 
 This example uses a real runner, so `build` requires the configured runner and
 credentials. The quickstart below uses demo runners and works offline.

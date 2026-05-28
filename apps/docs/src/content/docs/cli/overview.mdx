@@ -12,14 +12,18 @@ The `fbt` CLI is the main interface for local projects.
 | `fbt init` | Create a project from a template |
 | `fbt doctor` | Check project readiness and runner setup |
 | `fbt plan` | Show what will run, skip, or block |
-| `fbt build` | Execute selected transforms |
+| `fbt build` | Build selected artifacts and write receipts |
 | `fbt diff` | Compare artifact versions |
 | `fbt artifact` | Inspect paths, versions, and explanations |
 | `fbt export` | Export standard lineage and trace data |
 
-Parsing, state writes, evals, and runner diagnostics happen inside these
-commands. The public surface stays small so daily operation is a short loop
-instead of a toolbox of debug subcommands.
+`build` is the execution command because fbt treats generated files as build
+outputs. It calls the configured runner, commits artifact versions, runs checks,
+and writes the local receipt. `plan` previews the same decision path without
+writing state.
+
+The public surface stays small so daily operation is a short loop instead of a
+toolbox of debug subcommands.
 
 ## Global flags
 

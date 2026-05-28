@@ -7,8 +7,8 @@ Use fbt when the important work already lives in files and you need a
 repeatable way to turn those files into versioned artifacts.
 
 fbt v0.1.0 does not try to be the model, OCR tool, document converter, or
-agent runtime. It gives those tools a project graph, a runner protocol, local
-state, artifact versions, eval results, lineage, and standard exports.
+agent runtime. It gives generated files a build receipt: the selected sources,
+runner, output version, checks, local state, lineage, and standard exports.
 
 The proof in these docs is the command transcript and the generated files. fbt
 does not publish a custom quickstart graph UI; when you need graph
@@ -20,7 +20,7 @@ visualization, export OpenLineage or OTel records into standard tools.
 |---|---|---|
 | Prove the local control-plane loop | `fbt init knowledge_ops --template support` | A runnable support project with demo LLM and agent runners. |
 | See what will happen before running it | `fbt doctor`, `fbt plan` | Readiness checks plus run or blocked reasons. |
-| Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts` and an immutable copy in `.fbt/artifacts`. |
+| Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts`, an immutable copy in `.fbt/artifacts`, and a local receipt in `.fbt/state`. |
 | Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and policy state. |
 | Send lineage to existing tools | `fbt export openlineage` | OpenLineage RunEvent NDJSON for Marquez and OpenMetadata ingestion paths. |
 | Send execution telemetry to trace tools | `fbt export otel` | OTLP/JSON spans for OpenTelemetry-compatible trace backends. |

@@ -59,7 +59,7 @@ Preview whether fbt will run, skip, or block before a runner is called.
 fbt build --project-dir <example> --select <transform>
 ```
 
-Generate the artifact and store a versioned receipt.
+Build the artifact and store a versioned receipt.
 
 ```sh
 fbt artifact show <artifact> --project-dir <example>

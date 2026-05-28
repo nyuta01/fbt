@@ -2119,7 +2119,7 @@
       "id": "FBT-UNIX-015",
       "title": "Converge value narrative on the build receipt",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-014"
@@ -2137,13 +2137,13 @@
         "docs_site_build": true,
         "make_verify": true
       },
-      "notes": "Make the product value read as one sentence everywhere: fbt gives generated files a build receipt that shows what changed, what ran, what version was produced, and how lineage can be exported. Keep runner, eval, policy, and standard-export details subordinate to that mental model."
+      "notes": "Converges README, usage guide, CLI reference, design doc, docs site, and examples on the build-receipt model. Keeps `build` as the execution command because fbt treats generated files as build outputs: selected artifacts plus immutable versions, checks, local state, and standard-exportable lineage."
     },
     {
       "id": "FBT-UNIX-016",
       "title": "Clarify or remove plan side effects",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-013"

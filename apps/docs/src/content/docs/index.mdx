@@ -21,8 +21,9 @@ import FeatureGrid from "../../components/FeatureGrid.astro";
 
 `fbt` is a file build tool for operational knowledge work. It turns logs,
 tickets, Markdown, spreadsheets, PDFs, prompts, rubrics, and generated manuals
-into an inspectable local project with a manifest, build plan, immutable
-artifact versions, eval results, and lineage.
+into versioned artifacts with a local build receipt: what changed, what ran,
+which version was produced, which checks passed, and where lineage can be
+exported.
 
 The core stays small. It does not contain OCR, document conversion, LLM
 providers, or agent runtimes. Those live behind external runners.
@@ -66,7 +67,7 @@ fbt init knowledge_ops --template support
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 
-# 3. Build artifacts and export lineage.
+# 3. Build artifacts, write receipts, and export lineage.
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt export openlineage --project-dir knowledge_ops --output target/lineage/openlineage.ndjson

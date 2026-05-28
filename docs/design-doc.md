@@ -81,6 +81,10 @@ generated artifact should be used.
 `fbt` should do one thing well: build versioned filesystem artifacts from
 declared source files through external runners.
 
+`build` is the primary execution verb for that reason. It means "produce the
+declared artifact outputs and record their receipt," not merely "run the
+configured worker."
+
 ### Local First
 
 The base tool is a CLI and local state directory. It has no daemon, scheduler,
@@ -146,7 +150,8 @@ Planning is read-only: it does not write fbt state or start runners.
 ### Build
 
 Invoke the runner, stage output candidates, enforce boundaries, run evals,
-commit artifact versions, and update local state.
+commit artifact versions, and update local state. Build is the only normal
+command that writes artifact receipts.
 
 ### Inspect And Export
 

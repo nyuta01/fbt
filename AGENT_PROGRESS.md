@@ -28,10 +28,10 @@ The primary command surface is now centered on:
 - `fbt export otel`
 
 The public CLI no longer exposes `parse`, `eval`, `docs`, `state`, or `runner`
-subcommands. Parsing, evals, state writes, and runner diagnostics happen inside
-`doctor`, `plan`, and `build`. CLI argument handling is strict: unknown flags,
-extra arguments, and selectors that match no transforms fail instead of being
-ignored.
+subcommands. `doctor` handles readiness diagnostics, `plan` previews without
+writes, and `build` handles runner execution, evals, state writes, and artifact
+receipts. CLI argument handling is strict: unknown flags, extra arguments, and
+selectors that match no transforms fail instead of being ignored.
 
 Docs and examples are aligned with the simpler model:
 
@@ -40,6 +40,10 @@ source files + instructions + external runner
   -> generated artifact
   -> versioned build receipt, evals, lineage, and standard exports
 ```
+
+`build` is intentionally the execution verb: fbt treats generated files as
+build outputs, while external runners own the actual transformation logic.
+`plan` is read-only; `build` writes artifact versions and local receipts.
 
 The checked-in examples cover:
 
@@ -74,16 +78,14 @@ conformance, product conformance, and distribution smoke checks.
 
 1. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
    source-of-truth specs.
-2. Run `FBT-UNIX-015` to converge README/docs/examples on the build-receipt
-   value narrative.
-3. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-4. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-5. Improve source-window ergonomics and artifact explanations without turning
+4. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-6. Keep graph, trace, and catalog visualization on standard-compatible exports
+5. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-7. Add CLI surface only when backed by a spec and verification.
+6. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

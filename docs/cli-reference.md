@@ -132,11 +132,16 @@ blocked transform.knowledge_ops.weekly_support_insights
 
 ### 5.3 fbt build
 
-Run the lifecycle.
+Produce selected artifacts and write the build receipt.
 
 ```sh
 fbt build [--select EXPR]
 ```
+
+The command is called `build` because fbt treats generated files as build
+outputs: it resolves declared inputs, calls the configured external runner,
+validates output candidates, commits immutable artifact versions, records eval
+results, and writes local state for later inspection and export.
 
 Lifecycle:
 
@@ -257,8 +262,8 @@ The main user-facing path stays small:
 - `fbt diff`
 - `fbt export`
 
-`parse`, `eval`, `docs`, `state`, and `runner` are not public commands. Their
-former responsibilities happen inside `doctor`, `plan`, `build`, and
-`artifact`. `fbt` does not own human review or approval workflows; use Git,
-PRs, CI, release tooling, or catalog systems around the files and standard
-exports that fbt produces.
+`parse`, `eval`, `docs`, `state`, and `runner` are not public commands. Project
+readiness belongs to `doctor`, preview belongs to read-only `plan`, state writes
+belong to `build`, and inspection belongs to `artifact`. `fbt` does not own
+human review or approval workflows; use Git, PRs, CI, release tooling, or
+catalog systems around the files and standard exports that fbt produces.

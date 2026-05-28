@@ -7,7 +7,7 @@ It demonstrates:
 
 - source files becoming versioned artifacts
 - downstream work waiting for a current upstream artifact
-- generated project docs
+- local build receipts for generated files
 - OpenLineage and OTel export files
 
 It does not demonstrate model quality. The runners are deterministic demo

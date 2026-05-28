@@ -27,7 +27,9 @@ clean artifacts, missing upstream artifacts, and skipped work.
 ## Build
 
 `fbt build` invokes external runners, validates output candidates, records run
-results, commits artifact versions, and runs configured evals.
+results, commits artifact versions, runs configured evals, and writes the build
+receipt. The command name follows build-tool semantics: declared file inputs
+produce declared file outputs.
 
 ## Inspect
 

@@ -10,6 +10,10 @@ It is useful when the important object is a file or directory: support tickets,
 incident logs, Markdown notes, Word documents, Excel files, prompt assets,
 rubrics, generated runbooks, reports, and manuals.
 
+The core promise is simple: fbt gives generated files a build receipt. `plan`
+shows what would change, and `build` produces the selected artifacts, commits
+immutable versions, runs checks, and records the receipt.
+
 ## What fbt owns
 
 fbt owns the inspectable control layer:
@@ -17,11 +21,11 @@ fbt owns the inspectable control layer:
 - project configuration and resource parsing
 - dependency graph and selectors
 - dirty/clean planning
-- runner discovery and protocol execution
+- runner discovery and build-time protocol execution
 - immutable artifact versions
 - eval state
 - lineage and standard exports
-- static project documentation
+- standard lineage and trace handoff
 
 ## What fbt does not own
 

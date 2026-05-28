@@ -14,6 +14,11 @@ fbt owns the local build receipt: manifest, run results, artifact versions,
 eval results, policy decisions, and standard exports. It does not own human
 review, approval, publishing, or scheduling workflows.
 
+`build` is the execution command because fbt treats generated files as build
+outputs. The command does more than call a runner: it produces selected
+artifacts, records immutable versions, runs checks, and writes the receipt that
+later inspection and exports use.
+
 ## 2. Offline Quickstart
 
 ```sh
@@ -46,7 +51,7 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 |---|---|
 | `fbt doctor` | Check project config, local state, and runner readiness. |
 | `fbt plan` | Show run/skip/block decisions before a runner is called; does not write state. |
-| `fbt build` | Invoke external runners, run checks, commit artifacts, and write state. |
+| `fbt build` | Produce selected artifacts, run checks, commit versions, and write receipts. |
 | `fbt diff --against previous` | Compare generated versions. |
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |
 | `fbt artifact history` | List versions for a logical artifact. |
@@ -54,9 +59,9 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt export openlineage` | Export artifact lineage as OpenLineage NDJSON. |
 | `fbt export otel` | Export local execution traces as OTLP/JSON. |
 
-The public CLI is intentionally small. Parsing, runner diagnostics, evals, and
-state writes happen inside `doctor`, `plan`, and `build` instead of requiring
-separate user-facing commands.
+The public CLI is intentionally small. `doctor` owns readiness diagnostics,
+`plan` previews without writes, and `build` owns runner execution, evals, state
+writes, and artifact receipts.
 
 CLI safety rule: unknown flags, extra arguments, and selectors that match no
 transforms fail instead of being ignored.
