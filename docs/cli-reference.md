@@ -292,10 +292,18 @@ Inspect artifacts and versions.
 
 ```sh
 fbt artifact ls
+fbt artifact path TARGET
 fbt artifact show TARGET
 fbt artifact explain TARGET
+fbt artifact history TARGET
 fbt artifact versions TARGET
 ```
+
+`artifact path` prints the logical output path and immutable storage path for
+the current or selected version. `artifact show` includes artifact version,
+logical path, immutable storage path, digest, runner/model, approval state,
+confidence, and generating run. `artifact history` lists prior versions for the
+same logical artifact.
 
 ### 5.12 fbt runner
 

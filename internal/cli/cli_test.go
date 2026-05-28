@@ -190,6 +190,9 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 		ArtifactID:  "artifact.knowledge_ops.case_summaries",
 		LogicalPath: "target/artifacts/support/case_summaries/",
 		StoragePath: "target/artifacts/support/case_summaries/",
+		GeneratedBy: "transform_run.run_1",
+		Confidence:  "structural",
+		CommittedAt: "2026-05-28T00:00:00Z",
 		Descriptor: artifact.Descriptor{
 			MediaType:    "text/markdown; charset=utf-8",
 			Digest:       "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -217,6 +220,33 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 	if !strings.Contains(artifactOut.String(), version.VersionID) {
 		t.Fatalf("unexpected artifact versions output: %q", artifactOut.String())
+	}
+
+	var pathOut bytes.Buffer
+	var pathErr bytes.Buffer
+	if code := Run([]string{"artifact", "path", "case_summaries", "--project-dir", root}, &pathOut, &pathErr); code != 0 {
+		t.Fatalf("artifact path failed: code=%d stderr=%q", code, pathErr.String())
+	}
+	if !strings.Contains(pathOut.String(), "logical_path: target/artifacts/support/case_summaries/") || !strings.Contains(pathOut.String(), "storage_path: target/artifacts/support/case_summaries/") {
+		t.Fatalf("unexpected artifact path output: %q", pathOut.String())
+	}
+
+	var showOut bytes.Buffer
+	var showErr bytes.Buffer
+	if code := Run([]string{"artifact", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
+		t.Fatalf("artifact show failed: code=%d stderr=%q", code, showErr.String())
+	}
+	if !strings.Contains(showOut.String(), "generated_by: transform_run.run_1") || !strings.Contains(showOut.String(), "runner: runner.knowledge_ops.openai.responses") {
+		t.Fatalf("unexpected artifact show output: %q", showOut.String())
+	}
+
+	var historyOut bytes.Buffer
+	var historyErr bytes.Buffer
+	if code := Run([]string{"artifact", "history", "case_summaries", "--project-dir", root}, &historyOut, &historyErr); code != 0 {
+		t.Fatalf("artifact history failed: code=%d stderr=%q", code, historyErr.String())
+	}
+	if !strings.Contains(historyOut.String(), version.VersionID) || !strings.Contains(historyOut.String(), "committed_at: 2026-05-28T00:00:00Z") {
+		t.Fatalf("unexpected artifact history output: %q", historyOut.String())
 	}
 }
 

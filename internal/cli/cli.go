@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/nyuta01/fbt/internal/approval"
+	"github.com/nyuta01/fbt/internal/artifact"
 	buildmgr "github.com/nyuta01/fbt/internal/build"
 	diffmgr "github.com/nyuta01/fbt/internal/diff"
 	docsgen "github.com/nyuta01/fbt/internal/docs"
@@ -825,13 +826,25 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			fmt.Fprintln(stderr, "Error: artifact show requires a target")
 			return 2
 		}
-		return printArtifactVersion("artifact show", versions, args[1], false, opts.JSON, stdout, stderr)
+		return runArtifactShow(ctx, versions, args[1], opts.JSON, stdout, stderr)
 	case "explain":
 		if len(args) < 2 {
 			fmt.Fprintln(stderr, "Error: artifact explain requires a target")
 			return 2
 		}
 		return runArtifactExplain(ctx, args[1], opts.JSON, stdout, stderr)
+	case "path":
+		if len(args) < 2 {
+			fmt.Fprintln(stderr, "Error: artifact path requires a target")
+			return 2
+		}
+		return runArtifactPath(ctx, versions, args[1], opts.JSON, stdout, stderr)
+	case "history":
+		if len(args) < 2 {
+			fmt.Fprintln(stderr, "Error: artifact history requires a target")
+			return 2
+		}
+		return runArtifactHistory(ctx, versions, args[1], opts.JSON, stdout, stderr)
 	case "versions":
 		if len(args) < 2 {
 			fmt.Fprintln(stderr, "Error: artifact versions requires a target")
@@ -842,6 +855,114 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 		fmt.Fprintf(stderr, "unknown artifact command: %s\n", subcommand)
 		return 2
 	}
+}
+
+type artifactRecord struct {
+	VersionID           string              `json:"version_id,omitempty"`
+	ArtifactID          string              `json:"artifact_id"`
+	LogicalPath         string              `json:"logical_path,omitempty"`
+	StoragePath         string              `json:"storage_path,omitempty"`
+	AbsoluteLogicalPath string              `json:"absolute_logical_path,omitempty"`
+	AbsoluteStoragePath string              `json:"absolute_storage_path,omitempty"`
+	Digest              string              `json:"digest,omitempty"`
+	ArtifactType        string              `json:"artifact_type,omitempty"`
+	GeneratedBy         string              `json:"generated_by,omitempty"`
+	Runner              string              `json:"runner,omitempty"`
+	Model               map[string]any      `json:"model,omitempty"`
+	Confidence          string              `json:"confidence,omitempty"`
+	ApprovalStatus      string              `json:"approval_status,omitempty"`
+	Current             bool                `json:"current"`
+	CreatedAt           string              `json:"created_at,omitempty"`
+	CommittedAt         string              `json:"committed_at,omitempty"`
+	Materials           []state.Material    `json:"materials,omitempty"`
+	SemanticDescriptor  map[string]any      `json:"semantic_descriptor,omitempty"`
+	Descriptor          artifact.Descriptor `json:"descriptor,omitempty"`
+}
+
+func runArtifactPath(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	snapshot, approvals, err := readArtifactState(ctx.Store)
+	if err != nil {
+		printError("artifact path", err, stderr, jsonOutput)
+		return 5
+	}
+	if version, ok := findVersion(snapshot, versions, target); ok {
+		record := buildArtifactRecord(ctx, snapshot, approvals, version)
+		if jsonOutput {
+			writeJSON(stdout, map[string]any{"command": "artifact path", "status": "success", "artifact": record})
+			return 0
+		}
+		printArtifactPath(stdout, record)
+		return 0
+	}
+	record, ok := declaredArtifactRecord(ctx, target)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
+		return 2
+	}
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "artifact path", "status": "success", "artifact": record})
+		return 0
+	}
+	printArtifactPath(stdout, record)
+	return 0
+}
+
+func runArtifactShow(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	snapshot, approvals, err := readArtifactState(ctx.Store)
+	if err != nil {
+		printError("artifact show", err, stderr, jsonOutput)
+		return 5
+	}
+	version, ok := findVersion(snapshot, versions, target)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
+		return 2
+	}
+	record := buildArtifactRecord(ctx, snapshot, approvals, version)
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "artifact show", "status": "success", "artifact": record})
+		return 0
+	}
+	printArtifactRecord(stdout, record)
+	return 0
+}
+
+func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	snapshot, approvals, err := readArtifactState(ctx.Store)
+	if err != nil {
+		printError("artifact history", err, stderr, jsonOutput)
+		return 5
+	}
+	matches := matchingVersions(versions, target)
+	if len(matches) == 0 {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
+		return 2
+	}
+	sortArtifactVersions(matches)
+	records := make([]artifactRecord, 0, len(matches))
+	for _, version := range matches {
+		records = append(records, buildArtifactRecord(ctx, snapshot, approvals, version))
+	}
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "artifact history", "status": "success", "artifacts": records})
+		return 0
+	}
+	for _, record := range records {
+		printArtifactRecord(stdout, record)
+	}
+	return 0
+}
+
+func readArtifactState(store state.Store) (state.Snapshot, state.ApprovalIndex, error) {
+	snapshot, err := store.ReadState()
+	if err != nil {
+		return state.Snapshot{}, state.ApprovalIndex{}, err
+	}
+	approvals, err := store.ReadApprovals()
+	if err != nil {
+		return state.Snapshot{}, state.ApprovalIndex{}, err
+	}
+	return snapshot, approvals, nil
 }
 
 type artifactExplanation struct {
@@ -952,6 +1073,150 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 	return selected, nil
 }
 
+func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, approvals state.ApprovalIndex, version state.ArtifactVersion) artifactRecord {
+	record := artifactRecord{
+		VersionID:           version.VersionID,
+		ArtifactID:          version.ArtifactID,
+		LogicalPath:         version.LogicalPath,
+		StoragePath:         version.StoragePath,
+		Digest:              version.Descriptor.Digest,
+		ArtifactType:        version.Descriptor.ArtifactType,
+		GeneratedBy:         version.GeneratedBy,
+		Confidence:          version.Confidence,
+		ApprovalStatus:      version.ApprovalStatus,
+		CreatedAt:           version.CreatedAt,
+		CommittedAt:         version.CommittedAt,
+		Materials:           version.Materials,
+		SemanticDescriptor:  version.SemanticDescriptor,
+		Descriptor:          version.Descriptor,
+		AbsoluteLogicalPath: absoluteProjectPath(ctx.ParseResult.ProjectDir, version.LogicalPath),
+		AbsoluteStoragePath: absoluteProjectPath(ctx.ParseResult.ProjectDir, version.StoragePath),
+	}
+	if pointer, ok := snapshot.CurrentArtifacts[version.ArtifactID]; ok && pointer.CurrentVersionID == version.VersionID {
+		record.Current = true
+		if pointer.Confidence != "" {
+			record.Confidence = pointer.Confidence
+		}
+		if pointer.ApprovalStatus != "" {
+			record.ApprovalStatus = pointer.ApprovalStatus
+		}
+	}
+	if approvalRecord, ok := approvals.Approvals[version.VersionID]; ok && approvalRecord.Status != "" {
+		record.ApprovalStatus = approvalRecord.Status
+	}
+	if transform, ok := producerTransform(ctx.Manifest, version.ArtifactID); ok {
+		record.Runner = transform.Runner
+		record.Model = transform.Model
+	}
+	return record
+}
+
+func declaredArtifactRecord(ctx projectContext, target string) (artifactRecord, bool) {
+	artifactID, ok := resolveArtifactID(ctx.Manifest, target)
+	if !ok {
+		return artifactRecord{}, false
+	}
+	record := artifactRecord{ArtifactID: artifactID}
+	if transform, ok := producerTransform(ctx.Manifest, artifactID); ok {
+		record.Runner = transform.Runner
+		record.Model = transform.Model
+		for _, output := range transform.Outputs {
+			if output.UniqueID == artifactID {
+				record.LogicalPath = output.Name
+				if artifactResource, ok := ctx.Manifest.Artifacts[artifactID]; ok && artifactResource.LogicalPath != "" {
+					record.LogicalPath = artifactResource.LogicalPath
+				}
+				record.AbsoluteLogicalPath = absoluteProjectPath(ctx.ParseResult.ProjectDir, record.LogicalPath)
+				break
+			}
+		}
+	}
+	if artifactResource, ok := ctx.Manifest.Artifacts[artifactID]; ok && record.LogicalPath == "" {
+		record.LogicalPath = artifactResource.LogicalPath
+		record.AbsoluteLogicalPath = absoluteProjectPath(ctx.ParseResult.ProjectDir, record.LogicalPath)
+	}
+	return record, true
+}
+
+func absoluteProjectPath(root, path string) string {
+	if path == "" || filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Join(root, filepath.FromSlash(path))
+}
+
+func printArtifactPath(stdout io.Writer, record artifactRecord) {
+	fmt.Fprintf(stdout, "logical_path: %s\n", record.LogicalPath)
+	if record.StoragePath != "" {
+		fmt.Fprintf(stdout, "storage_path: %s\n", record.StoragePath)
+	}
+	if record.VersionID != "" {
+		fmt.Fprintf(stdout, "version: %s\n", record.VersionID)
+	} else {
+		fmt.Fprintln(stdout, "version: none")
+	}
+}
+
+func printArtifactRecord(stdout io.Writer, record artifactRecord) {
+	if record.VersionID != "" {
+		fmt.Fprintf(stdout, "%s\n", record.VersionID)
+	} else {
+		fmt.Fprintf(stdout, "%s\n", record.ArtifactID)
+	}
+	fmt.Fprintf(stdout, "  artifact: %s\n", record.ArtifactID)
+	if record.Current {
+		fmt.Fprintln(stdout, "  current: true")
+	}
+	if record.Digest != "" {
+		fmt.Fprintf(stdout, "  digest: %s\n", record.Digest)
+	}
+	if record.ArtifactType != "" {
+		fmt.Fprintf(stdout, "  type: %s\n", record.ArtifactType)
+	}
+	if record.LogicalPath != "" {
+		fmt.Fprintf(stdout, "  logical_path: %s\n", record.LogicalPath)
+	}
+	if record.StoragePath != "" {
+		fmt.Fprintf(stdout, "  storage_path: %s\n", record.StoragePath)
+	}
+	if record.Runner != "" {
+		fmt.Fprintf(stdout, "  runner: %s\n", record.Runner)
+	}
+	if len(record.Model) > 0 {
+		fmt.Fprintf(stdout, "  model: %s\n", compactJSON(record.Model))
+	}
+	if record.GeneratedBy != "" {
+		fmt.Fprintf(stdout, "  generated_by: %s\n", record.GeneratedBy)
+	}
+	if record.Confidence != "" {
+		fmt.Fprintf(stdout, "  confidence: %s\n", record.Confidence)
+	}
+	if record.ApprovalStatus != "" {
+		fmt.Fprintf(stdout, "  approval_status: %s\n", record.ApprovalStatus)
+	}
+	if record.CommittedAt != "" {
+		fmt.Fprintf(stdout, "  committed_at: %s\n", record.CommittedAt)
+	}
+	for _, material := range record.Materials {
+		fmt.Fprintf(stdout, "  material: %s", material.ResourceID)
+		if material.ArtifactVersion != "" {
+			fmt.Fprintf(stdout, " %s", material.ArtifactVersion)
+		}
+		if material.Digest != "" {
+			fmt.Fprintf(stdout, " %s", material.Digest)
+		}
+		fmt.Fprintln(stdout)
+	}
+}
+
+func compactJSON(value any) string {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	return string(data)
+}
+
 func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation) {
 	fmt.Fprintf(stdout, "%s\n", explanation.ArtifactID)
 	fmt.Fprintf(stdout, "  transform: %s\n", explanation.TransformID)
@@ -1037,6 +1302,23 @@ func matchingVersions(index state.ArtifactVersionsIndex, target string) []state.
 		return matches[i].VersionID < matches[j].VersionID
 	})
 	return matches
+}
+
+func sortArtifactVersions(versions []state.ArtifactVersion) {
+	sort.Slice(versions, func(i, j int) bool {
+		left := versions[i].CommittedAt
+		if left == "" {
+			left = versions[i].CreatedAt
+		}
+		right := versions[j].CommittedAt
+		if right == "" {
+			right = versions[j].CreatedAt
+		}
+		if left != right {
+			return left < right
+		}
+		return versions[i].VersionID < versions[j].VersionID
+	})
 }
 
 func findVersion(snapshot state.Snapshot, index state.ArtifactVersionsIndex, target string) (state.ArtifactVersion, bool) {

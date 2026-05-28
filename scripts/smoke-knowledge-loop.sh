@@ -22,6 +22,14 @@ go run ./cmd/fbt build --project-dir "$project" --select case_summaries >"$tmpdi
 grep -q "committed:" "$tmpdir/build-case.txt"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
 
+go run ./cmd/fbt artifact path case_summaries --project-dir "$project" >"$tmpdir/artifact-path.txt"
+grep -q "logical_path: target/artifacts/support/case_summaries" "$tmpdir/artifact-path.txt"
+grep -q "storage_path: .fbt/artifacts/" "$tmpdir/artifact-path.txt"
+go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
+grep -q "generated_by: transform_run.run_" "$tmpdir/artifact-show.txt"
+go run ./cmd/fbt artifact history case_summaries --project-dir "$project" >"$tmpdir/artifact-history.txt"
+grep -q "artifact_version.knowledge_ops.case_summaries" "$tmpdir/artifact-history.txt"
+
 go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
 grep -q "status: pending" "$tmpdir/review-status.txt"
 

@@ -700,26 +700,27 @@
       "id": "FBT-UX-003",
       "title": "Add artifact path, show, and history commands",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-004",
         "FBT-MVP-006",
         "FBT-MVP-015"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-003-plan.md",
       "paths": [
         "internal/cli",
         "internal/state",
         "internal/artifact",
+        "scripts/smoke-knowledge-loop.sh",
         "docs/cli-reference.md",
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "e2e_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "e2e_smoke": true,
+        "validate_docs": true
       },
       "notes": "Make generated output easy to find and inspect with commands such as `fbt artifact path <id>`, `fbt artifact show <id>`, and `fbt artifact history <id>`. Include artifact version, logical path, immutable storage path, runner/model, approval state, and generating run. User research analogs: DVC list/get/artifacts get --show-url, MLflow artifacts list/download, and Dagster asset catalog metadata."
     },

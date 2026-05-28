@@ -348,6 +348,14 @@ This shows the producing transform, inputs, current version if present,
 previous run evidence, blocked or dirty reasons, and the same `next:` commands
 shown in the plan.
 
+To locate generated output and immutable stored content:
+
+```sh
+fbt artifact path case_summaries
+fbt artifact show case_summaries
+fbt artifact history case_summaries
+```
+
 ## 9. Build
 
 ```sh
