@@ -45,6 +45,10 @@ source files + instructions + external runner
 build outputs, while external runners own the actual transformation logic.
 `plan` is read-only; `build` writes artifact versions and local receipts.
 
+The single-purpose boundary is explicit in README, specs, and docs site: fbt
+composes with dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers,
+provider SDKs, artifact stores, and catalogs, but does not replace them.
+
 The checked-in examples cover:
 
 - `examples/knowledge_ops`: offline support knowledge-loop fixture using demo
@@ -76,16 +80,20 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
+1. Run `FBT-UNIX-002` to make artifact explanation the primary UX.
+2. Run `FBT-UNIX-003` to define stable source-window operations.
+3. Run `FBT-UNIX-004` to add existing-tool runner examples for remark and
+   Pandoc.
+4. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
    source-of-truth specs.
-2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+5. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+6. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-4. Improve source-window ergonomics and artifact explanations without turning
+7. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-5. Keep graph, trace, and catalog visualization on standard-compatible exports
+8. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-6. Add CLI surface only when backed by a spec and verification.
+9. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

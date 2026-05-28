@@ -14,6 +14,12 @@ fbt owns the local build receipt: manifest, run results, artifact versions,
 eval results, policy decisions, and standard exports. It does not own human
 review, approval, publishing, or scheduling workflows.
 
+Keep adjacent tools in their lane: use dbt or DataChain for data transforms,
+DVC or artifact stores for data and blob versioning, Snakemake for workflow
+orchestration, remark or Pandoc for document processing, and fbt for the
+generated file artifact receipt that connects inputs, runner, version, checks,
+and lineage.
+
 `build` is the execution command because fbt treats generated files as build
 outputs. The command does more than call a runner: it produces selected
 artifacts, records immutable versions, runs checks, and writes the receipt that

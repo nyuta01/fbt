@@ -15,6 +15,11 @@ lineage, eval results, policy decisions, confidence, and state.
 transforms, LLM calls, agent runtimes, scheduling, publishing, and human review
 workflows belong outside core.
 
+It is also not a replacement for existing transformation and data tools. dbt,
+DataChain, DVC, Snakemake, remark, Pandoc, provider SDKs, schedulers, artifact
+stores, and metadata catalogs remain separate systems that fbt can compose with
+through files, runners, or standard exports.
+
 ## 2. Scope
 
 In scope:
@@ -41,6 +46,8 @@ Out of scope:
 - Distributed execution as a base requirement
 - Cloud account requirement
 - Human review, approval, assignment, notification, or release workflow
+- Warehouse transformation, dataset versioning, document conversion, Markdown
+  AST processing, workflow scheduling, artifact storage, or catalog hosting
 
 ## 3. Project Layout
 

@@ -25,6 +25,11 @@ The core does not implement document conversion, OCR, LLM providers, agent
 runtimes, scheduling, publishing, or human approval workflow. Those belong in
 external runners or adjacent tools.
 
+That boundary is product-defining. fbt does not replace dbt, DataChain, DVC,
+Snakemake, remark, Pandoc, provider SDKs, schedulers, artifact stores, or
+catalogs. It composes with them by treating their files or outputs as sources,
+runners, artifacts, or standard export destinations.
+
 ## 2. Problem
 
 Operational work produces important files continuously:
@@ -69,6 +74,8 @@ model provider, workflow orchestrator, review app, or knowledge base.
    workflow.
 6. A custom lineage visualization backend.
 7. Full reproducibility guarantees for stochastic model outputs.
+8. Reimplementing dbt, DataChain, DVC, Snakemake, remark, Pandoc, provider
+   SDKs, schedulers, artifact stores, or metadata catalogs.
 
 Human approval is intentionally outside fbt. Use Git, PRs, CI, release tooling,
 ticketing systems, or knowledge-base publishing workflows to decide whether a

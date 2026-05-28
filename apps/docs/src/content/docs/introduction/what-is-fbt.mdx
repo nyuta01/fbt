@@ -25,7 +25,6 @@ fbt owns the inspectable control layer:
 - immutable artifact versions
 - eval state
 - lineage and standard exports
-- standard lineage and trace handoff
 
 ## What fbt does not own
 
@@ -39,9 +38,18 @@ fbt core intentionally does not implement:
 - hosted scheduling
 - metadata databases
 - human approval workflow
+- warehouse transformation
+- dataset or blob versioning systems
+- Markdown AST processing
+- artifact storage
+- metadata catalogs
 
 Those capabilities belong in external runners or optional packages. The base
 tool remains a local binary that can operate on the filesystem.
+
+Use fbt with tools such as dbt, DataChain, DVC, Snakemake, remark, and Pandoc;
+do not use fbt as a replacement for them. fbt records the generated artifact
+lifecycle around those tools.
 
 ## When to use it
 

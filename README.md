@@ -33,9 +33,9 @@ sources + instructions + runner -> artifact + build receipt
 previews changes; `build` produces selected artifacts, commits immutable
 versions, runs checks, and writes the local receipt. The runner is external.
 
-Use fbt when a generated file must be reproducible and explainable. Do not use
-it as a chat UI, CMS, ticket system, hosted knowledge base, scheduler, approval
-workflow, or LLM provider.
+Use fbt when a generated file must be reproducible and explainable. It is not a
+chat UI, CMS, scheduler, LLM provider, artifact store, or replacement for dbt,
+DataChain, DVC, Snakemake, remark, or Pandoc.
 
 ## What It Solves
 
