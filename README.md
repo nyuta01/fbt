@@ -63,6 +63,7 @@ Specifications:
 | [Schema and Versioning Spec](docs/schema-and-versioning-spec.md) | Config versioning, schema compatibility, artifact type registry, descriptor rules |
 | [Runner Discovery Spec](docs/runner-discovery-spec.md) | Runner resolution, plugin manifest shape, and diagnostics |
 | [Security and Conformance Spec](docs/security-and-conformance-spec.md) | Core security model and MVP conformance scenarios |
+| [Standard Export Spec](docs/standard-export-spec.md) | OpenLineage, OpenTelemetry, OpenMetadata, and visualization export contracts |
 
 Research:
 

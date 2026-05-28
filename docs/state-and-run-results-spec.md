@@ -16,6 +16,11 @@ This spec defines:
 - Which objects approvals, evals, and policies attach to
 - The minimum boundary for future external state backends
 
+Standard export mappings for this state are defined in
+[Standard Export Spec](standard-export-spec.md). The native state files remain
+the source of truth; OpenLineage, OpenTelemetry, and OpenMetadata integrations
+are export views over these files.
+
 ## 2. State Directory
 
 ```text

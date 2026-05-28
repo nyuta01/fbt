@@ -833,15 +833,16 @@
       "id": "FBT-STD-001",
       "title": "Define standard lineage, telemetry, and visualization export contracts",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-015",
         "FBT-UX-002",
         "FBT-UX-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-001-plan.md",
       "paths": [
+        "docs/standard-export-spec.md",
         "docs/manifest-spec.md",
         "docs/state-and-run-results-spec.md",
         "docs/runner-protocol-spec.md",
@@ -849,8 +850,8 @@
         "docs/usage-guide.md"
       ],
       "verification": {
-        "validate_docs": false,
-        "conformance": false
+        "validate_docs": true,
+        "conformance": true
       },
       "notes": "Specify the command surface and stable mapping for exporting fbt-native lineage without replacing internal schemas. Cover artifact/artifact_version, transform, transform_run, source, eval, approval, policy, runner/model metadata, redaction rules, JSON output shape, and the explicit non-goal of building a custom lineage graph UI when standard-compatible viewers can consume the export."
     },

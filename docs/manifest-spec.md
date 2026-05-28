@@ -464,4 +464,5 @@ The manifest is the definition graph plus state overlay snapshot. Runtime histor
 2. How much approval state to include beyond `approval_status`.
 3. Whether runner capabilities are parse-time manifest snapshots or runtime run-results records.
 4. Whether rendered transform asset fingerprints belong in planning metadata or only run results.
-5. How much OpenLineage / PROV / in-toto export mapping to reflect in manifest schema.
+5. Whether PROV or in-toto exports should be added after the OpenLineage and
+   OpenTelemetry contracts in [Standard Export Spec](standard-export-spec.md).

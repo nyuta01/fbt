@@ -558,6 +558,7 @@ descriptors. Remaining decisions:
 
 1. Whether `v1` keeps JSONL framing or adds LSP-style `Content-Length` framing.
 2. How precise cost estimates must be as protocol contract.
-3. How far agent tool-call logs should align with OpenTelemetry spans and GenAI semantic conventions.
+3. Which optional runner events should become OpenTelemetry span events beyond
+   the baseline export contract in [Standard Export Spec](standard-export-spec.md).
 4. When to introduce remote runner transport and how it stays compatible with stdio.
 5. Whether approval, eval, and storage providers use the same JSON-RPC protocol family or separate provider protocols.

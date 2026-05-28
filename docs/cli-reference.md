@@ -339,6 +339,21 @@ Reserved for project diagnostics. MVP returns a not-implemented error; use
 fbt debug
 ```
 
+### 5.14 Standard exports
+
+The standard export command surface is reserved by
+[Standard Export Spec](standard-export-spec.md):
+
+```sh
+fbt export openlineage [--output PATH]
+fbt export otel [--output PATH]
+fbt export openmetadata [--output PATH]
+```
+
+These commands are not implemented in the MVP CLI. The contract keeps fbt-native
+state as the source of truth and delegates lineage, trace, and catalog
+visualization to standard-compatible tools.
+
 ## 6. JSON Output
 
 With `--json`, stdout contains machine-readable JSON and human logs go to stderr.

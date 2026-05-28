@@ -450,6 +450,11 @@ Docs show:
 - Eval results
 - Review approvals
 
+Standard lineage and telemetry exports are planned as explicit export commands,
+not as replacements for local state. See
+[Standard Export Spec](standard-export-spec.md) for the OpenLineage,
+OpenTelemetry, OpenMetadata, and visualization contract.
+
 ## 14. Day-2 Operation
 
 The operating loop:
