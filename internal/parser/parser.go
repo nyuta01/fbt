@@ -10,6 +10,7 @@ import (
 
 	"github.com/nyuta01/fbt/internal/config"
 	"github.com/nyuta01/fbt/internal/project"
+	"github.com/nyuta01/fbt/internal/security"
 	"gopkg.in/yaml.v3"
 )
 
@@ -524,22 +525,7 @@ func HasErrors(diagnostics []Diagnostic) bool {
 }
 
 func cleanProjectRelativePath(path string) (string, error) {
-	if path == "" {
-		return "", fmt.Errorf("path is empty")
-	}
-	if filepath.IsAbs(path) {
-		return "", fmt.Errorf("absolute paths are not allowed")
-	}
-	clean := filepath.Clean(path)
-	if clean == "." {
-		return "", fmt.Errorf("path is empty")
-	}
-	for _, part := range strings.Split(clean, string(filepath.Separator)) {
-		if part == ".." {
-			return "", fmt.Errorf("path must not contain .. segments")
-		}
-	}
-	return clean, nil
+	return security.CleanProjectRelative(path)
 }
 
 func projectAbs(root, path string) (string, error) {
@@ -559,11 +545,7 @@ func cleanPath(path string) string {
 }
 
 func isWithin(parent, child string) bool {
-	rel, err := filepath.Rel(parent, child)
-	if err != nil {
-		return false
-	}
-	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)))
+	return security.IsWithin(parent, child)
 }
 
 func isRemoteURI(path string) bool {

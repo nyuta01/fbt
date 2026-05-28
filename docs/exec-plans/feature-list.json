@@ -172,13 +172,13 @@
       "id": "FBT-MVP-003",
       "title": "Implement artifact descriptors and safe path handling",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-H-002",
         "FBT-H-004"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-003-plan.md",
       "paths": [
         "internal/artifact",
         "internal/security",
@@ -186,10 +186,11 @@
         "docs/security-and-conformance-spec.md"
       ],
       "verification": {
-        "go_test": false,
+        "go_test": true,
         "conformance": false
       },
-      "notes": "Compute file and canonical directory SHA-256 descriptors, map artifact aliases, generate artifact_version IDs, normalize paths, and reject path/symlink escapes."
+      "verification_override_reason": "No conformance target exists yet; descriptor and path-safety behavior is covered by Go tests until the suite is added in FBT-MVP-016.",
+      "notes": "Computes file and canonical directory SHA-256 descriptors, maps artifact aliases, generates artifact_version IDs, normalizes project-relative paths, and rejects path/symlink escapes."
     },
     {
       "id": "FBT-MVP-004",
