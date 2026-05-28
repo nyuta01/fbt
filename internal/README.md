@@ -4,7 +4,8 @@
 packages should be added only when backed by an accepted spec or execution-plan
 task. The current codebase includes the CLI scaffold, project/config/resource
 parser baseline, manifest resource generation, selector helpers, artifact
-descriptor computation, and reusable path-safety helpers.
+descriptor computation, reusable path-safety helpers, and a local filesystem
+state store.
 
 Planned package boundaries:
 

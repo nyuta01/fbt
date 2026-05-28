@@ -196,22 +196,23 @@
       "id": "FBT-MVP-004",
       "title": "Implement local state store, locks, and atomic writes",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-002",
         "FBT-MVP-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-004-plan.md",
       "paths": [
         "internal/state",
         "docs/state-and-run-results-spec.md"
       ],
       "verification": {
-        "go_test": false,
+        "go_test": true,
         "conformance": false
       },
-      "notes": "Write manifest/state/run_results/artifact_versions/approvals/evaluation_results/policy_decisions with schema metadata, lock files, append-only run results, and atomic snapshot updates."
+      "verification_override_reason": "No conformance target exists yet; local state locking and atomic write behavior is covered by Go tests until the suite is added in FBT-MVP-016.",
+      "notes": "Writes manifest/state/run_results/artifact_versions/approvals/evaluation_results/policy_decisions with schema metadata, lock files, append-only run results, idempotent artifact version writes, and atomic snapshot updates."
     },
     {
       "id": "FBT-MVP-005",
