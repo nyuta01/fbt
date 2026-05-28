@@ -1736,6 +1736,271 @@
       "notes": "Rewrites the README example command sequence as user checkpoints: preview, generate, inspect, approve, and explain, with each step stating what fbt does and what the user gets. Adds actual plan output and shortened offline quickstart lifecycle output."
     },
     {
+      "id": "FBT-UNIX-000",
+      "title": "Register Unix-style product backlog",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-008",
+        "FBT-EXAMPLES-UX-002",
+        "FBT-RUNNER-008"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-000-plan.md",
+      "paths": [
+        "docs/exec-plans/active/FBT-UNIX-000-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Registers a Unix-philosophy backlog that keeps fbt focused on one job: external tools generate files while fbt records, explains, reviews, versions, and exports the artifact lifecycle."
+    },
+    {
+      "id": "FBT-UNIX-001",
+      "title": "Clarify the single-purpose product boundary",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "README.md",
+        "docs/design-doc.md",
+        "docs/spec.md",
+        "docs/usage-guide.md",
+        "apps/docs/src/content/docs/introduction/what-is-fbt.mdx"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "docs_site_build": true,
+        "make_verify": true
+      },
+      "notes": "Make the Unix-style boundary explicit: fbt is the build receipt, review, version, and lineage control plane for generated file artifacts; it does not replace dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers, provider SDKs, or artifact stores."
+    },
+    {
+      "id": "FBT-UNIX-002",
+      "title": "Make artifact explanation the primary UX",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000",
+        "FBT-UX-006"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/planner",
+        "docs/cli-reference.md",
+        "README.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Elevate `fbt artifact explain` and related `plan`/`review show` output so a user can answer why an artifact exists, what changed, which inputs caused rebuilds, what is blocked, and what exact next command to run."
+    },
+    {
+      "id": "FBT-UNIX-003",
+      "title": "Define stable source-window operations",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000",
+        "FBT-EXAMPLES-UX-002"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/usage-guide.md",
+        "docs/project-config-spec.md",
+        "examples/daily_qa_ops",
+        "examples/README.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "practical_examples_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Document and guard the recommended daily-operation patterns: stable inbox/latest paths, external scheduler responsibility, cumulative versus new-items-only source windows, partitioning by date/service/customer outside core, and source-readiness checks that do not become a scheduler."
+    },
+    {
+      "id": "FBT-UNIX-004",
+      "title": "Add existing-tool runner examples for remark and Pandoc",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000",
+        "FBT-RUNNER-005"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples",
+        "docs/runner-authoring-guide.md",
+        "docs/usage-guide.md",
+        "scripts/smoke-practical-examples.sh"
+      ],
+      "verification": {
+        "practical_examples_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Show fbt composing with existing Unix-style document tools instead of reimplementing them: a remark example for Markdown lint/format/TOC and a Pandoc example for document conversion with fbt-owned artifact receipts, review, and lineage."
+    },
+    {
+      "id": "FBT-UNIX-005",
+      "title": "Add dbt and DataChain interoperability examples",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000",
+        "FBT-RUNNER-005"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples",
+        "docs/usage-guide.md",
+        "docs/examples"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "practical_examples_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Demonstrate fbt as a complement to dbt and DataChain: consume their outputs or run-result artifacts as sources, then produce reviewed knowledge artifacts without trying to become a warehouse transformer or typed dataset database."
+    },
+    {
+      "id": "FBT-UNIX-006",
+      "title": "Provide a minimal runner adapter scaffold",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-005",
+        "FBT-RUNNER-007",
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/runner-authoring-guide.md",
+        "docs/runner-adapters.md",
+        "tests/runner-conformance",
+        "examples"
+      ],
+      "verification": {
+        "runner_conformance": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Make it easy to wrap one external executable as one fbt runner: provide a tiny adapter skeleton, conformance command, packaging guidance, and examples that keep provider SDKs and tool dependencies outside core."
+    },
+    {
+      "id": "FBT-UNIX-007",
+      "title": "Complete composable graph selection UX",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-002",
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/graph",
+        "internal/planner",
+        "internal/cli",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Finish the reserved graph-selection behavior that users expect from CLI DAG tools: ancestor and descendant expansion for `+target`, `target+`, `+target+`, plus clear error messages when a selector is ambiguous."
+    },
+    {
+      "id": "FBT-UNIX-008",
+      "title": "Define explicit rebuild and cache controls",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-005",
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/planner",
+        "internal/build",
+        "internal/cli",
+        "docs/cli-reference.md",
+        "docs/spec.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Add a small, explicit model for when fbt skips, rebuilds, or forces regeneration. Evaluate `--force` or `--full-refresh` style controls without adding a general-purpose cache engine."
+    },
+    {
+      "id": "FBT-UNIX-009",
+      "title": "Keep semantic evaluation outside core",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-012",
+        "FBT-RUNNER-005",
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/spec.md",
+        "docs/runner-protocol-spec.md",
+        "docs/usage-guide.md",
+        "examples"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "go_test": true,
+        "make_verify": true
+      },
+      "notes": "Clarify and demonstrate the boundary between deterministic core evals and semantic/LLM-judge eval runners. Core should record and gate results, while external runners perform model-based judging."
+    },
+    {
+      "id": "FBT-UNIX-010",
+      "title": "Use standard visualization backends in examples",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STD-005",
+        "FBT-UNIX-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/standard-visualization-guide.md",
+        "apps/docs/src/content/docs/standards",
+        "README.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "docs_site_build": true,
+        "make_verify": true
+      },
+      "notes": "Replace invented product diagrams with reproducible recipes and screenshots from standard backends such as Marquez, Jaeger, Tempo, Grafana, or OpenMetadata ingestion paths when visualization is needed."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

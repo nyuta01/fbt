@@ -191,6 +191,13 @@ states what `plan`, `build`, `review`, and `artifact history` give the user.
 user checkpoints, with each step stating what the command is for, what fbt
 does, and what the user gets from running it. The README includes actual
 `plan` output and shortened offline quickstart lifecycle output.
+`FBT-UNIX-000` is complete: the structured backlog now includes `FBT-UNIX-*`
+tasks that keep fbt aligned with a Unix-style "do one thing well" product
+boundary. The new tasks prioritize clarifying fbt as a build
+receipt/review/lineage control plane, improving artifact explanation UX,
+documenting stable source-window operation, and adding runner examples for
+existing tools such as remark, Pandoc, dbt, and DataChain instead of
+reimplementing those domains in core.
 
 ## Verification
 
@@ -217,15 +224,17 @@ This runs:
 
 ## Next Steps
 
-1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
+1. Execute `FBT-UNIX-001` through `FBT-UNIX-004` before adding broader product
+   surface area.
+2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+3. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
-3. Keep fbt-native state as the internal source of truth and delegate graph,
+4. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.
-4. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+5. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-5. Keep `make verify` green after each bounded task.
+6. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 
