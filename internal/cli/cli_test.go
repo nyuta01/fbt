@@ -35,8 +35,27 @@ func TestRunVersion(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d", code)
 	}
-	if got := strings.TrimSpace(stdout.String()); got != "fbt "+Version {
+	if got := strings.TrimSpace(stdout.String()); got != "fbt 0.1.0" {
 		t.Fatalf("unexpected version output: %q", got)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("expected empty stderr, got %q", stderr.String())
+	}
+}
+
+func TestRunVersionJSON(t *testing.T) {
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := Run([]string{"version", "--json"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d", code)
+	}
+	if !strings.Contains(stdout.String(), `"version": "0.1.0"`) {
+		t.Fatalf("unexpected version JSON: %q", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"commit": "unknown"`) {
+		t.Fatalf("unexpected version JSON: %q", stdout.String())
 	}
 	if stderr.Len() != 0 {
 		t.Fatalf("expected empty stderr, got %q", stderr.String())

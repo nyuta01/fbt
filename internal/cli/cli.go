@@ -23,9 +23,8 @@ import (
 	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/state"
 	"github.com/nyuta01/fbt/internal/templates"
+	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
-
-const Version = "0.0.0-dev"
 
 var implementedCommands = []string{
 	"parse",
@@ -71,7 +70,18 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 
 	switch commandArgs[0] {
 	case "version", "--version", "-v":
-		fmt.Fprintf(stdout, "fbt %s\n", Version)
+		info := versioninfo.Current()
+		if opts.JSON {
+			writeJSON(stdout, map[string]any{
+				"command":    "version",
+				"status":     "success",
+				"version":    info.Version,
+				"commit":     info.Commit,
+				"build_date": info.BuildDate,
+			})
+			return 0
+		}
+		fmt.Fprintf(stdout, "fbt %s\n", info.Version)
 		return 0
 	case "init":
 		return runInit(opts, commandArgs[1:], stdout, stderr)
@@ -435,7 +445,7 @@ func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
 		ProjectDir: opts.ProjectDir,
 		StateDir:   opts.StateDir,
 		Select:     opts.Select,
-		FBTVersion: Version,
+		FBTVersion: versioninfo.Version,
 	})
 	if err != nil {
 		printError("build", err, stderr, opts.JSON)
@@ -604,7 +614,7 @@ func loadProject(opts options) (projectContext, error) {
 	if err != nil {
 		return projectContext{ParseResult: parseResult}, err
 	}
-	m, err := manifest.Build(parseResult, manifest.BuildOptions{FBTVersion: Version})
+	m, err := manifest.Build(parseResult, manifest.BuildOptions{FBTVersion: versioninfo.Version})
 	if err != nil {
 		return projectContext{ParseResult: parseResult}, err
 	}

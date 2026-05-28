@@ -12,14 +12,15 @@ lifecycle, deterministic evals, review approvals, confidence promotion, init
 templates, a runnable local knowledge-loop example, artifact diffing, and
 static Markdown docs generation.
 The current verification gate also includes deterministic conformance and local
-release-binary smoke checks.
+release-binary smoke checks. The MVP source default is `0.1.0`, and release
+builds can stamp version, commit, and build date metadata into the CLI.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
-readiness, user-facing workflow hardening, and post-MVP depth: version stamping,
+readiness, user-facing workflow hardening, and post-MVP depth:
 repository/release publication, MVP-ready docs, actionable blocked/skipped
 guidance, artifact explain/path/show/history, safer review inspection,
 project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
@@ -50,8 +51,8 @@ This runs:
 ## Next Steps
 
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Start `FBT-UX-001` if prioritizing day-to-day user workflow polish, or
-   `FBT-REL-001` if prioritizing release publication readiness.
+2. Start `FBT-REL-002` if maintainer release credentials and signing setup are
+   available; otherwise continue with the next unblocked P0 agent task.
 3. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
    keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where possible.

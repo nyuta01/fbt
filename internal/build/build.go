@@ -21,6 +21,7 @@ import (
 	"github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/security"
 	"github.com/nyuta01/fbt/internal/state"
+	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
 
 type Options struct {
@@ -55,7 +56,7 @@ type outputCandidate struct {
 
 func RunBuild(ctx context.Context, options Options) (Result, error) {
 	if options.FBTVersion == "" {
-		options.FBTVersion = "0.0.0-dev"
+		options.FBTVersion = versioninfo.Version
 	}
 	parseResult, err := parser.ParseProject(parser.Options{ProjectDir: options.ProjectDir})
 	if err != nil {
@@ -156,7 +157,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 	}
 	defer client.Close()
 	if _, err := client.Initialize(ctx, protocol.InitializeParams{
-		Core: map[string]string{"name": "fbt-core", "version": "0.0.0-dev"},
+		Core: map[string]string{"name": "fbt-core", "version": m.Metadata.FBTVersion},
 		Protocol: map[string]any{
 			"versions": []string{"0.1"},
 			"framing":  "jsonl",

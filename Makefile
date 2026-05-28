@@ -10,6 +10,10 @@ MAKEFLAGS += --no-print-directory
 GO ?= go
 GOFMT ?= gofmt
 PYTHON ?= python3
+VERSION ?= 0.1.0
+COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
+BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
+FBT_LDFLAGS := -X github.com/nyuta01/fbt/internal/version.Version=$(VERSION) -X github.com/nyuta01/fbt/internal/version.Commit=$(COMMIT) -X github.com/nyuta01/fbt/internal/version.BuildDate=$(BUILD_DATE)
 
 .DEFAULT_GOAL := help
 
@@ -48,7 +52,7 @@ go-test: ## Run Go unit tests.
 .PHONY: build
 build: ## Build the fbt CLI into bin/fbt.
 	@mkdir -p bin
-	@$(GO) build -o bin/fbt ./cmd/fbt
+	@$(GO) build -ldflags "$(FBT_LDFLAGS)" -o bin/fbt ./cmd/fbt
 
 .PHONY: cli-smoke
 cli-smoke: ## Run a deterministic fbt CLI smoke.
@@ -64,7 +68,7 @@ conformance: build ## Run deterministic MVP conformance scenarios.
 
 .PHONY: dist-check
 dist-check: ## Build and smoke the local release binary.
-	@bash scripts/dist-check.sh
+	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
 verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke conformance dist-check ## Run the current single verification gate.

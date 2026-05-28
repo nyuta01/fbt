@@ -13,6 +13,7 @@ import (
 
 	"github.com/nyuta01/fbt/internal/config"
 	"github.com/nyuta01/fbt/internal/parser"
+	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
 
 const SchemaVersion = "https://schemas.fbt.dev/fbt/manifest/v1.json"
@@ -182,7 +183,7 @@ type ResourceSummary struct {
 
 func Build(parseResult parser.Result, options BuildOptions) (Manifest, error) {
 	if options.FBTVersion == "" {
-		options.FBTVersion = "0.0.0-dev"
+		options.FBTVersion = versioninfo.Version
 	}
 	if options.GeneratedAt.IsZero() {
 		options.GeneratedAt = time.Now().UTC()

@@ -20,6 +20,15 @@ fbt review approve case_summaries
 fbt docs generate
 ```
 
+Release version contract:
+
+- source builds default to `0.1.0`
+- release builds may stamp `VERSION`, `COMMIT`, and `BUILD_DATE`
+- `fbt version` prints only `fbt VERSION` for stable shell use
+- `fbt version --json` includes `version`, `commit`, and `build_date`
+- `make build VERSION=... COMMIT=... BUILD_DATE=...` and
+  `scripts/dist-check.sh` use the same linker-stamped metadata contract
+
 ## 2. Global Flags
 
 | Flag | Meaning |
@@ -73,6 +82,33 @@ fbt run --select +weekly_support_insights
 ```
 
 ## 5. Commands
+
+### 5.0 fbt version
+
+Print the CLI version.
+
+```sh
+fbt version
+fbt version --json
+```
+
+Human output is intentionally compact:
+
+```text
+fbt 0.1.0
+```
+
+JSON output includes release metadata stamped at build time:
+
+```json
+{
+  "command": "version",
+  "status": "success",
+  "version": "0.1.0",
+  "commit": "unknown",
+  "build_date": "unknown"
+}
+```
 
 ### 5.1 fbt init
 

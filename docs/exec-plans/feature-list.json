@@ -526,23 +526,26 @@
       "id": "FBT-REL-001",
       "title": "Stamp MVP version and release metadata",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-REL-001-plan.md",
       "paths": [
         "internal/cli",
-        "cmd/fbt",
+        "internal/build",
+        "internal/manifest",
+        "internal/version",
         "Makefile",
+        "scripts/smoke-cli.sh",
         "scripts/dist-check.sh",
         "docs/cli-reference.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "dist_check": false
+        "go_test": true,
+        "cli_smoke": true,
+        "dist_check": true
       },
       "notes": "Replace 0.0.0-dev with the first MVP versioning flow, support build-time version injection, update dist version checks, and document the release version contract."
     },

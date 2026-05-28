@@ -12,7 +12,7 @@ grep -q "file build tool" "$tmpdir/help.txt"
 grep -q "Planned commands" "$tmpdir/help.txt"
 
 go run ./cmd/fbt version >"$tmpdir/version.txt"
-grep -q "^fbt 0.0.0-dev$" "$tmpdir/version.txt"
+grep -q "^fbt 0.1.0$" "$tmpdir/version.txt"
 
 project="$tmpdir/project"
 mkdir -p "$project"/{bin,sources,transforms,assets,policies,evals,prompts,data/support/tickets}
