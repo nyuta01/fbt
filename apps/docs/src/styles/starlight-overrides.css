@@ -192,3 +192,22 @@ header.header {
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
+.fbt-figure {
+  margin: 1.5rem 0 2rem;
+}
+
+.fbt-figure img {
+  background: var(--fbt-surface);
+  border: 1px solid var(--fbt-border);
+  border-radius: 8px;
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.fbt-figure figcaption {
+  color: var(--fbt-ink-muted);
+  font-size: 0.86rem;
+  margin-top: 0.55rem;
+}

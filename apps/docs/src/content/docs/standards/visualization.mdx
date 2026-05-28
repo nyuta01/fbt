@@ -5,6 +5,11 @@ description: Use standard lineage and trace tools instead of a custom graph UI.
 
 fbt deliberately avoids owning a custom lineage UI in core.
 
+<figure className="fbt-figure">
+  <img src="/fbt/graphs/standard-exports.svg" alt="fbt local state exports OpenLineage NDJSON to lineage tools and OTLP JSON to trace tools." />
+  <figcaption>fbt keeps `.fbt/state` as the local source of truth and emits standard records for existing visualization systems.</figcaption>
+</figure>
+
 Use standard outputs:
 
 | Need | fbt output | Common target |
@@ -16,3 +21,24 @@ Use standard outputs:
 
 This keeps fbt local-first while still letting teams use existing observability
 and catalog systems.
+
+The quickstart creates both files:
+
+```sh
+fbt export openlineage \
+  --project-dir knowledge_ops \
+  --output knowledge_ops/target/lineage/openlineage.ndjson
+fbt export otel \
+  --project-dir knowledge_ops \
+  --output knowledge_ops/target/telemetry/otel.json
+```
+
+Expected local output:
+
+```text
+OpenLineage events written to knowledge_ops/target/lineage/openlineage.ndjson
+Events: 2
+
+OTel traces written to knowledge_ops/target/telemetry/otel.json
+Spans: 4
+```

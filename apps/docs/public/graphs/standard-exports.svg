@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">fbt standard export paths</title>
+  <desc id="desc">fbt keeps local state as the source of truth and exports OpenLineage events and OTLP JSON traces to standard visualization tools.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .bg { fill: #f8fafc; }
+      .box { fill: #ffffff; stroke: #d8dee9; stroke-width: 2; rx: 12; }
+      .local { fill: #eff6ff; stroke: #2563eb; }
+      .standard { fill: #ecfdf5; stroke: #0f766e; }
+      .tool { fill: #fffbeb; stroke: #b7791f; }
+      .title { fill: #0f172a; font: 700 28px Inter, Arial, sans-serif; }
+      .label { fill: #0f172a; font: 700 18px Inter, Arial, sans-serif; }
+      .small { fill: #475569; font: 500 13px Inter, Arial, sans-serif; }
+      .mono { fill: #334155; font: 500 13px "JetBrains Mono", Menlo, monospace; }
+      .arrow { stroke: #0f766e; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="560"/>
+  <text class="title" x="60" y="62">Visualize fbt through standards, not a custom graph server</text>
+
+  <rect class="box local" x="70" y="150" width="250" height="130"/>
+  <text class="label" x="104" y="190">fbt local state</text>
+  <text class="mono" x="104" y="220">.fbt/state</text>
+  <text class="small" x="104" y="248">manifest, runs, versions</text>
+
+  <rect class="box standard" x="468" y="90" width="270" height="120"/>
+  <text class="label" x="502" y="130">OpenLineage NDJSON</text>
+  <text class="mono" x="502" y="160">fbt export openlineage</text>
+  <text class="small" x="502" y="186">datasets, jobs, fbt facets</text>
+
+  <rect class="box standard" x="468" y="300" width="270" height="120"/>
+  <text class="label" x="502" y="340">OTLP/JSON traces</text>
+  <text class="mono" x="502" y="370">fbt export otel</text>
+  <text class="small" x="502" y="396">spans, events, usage attrs</text>
+
+  <rect class="box tool" x="872" y="70" width="250" height="160"/>
+  <text class="label" x="906" y="112">Lineage tools</text>
+  <text class="small" x="906" y="142">Marquez</text>
+  <text class="small" x="906" y="168">OpenMetadata ingestion</text>
+  <text class="small" x="906" y="194">catalog lineage views</text>
+
+  <rect class="box tool" x="872" y="296" width="250" height="160"/>
+  <text class="label" x="906" y="338">Trace tools</text>
+  <text class="small" x="906" y="368">Jaeger</text>
+  <text class="small" x="906" y="394">Tempo and Grafana</text>
+  <text class="small" x="906" y="420">OpenTelemetry collectors</text>
+
+  <path class="arrow" d="M 320 206 C 380 174 408 150 460 150"/>
+  <path class="arrow" d="M 320 224 C 384 276 410 360 460 360"/>
+  <path class="arrow" d="M 738 150 L 864 150"/>
+  <path class="arrow" d="M 738 360 L 864 376"/>
+</svg>

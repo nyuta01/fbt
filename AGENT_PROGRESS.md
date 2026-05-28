@@ -14,8 +14,13 @@ knowledge-loop example, practical external-runner manual-generation examples,
 artifact diffing, static Markdown docs generation, and a Folio-inspired
 Astro/Starlight docs site under `apps/docs`.
 The top-level README now follows the Folio public-entry structure with centered
-identity, badges, surfaces, docs, quickstart, install, examples, lineage,
-release, and harness sections.
+identity, badges, implemented workflow summary, actual quickstart output,
+generated files, standards export output, install, examples, lineage, release,
+and harness sections.
+The docs site now includes a "What you can do today" page, an expanded
+quickstart with captured command output and artifact excerpts, practical
+manual-generation guidance, and graph images for the support knowledge loop and
+standard export path.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -70,6 +75,10 @@ checked-in knowledge example now use `demo.llm`, `demo.agent`, and
 `bin/fbt-demo-*-runner`, CLI init prints a demo-runner replacement hint, and
 the docs describe the shortest path from demo wrappers to external runner
 commands.
+Generated demo runner wrappers now change to the source checkout before
+invoking bundled Go runner packages, and the knowledge-loop smoke builds a
+test binary and runs the quickstart from a temporary directory with `doctor` so
+the documented flow is guarded from repo-root assumptions.
 `FBT-RUNNER-007` is complete: optional provider and CLI-agent adapter package
 conventions are documented in `docs/runner-adapters.md`, including package
 names, project config, plugin manifests, PATH behavior, credential boundaries,
@@ -113,6 +122,10 @@ rewriting existing local history. `FBT-REL-003` is complete: the signed
 `https://github.com/nyuta01/fbt/releases/tag/v0.1.0`, cross-platform CLI
 archives and `SHA256SUMS` are attached, and the GitHub `verify` workflow passed
 for both `main` and `v0.1.0`.
+`FBT-DOCS-UX-001` is complete: README, source usage docs, and the docs site are
+grounded in a captured support quickstart with exact commands, expected output,
+generated artifact paths, artifact excerpts, lineage/export commands, and graph
+images.
 
 ## Verification
 

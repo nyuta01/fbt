@@ -28,8 +28,16 @@ func TestCreateSupportProjectParses(t *testing.T) {
 	if !strings.Contains(string(config), "name: demo.llm") || !strings.Contains(string(config), "command: bin/fbt-demo-llm-runner") {
 		t.Fatalf("support template should use visibly demo runner names:\n%s", string(config))
 	}
-	if _, err := os.Stat(filepath.Join(root, "bin", "fbt-demo-agent-runner")); err != nil {
+	wrapper := filepath.Join(root, "bin", "fbt-demo-agent-runner")
+	if _, err := os.Stat(wrapper); err != nil {
 		t.Fatalf("expected demo agent runner wrapper: %v", err)
+	}
+	wrapperContent, err := os.ReadFile(wrapper)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(wrapperContent), "cd ") || !strings.Contains(string(wrapperContent), "go run './runners/agent'") {
+		t.Fatalf("runner wrapper should cd to the source checkout before go run:\n%s", string(wrapperContent))
 	}
 }
 

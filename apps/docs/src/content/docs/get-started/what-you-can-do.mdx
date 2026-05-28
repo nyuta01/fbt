@@ -1,0 +1,70 @@
+---
+title: What you can do today
+description: Concrete workflows implemented by fbt v0.1.0.
+---
+
+Use fbt when the important work already lives in files and you need a
+repeatable way to turn those files into reviewed artifacts.
+
+fbt v0.1.0 does not try to be the model, OCR tool, document converter, or
+agent runtime. It gives those tools a project graph, a runner protocol, local
+state, artifact versions, approvals, lineage, and standard exports.
+
+<figure className="fbt-figure">
+  <img src="/fbt/graphs/support-knowledge-loop.svg" alt="Support tickets flow into case summaries, review approval, weekly insights, local state, and standard exports." />
+  <figcaption>The support template runs this loop offline with deterministic demo runners. The same graph can call external runners when the runner command is replaced.</figcaption>
+</figure>
+
+## Implemented Workflows
+
+| You want to | Use | Result |
+|---|---|---|
+| Prove the local control-plane loop | `fbt init knowledge_ops --template support` | A runnable support project with demo LLM and agent runners. |
+| See what will happen before running it | `fbt parse`, `fbt doctor`, `fbt plan` | Manifest, readiness checks, and run or blocked reasons. |
+| Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts` and an immutable copy in `.fbt/artifacts`. |
+| Require human approval before downstream work | `fbt review show`, `fbt review approve` | Approval bound to the exact `artifact_version`, then downstream transforms can run. |
+| Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and review state. |
+| Generate local project documentation | `fbt docs generate` | `target/docs/index.md` summarizing transforms, artifacts, evals, approvals, and policy decisions. |
+| Send lineage to existing tools | `fbt export openlineage` | OpenLineage RunEvent NDJSON for Marquez and OpenMetadata ingestion paths. |
+| Send execution telemetry to trace tools | `fbt export otel` | OTLP/JSON spans for OpenTelemetry-compatible trace backends. |
+| Use a real model or CLI agent | Replace the configured runner command | The same build graph calls OpenAI, Claude Code, Codex, Gemini, or another compatible adapter. |
+
+## What It Does Not Do
+
+| fbt does not | What to use instead |
+|---|---|
+| Call every model provider from core | External runners that speak the fbt stdio JSON-RPC protocol. |
+| Convert PDFs, Word files, or images by itself | A document conversion or OCR runner. |
+| Host a lineage graph UI | OpenLineage, OpenMetadata, Jaeger, Tempo, Grafana, or generated local docs. |
+| Replace your knowledge base or ticket system | Export or copy the reviewed artifact into that system after approval. |
+| Make stochastic model output fully reproducible | Keep immutable artifact versions, descriptors, evals, reviews, and lineage for audit. |
+
+## The Fastest Real Check
+
+Run the quickstart and inspect these files:
+
+```sh
+fbt init knowledge_ops --template support
+fbt build --project-dir knowledge_ops --select case_summaries
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt build --project-dir knowledge_ops --select weekly_support_insights
+```
+
+The run writes:
+
+```text
+knowledge_ops/target/artifacts/support/case_summaries/index.md
+knowledge_ops/target/artifacts/support/weekly_insights.md
+knowledge_ops/.fbt/state/run_results.jsonl
+knowledge_ops/.fbt/state/artifact_versions.json
+```
+
+Then export standard records:
+
+```sh
+mkdir -p knowledge_ops/target/lineage knowledge_ops/target/telemetry
+fbt export openlineage --project-dir knowledge_ops --output knowledge_ops/target/lineage/openlineage.ndjson
+fbt export otel --project-dir knowledge_ops --output knowledge_ops/target/telemetry/otel.json
+```
+
+The quickstart page shows the exact command output from this flow.

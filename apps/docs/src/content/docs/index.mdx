@@ -7,11 +7,11 @@ hero:
   title: fbt
   tagline: Local-first control plane for transforming filesystem artifacts with external runners, lineage, evals, and review gates.
   actions:
-    - text: Get started
-      link: /fbt/get-started/quickstart/
+    - text: What can it do?
+      link: /fbt/get-started/what-you-can-do/
       variant: primary
-    - text: Read the concepts
-      link: /fbt/introduction/concepts/
+    - text: Run the quickstart
+      link: /fbt/get-started/quickstart/
       variant: secondary
 ---
 
@@ -27,19 +27,24 @@ artifact versions, review gates, and lineage.
 The core stays small. It does not contain OCR, document conversion, LLM
 providers, or agent runtimes. Those live behind external runners.
 
+<figure className="fbt-figure">
+  <img src="/fbt/graphs/support-knowledge-loop.svg" alt="A support knowledge loop showing sources, transforms, review gate, artifacts, local state, and standard exports." />
+  <figcaption>The support quickstart produces the artifacts, state, generated docs, OpenLineage events, and OTLP/JSON traces shown in this graph.</figcaption>
+</figure>
+
 <FeatureGrid
   items={[
     {
-      tag: "Core",
-      title: "Filesystem artifact graph",
-      body: "Sources, transforms, assets, policies, evals, and artifacts are parsed into a deterministic local graph.",
-      href: "/fbt/introduction/concepts/",
+      tag: "Start",
+      title: "What you can do today",
+      body: "See the implemented workflows, outputs, and current non-goals before reading the reference docs.",
+      href: "/fbt/get-started/what-you-can-do/",
     },
     {
-      tag: "Runners",
-      title: "Bring your own execution",
-      body: "Use demo runners, command runners, OpenAI, Claude Code, Codex, or any adapter that speaks the protocol.",
-      href: "/fbt/runners/external-runners/",
+      tag: "Run",
+      title: "Actual command output",
+      body: "Run the support loop and compare your output with the captured quickstart results.",
+      href: "/fbt/get-started/quickstart/",
     },
     {
       tag: "Trust",
@@ -74,6 +79,10 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt docs generate --project-dir knowledge_ops
 ```
 
+This creates `target/artifacts/support/case_summaries/index.md`,
+`target/artifacts/support/weekly_insights.md`, local state under `.fbt/state`,
+and generated project docs under `target/docs/index.md`.
+
 ## Architecture at a glance
 
 ```text
@@ -91,7 +100,7 @@ project/
 
 ## Where to next
 
-- New to fbt? Start with [concepts](/fbt/introduction/concepts/) and then run the [quickstart](/fbt/get-started/quickstart/).
+- New to fbt? Start with [what you can do today](/fbt/get-started/what-you-can-do/) and then run the [quickstart](/fbt/get-started/quickstart/).
 - Generating runbooks or manuals from logs? Use the [manual generation guide](/fbt/get-started/manual-generation/).
 - Wiring a real model or CLI agent? Read [external runners](/fbt/runners/external-runners/) and the [authoring contract](/fbt/runners/authoring-contract/).
 - Need lineage in standard tools? Start with [OpenLineage export](/fbt/standards/openlineage/) and [visualization](/fbt/standards/visualization/).

@@ -7,6 +7,27 @@ Last reviewed: 2026-05-28.
 
 No failures are currently active.
 
+## F-001 Demo quickstart assumed repository cwd
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-001`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-001-plan.md`
+
+### Observation
+
+Capturing the documented quickstart from a temporary directory revealed that
+generated demo runner wrappers invoked bundled Go runner packages without
+changing to the source checkout first. The docs claimed the quickstart worked
+from a normal user project path, but the wrapper only worked from the repository
+root.
+
+### Permanent fix
+
+Generated and checked-in demo wrappers now change to the source checkout before
+running bundled demo runner packages. The knowledge-loop smoke builds an fbt
+binary, runs the quickstart from a temporary directory, and includes `doctor`
+so repository-cwd assumptions fail in verification.
+
 ## Entry Template
 
 ```markdown

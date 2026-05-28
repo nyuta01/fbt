@@ -33,6 +33,60 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt docs generate --project-dir knowledge_ops
 ```
 
+The support quickstart is intentionally small, but it exercises the implemented
+control-plane loop:
+
+![Support knowledge loop](../apps/docs/public/graphs/support-knowledge-loop.svg)
+
+Captured result from the same flow on 2026-05-28, with long hashes shortened:
+
+```text
+Plan: 2 selected, 1 run, 0 skipped, 1 blocked
+run transform.knowledge_ops.case_summaries
+  reason: no previous successful run
+  reason: output missing
+blocked transform.knowledge_ops.weekly_support_insights
+  blocked: requires artifact.knowledge_ops.case_summaries current artifact
+  next: fbt build --select case_summaries
+
+Build: 1 selected, 1 run, 0 skipped, 0 blocked
+success transform.knowledge_ops.case_summaries
+  committed: artifact_version.knowledge_ops.case_summaries.sha256_a5b4...
+
+artifact.knowledge_ops.case_summaries
+  status: approved
+  confidence: reviewed
+
+success transform.knowledge_ops.weekly_support_insights
+  committed: artifact_version.knowledge_ops.weekly_support_insights.sha256_49f...
+```
+
+Files created by the run:
+
+```text
+target/artifacts/support/case_summaries/index.md
+target/artifacts/support/weekly_insights.md
+target/docs/index.md
+.fbt/state/run_results.jsonl
+.fbt/state/artifact_versions.json
+```
+
+Standard exports from the same local state:
+
+```sh
+fbt export openlineage --output target/lineage/openlineage.ndjson
+fbt export otel --output target/telemetry/otel.json
+```
+
+Expected export output:
+
+```text
+OpenLineage events written to target/lineage/openlineage.ndjson
+Events: 2
+OTel traces written to target/telemetry/otel.json
+Spans: 4
+```
+
 ## 2. Initialize a Project
 
 ```sh

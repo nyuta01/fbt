@@ -10,34 +10,100 @@ existing operational evidence:
 - customer inquiries and support replies to a support resolution manual
 - investigation notes and remediation notes to repeatable procedures
 
+In these examples, fbt owns the workflow and audit trail. The model call is
+performed by the configured external runner.
+
 ## Incident response runbook
 
 The source checkout includes a practical example:
 
 ```sh
+fbt parse --project-dir examples/incident_response_runbook
 fbt doctor --project-dir examples/incident_response_runbook
 fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
 ```
 
-To run it with the optional OpenAI runner, set `OPENAI_API_KEY` in your shell
-and build the artifact:
+Without credentials, `doctor` fails early and names the missing environment
+variable:
+
+```text
+Doctor: error
+ok PROJECT_CONFIG_OK: project config parsed
+error RUNNER_ENV_MISSING: runner env OPENAI_API_KEY is not set
+```
+
+With credentials, the same project calls the optional OpenAI runner:
 
 ```sh
 export OPENAI_API_KEY=...
 fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
+fbt review approve incident_response_runbook \
+  --project-dir examples/incident_response_runbook \
+  --comment "SRE lead approved"
 ```
+
+The artifact path is:
+
+```text
+examples/incident_response_runbook/target/artifacts/runbooks/incident_response_runbook.md
+```
+
+The runbook format is not implicit. It is declared in
+`examples/incident_response_runbook/assets/incident_runbook_format.md`, and
+the deterministic eval checks that the required sections exist before review.
 
 ## Support resolution manual
 
 ```sh
+fbt parse --project-dir examples/support_resolution_manual
 fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
-fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
 ```
 
-## Why this is not a mock
+Plan output before the first build:
+
+```text
+Parsed 13 resources
+Plan: 1 selected, 1 run, 0 skipped, 0 blocked
+run transform.support_resolution_manual.support_resolution_manual
+  reason: no previous successful run
+  reason: output missing
+```
+
+Build and approve:
+
+```sh
+fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
+fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
+fbt review approve support_resolution_manual \
+  --project-dir examples/support_resolution_manual \
+  --comment "Support lead approved"
+```
+
+The artifact path is:
+
+```text
+examples/support_resolution_manual/target/artifacts/support/support_resolution_manual.md
+```
+
+The required format is declared in
+`examples/support_resolution_manual/assets/support_resolution_manual_format.md`.
+
+## What Makes These Usable
 
 The examples include realistic source records, format assets, scoped policies,
 deterministic section evals, review gates, and external-runner wiring. The
 provider call is outside the default smoke tests because it requires a secret,
 but the workflow is shaped for real operational use.
+
+The most important files to inspect are:
+
+| File | Purpose |
+|---|---|
+| `sources/*.yml` | Declares the evidence files fbt may read. |
+| `transforms/*.yml` | Declares the output, model, runner, assets, evals, and review requirements. |
+| `assets/*_format.md` | Defines the required manual or runbook structure. |
+| `policies/*.yml` | Limits reads, writes, network, tools, cost, timeout, and review group. |
+| `evals/*.yml` | Checks required sections before approval. |
+| `target/artifacts/...` | Holds the generated official artifact. |

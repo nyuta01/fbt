@@ -22,6 +22,20 @@ Those capabilities live behind external runners. fbt core owns the project
 graph, planning, local state, artifact versions, evals, review gates, lineage,
 and standard exports.
 
+<p align="center">
+  <img src="apps/docs/public/graphs/support-knowledge-loop.svg" alt="Support tickets flow through fbt transforms, review, artifacts, local state, and standard exports." />
+</p>
+
+## What can you actually do today?
+
+- Turn local evidence files into generated Markdown artifacts through demo or
+  external protocol-compatible runners.
+- Plan, build, review, and gate downstream transforms by approved artifact
+  versions.
+- Inspect local lineage with `artifact path`, `artifact history`, and
+  `artifact explain`.
+- Generate project docs and export OpenLineage NDJSON plus OTLP/JSON traces.
+
 ```text
 project/
 ├── fs_project.yml        # project contract and paths
@@ -47,67 +61,80 @@ project/
 
 ## Documentation
 
-User-facing documentation lives in [`apps/docs/`](apps/docs/README.md).
+User-facing documentation lives in [`apps/docs/`](apps/docs/README.md) and is
+published at [nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).
 
-```bash
-cd apps/docs
-npm ci
-npm run dev      # -> http://127.0.0.1:4321/fbt
-```
-
-Canonical source docs:
-
-- [Usage guide](docs/usage-guide.md) - end-to-end local workflow
-- [Design doc](docs/design-doc.md) - product principles and architecture
-- [Core spec](docs/spec.md) - overall fbt semantics
-- [CLI reference](docs/cli-reference.md) - commands, flags, selectors, exits
-- [Project config spec](docs/project-config-spec.md) - `fs_project.yml` and resources
-- [Schema and versioning spec](docs/schema-and-versioning-spec.md) - config and artifact version rules
-- [Runner discovery spec](docs/runner-discovery-spec.md) - runner resolution and plugins
-- [Runner protocol spec](docs/runner-protocol-spec.md) - core/runner boundary
-- [Runner authoring guide](docs/runner-authoring-guide.md) - implementation checklist
-- [Security and conformance spec](docs/security-and-conformance-spec.md) - trust boundary and MVP checks
-- [Standard export spec](docs/standard-export-spec.md) - OpenLineage and OTel contracts
-- [Practical examples](docs/examples/practical-manual-generation-examples.md) - incident runbooks and support manuals
+Start with the [usage guide](docs/usage-guide.md), [design doc](docs/design-doc.md),
+[core spec](docs/spec.md), and [CLI reference](docs/cli-reference.md). The main
+contracts are [project config](docs/project-config-spec.md),
+[schema/versioning](docs/schema-and-versioning-spec.md),
+[runner discovery](docs/runner-discovery-spec.md),
+[runner protocol](docs/runner-protocol-spec.md), and
+[security/conformance](docs/security-and-conformance-spec.md).
 
 ## Quickstart
 
+This support loop runs offline from a source checkout with deterministic demo
+runners. The output proves the fbt control plane, not model quality.
+
 ```bash
 fbt init knowledge_ops --template support
-
 fbt parse --project-dir knowledge_ops
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
-
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt review approve case_summaries \
   --project-dir knowledge_ops \
   --comment "Reviewed locally"
 fbt build --project-dir knowledge_ops --select weekly_support_insights
-
 fbt docs generate --project-dir knowledge_ops
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
 
-The generated support project uses deterministic demo runners so the loop runs
-offline from a source checkout. Replace those runners with external adapters for
-provider-backed execution.
+Captured result from the same flow, with long hashes shortened:
+
+```text
+Build: 1 selected, 1 run, 0 skipped, 0 blocked
+success transform.knowledge_ops.case_summaries
+  committed: artifact_version.knowledge_ops.case_summaries.sha256_a5b4...
+artifact.knowledge_ops.case_summaries
+  status: approved
+  confidence: reviewed
+success transform.knowledge_ops.weekly_support_insights
+  committed: artifact_version.knowledge_ops.weekly_support_insights.sha256_49f...
+```
+
+Files created by the run:
+
+```text
+knowledge_ops/target/artifacts/support/case_summaries/index.md
+knowledge_ops/target/artifacts/support/weekly_insights.md
+knowledge_ops/target/docs/index.md
+knowledge_ops/.fbt/state/{run_results.jsonl,artifact_versions.json}
+```
+
+```bash
+mkdir -p knowledge_ops/target/lineage knowledge_ops/target/telemetry
+fbt export openlineage --project-dir knowledge_ops --output knowledge_ops/target/lineage/openlineage.ndjson
+fbt export otel --project-dir knowledge_ops --output knowledge_ops/target/telemetry/otel.json
+```
+
+```text
+OpenLineage events written to knowledge_ops/target/lineage/openlineage.ndjson
+Events: 2
+OTel traces written to knowledge_ops/target/telemetry/otel.json
+Spans: 4
+```
+
+The detailed walkthrough is in
+[What you can do today](apps/docs/src/content/docs/get-started/what-you-can-do.mdx)
+and the [Quickstart](apps/docs/src/content/docs/get-started/quickstart.mdx).
 
 ## Install
 
-Download the current release from
-[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0).
-
-| Platform | Asset |
-|---|---|
-| macOS (Apple Silicon) | `fbt_0.1.0_darwin_arm64.tar.gz` |
-| macOS (Intel) | `fbt_0.1.0_darwin_amd64.tar.gz` |
-| Linux (arm64) | `fbt_0.1.0_linux_arm64.tar.gz` |
-| Linux (amd64) | `fbt_0.1.0_linux_amd64.tar.gz` |
-| Windows (arm64) | `fbt_0.1.0_windows_arm64.zip` |
-| Windows (amd64) | `fbt_0.1.0_windows_amd64.zip` |
-
-Verify a download:
+Download the current macOS, Linux, or Windows archive from
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0) and
+verify it:
 
 ```bash
 shasum -a 256 -c SHA256SUMS
@@ -152,24 +179,10 @@ Grafana.
 
 ## Releases
 
-The current MVP release is
-[`v0.1.0`](https://github.com/nyuta01/fbt/releases/tag/v0.1.0).
-
-Release integrity:
-
-- the release tag is signed with Git SSH signing
-- `make verify` passed before publication
-- GitHub Actions `verify` passed for `main` and `v0.1.0`
-- release archives and `SHA256SUMS` are attached to the GitHub Release
-
-Future releases should be cut from a clean tree:
-
-```bash
-make verify
-git tag -s vX.Y.Z -m "fbt vX.Y.Z"
-git push origin main
-git push origin vX.Y.Z
-```
+The current MVP release is [`v0.1.0`](https://github.com/nyuta01/fbt/releases/tag/v0.1.0).
+The tag is signed, `make verify` passed before publication, GitHub Actions
+passed for `main` and `v0.1.0`, and release archives plus `SHA256SUMS` are
+attached to the release.
 
 ## Repository harness
 
@@ -179,9 +192,7 @@ verification gate.
 
 ```bash
 make agent-init   # restart context for the next agent
-make verify       # harness + drift + docs + Go + CLI/e2e smokes
-                  # + docs-site build + runner/product conformance
-                  # + local release-binary smoke
+make verify       # harness, docs, Go, CLI/e2e, conformance, dist checks
 ```
 
 See [AGENTS.md](AGENTS.md),
