@@ -46,100 +46,86 @@ reviewer cannot easily answer:
 
 fbt answers those questions by treating generated files like build outputs.
 
-## Example: Turn Cases Into A Manual
+## Example: Incident Notes To Runbook
 
-A support lead has a practical problem:
+The easiest place to see fbt is after an incident.
 
-> We solved the same SSO billing question several times. I want one approved
-> procedure that the next agent can use, and I want to know which tickets and
-> notes the procedure came from.
-
-The source files already contain the answer, but not in a reusable form:
+An SRE team has already written down what happened:
 
 ```text
-ticket SUP-10437
-  Customer asks why seat count increased after SSO group sync.
+event log
+  checkout-api p95 latency stayed above 2400 ms.
+  database connection pool saturation was observed.
 
-response log
-  Confirm SSO group sync, compare the IdP billing group with workspace members,
-  explain that removed users stop counting after the next sync.
+response notes
+  Shift checkout read traffic away from the saturated replica.
+  Ask support to verify payment status before asking customers to retry.
 
-product doc
-  Billable seats follow synced group membership.
+postmortem
+  Add an alert at 80% connection usage.
+  Document the traffic shift procedure.
 ```
 
-fbt turns those files into this kind of artifact:
+What the team actually wants is not another summary. They want a runbook the
+next on-call engineer can use:
 
 ```text
-target/artifacts/support/support_resolution_manual.md
+target/artifacts/runbooks/incident_response_runbook.md
 
-Manual sections:
-- when to use this procedure
-- intake checklist
-- triage steps
-- resolution procedure
-- escalation rule
-- customer response template
-- source evidence
+Purpose
+Detection
+Immediate Response
+Investigation
+Mitigation
+Recovery
+Customer Communication
+Source Evidence
 ```
 
-And fbt keeps the receipt for that generated file:
+fbt is the layer that makes this conversion controlled. The example project
+already contains a recipe that says:
 
-```text
-sources: tickets, response logs, product docs, approved macros
-instructions: prompt, manual format, style guide, evidence checklist
-runner: openai.responses / gpt-5
-review: support_leads approved this exact artifact version
-lineage: this manual came from these files and this runner invocation
-```
+| Recipe part | Value |
+|---|---|
+| Read from | incident event logs, response notes, postmortems, existing runbooks |
+| Ask | the `openai.responses` runner to draft the runbook |
+| Write | `target/artifacts/runbooks/incident_response_runbook.md` |
+| Check | required runbook sections are present |
+| Review | SRE lead must approve the exact generated version |
 
-In plain terms, fbt does not answer the support question itself. It makes the
-generation process controlled:
-
-1. declare which files are allowed as evidence
-2. declare what the runner must create
-3. run the external worker
-4. store the generated manual as a versioned artifact
-5. require review before that version becomes trusted
-
-The transform is the recipe for that process:
-
-```yaml
-name: support_resolution_manual
-runner: openai.responses
-inputs:
-  - source: support.inquiry_tickets
-  - source: support.response_logs
-  - source: reference.product_docs
-  - source: reference.approved_macros
-assets:
-  - ref: support_resolution_prompt
-  - ref: support_resolution_manual_format
-outputs:
-  - path: target/artifacts/support/support_resolution_manual.md
-review:
-  required: true
-  group: support_leads
-```
-
-The checked-in support example is a real runner workflow, so `build` requires
-the configured runner and credentials. The quickstart below uses demo runners.
-
-The commands are the user workflow:
+So the user workflow is short:
 
 ```bash
-fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
-fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
-fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
-fbt review approve support_resolution_manual \
-  --project-dir examples/support_resolution_manual \
-  --comment "Support lead approved"
-fbt artifact history support_resolution_manual --project-dir examples/support_resolution_manual
+fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
 ```
 
-`plan` shows what will happen, `build` calls the runner, `review show` lets a
-lead inspect the generated manual, `review approve` records approval for that
-exact version, and `artifact history` shows how the current manual was made.
+You get a preview: fbt tells you whether the runbook will be created, skipped,
+or blocked before any file is generated.
+
+```bash
+fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+```
+
+You get the runbook file plus fbt's receipt: which source files, instructions,
+runner, checks, and artifact version produced it.
+
+```bash
+fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
+fbt review approve incident_response_runbook \
+  --project-dir examples/incident_response_runbook \
+  --comment "SRE lead approved"
+```
+
+You get an approval record attached to that exact generated version.
+
+```bash
+fbt artifact history incident_response_runbook --project-dir examples/incident_response_runbook
+```
+
+You get the answer to "where did this runbook come from?"
+
+This example uses a real runner, so `build` requires the configured runner and
+credentials. The quickstart below uses demo runners and works offline.
 
 ## Other Fit Cases
 

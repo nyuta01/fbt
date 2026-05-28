@@ -1622,6 +1622,31 @@
       "notes": "Reframes README around the core user model: sources plus instructions plus an external runner produce a generated artifact plus a local build receipt. The support example now starts from the support lead's problem, shows the non-reusable evidence, generated manual, receipt, controlled process, and then the recipe/commands."
     },
     {
+      "id": "FBT-DOCS-UX-007",
+      "title": "Replace README example with incident runbook workflow",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-006",
+        "FBT-EXAMPLE-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-007-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-007-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Replaces the README support-manual example with a simpler incident-notes-to-runbook workflow, removes YAML from the example, explains the recipe as a small table, and states what each command gives the user."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

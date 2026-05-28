@@ -128,6 +128,24 @@ contain the answer in a non-reusable form, then shows the generated manual,
 receipt, review, and lineage before YAML or commands. Detailed capabilities
 remain in linked docs instead of the README opening.
 
+## F-007 README example made the workflow feel harder than the job
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-007`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-007-plan.md`
+
+### Observation
+
+The support-manual README example still did not make the practical job obvious.
+It used a scenario that did not immediately click, exposed transform details too
+early, and listed commands without first saying what each one gives the user.
+
+### Permanent fix
+
+README now uses the simpler incident-notes to runbook workflow. The example
+shows the existing incident evidence, the desired runbook, the small recipe
+table, and then each command with its concrete result.
+
 ## Entry Template
 
 ```markdown
