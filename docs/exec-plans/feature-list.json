@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-05-28",
+  "updated": "2026-05-29",
   "principles": [
     "small-agent-entrypoint",
     "repository-as-system-of-record",
@@ -1404,6 +1404,34 @@
         "make_verify": true
       },
       "notes": "Adds an examples index, rewrites all example READMEs around user intent, input evidence, output artifacts, credential boundaries, command outcomes, repeated source growth, and generated receipts. Source fingerprints now include resolved file sets and file content so adding files under glob sources makes dependent transforms dirty, and mixed-status doctor diagnostics no longer mark executable runner checks as errors."
+    },
+    {
+      "id": "FBT-EXAMPLES-UX-002",
+      "title": "Add daily QA operations example",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-EXAMPLES-UX-001",
+        "FBT-RUNNER-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-EXAMPLES-UX-002-plan.md",
+      "paths": [
+        "examples/README.md",
+        "examples/daily_qa_ops",
+        "scripts/smoke-practical-examples.sh",
+        "docs/exec-plans/active/FBT-EXAMPLES-UX-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "practical_examples_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Adds an offline daily QA operations example that uses stable Markdown directory sources under data/qa/inbox, multiple source artifacts, multiple candidate outputs under latest logical paths without review, and a reviewed promotion artifact. The practical examples smoke now builds the daily candidate artifacts, checks approval_status: not_required, builds the promoted manual update, and approves it."
     },
     {
       "id": "FBT-RUNNER-008",

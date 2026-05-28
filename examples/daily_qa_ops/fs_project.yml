@@ -1,0 +1,35 @@
+name: daily_qa_ops
+config_version: 1
+version: 0.1.0
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: .fbt/state
+execution:
+  mode: local
+  max_workers: 1
+runners:
+  - name: demo.llm
+    type: llm
+    protocol: stdio_jsonrpc
+    command: bin/fbt-demo-llm-runner
+    config:
+      provider: demo
+      default_model: deterministic-demo-llm
+  - name: demo.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: bin/fbt-demo-agent-runner
+    config:
+      provider: demo
+      default_model: deterministic-demo-agent
+selectors:
+  - name: daily
+    definition:
+      method: tag
+      value: daily_qa

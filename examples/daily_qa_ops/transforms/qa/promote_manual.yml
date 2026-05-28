@@ -1,0 +1,24 @@
+transforms:
+  - name: promote_manual_update
+    type: agent
+    runner: demo.agent
+    model:
+      provider: demo
+      name: deterministic-demo-agent
+    inputs:
+      - ref: manual_patch_candidates
+      - ref: unresolved_questions
+      - source: reference.current_manual
+    outputs:
+      - name: approved_manual_update
+        type: markdown
+        path: target/artifacts/manual/latest/approved_update.md
+    assets:
+      - ref: manual_promotion_prompt
+      - ref: qa_style_guide
+    tools: ["read_artifact", "write_artifact"]
+    policy: manual_promotion_scope
+    review:
+      required: true
+      group: docs_leads
+    tags: ["daily_qa", "promotion"]

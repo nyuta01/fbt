@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+# Deterministic demo runner wrapper for the checked-in example.
+# Set FBT_SOURCE_ROOT when running this project from a copied temp directory.
+ROOT_DIR="${FBT_SOURCE_ROOT:-$(cd "$(dirname "$0")/../../.." && pwd)}"
+cd "$ROOT_DIR" || exit 1
+exec go run ./runners/llm "$@"

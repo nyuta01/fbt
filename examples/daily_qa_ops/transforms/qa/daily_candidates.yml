@@ -1,0 +1,27 @@
+transforms:
+  - name: daily_qa_candidates
+    type: llm
+    runner: demo.llm
+    model:
+      provider: demo
+      name: deterministic-demo-llm
+    inputs:
+      - source: qa.questions
+      - source: qa.answers
+      - source: reference.product_docs
+    outputs:
+      - name: faq_candidates
+        type: markdown
+        path: target/artifacts/qa/latest/faq_candidates.md
+      - name: manual_patch_candidates
+        type: markdown
+        path: target/artifacts/qa/latest/manual_patch_candidates.md
+      - name: unresolved_questions
+        type: markdown
+        path: target/artifacts/qa/latest/unresolved_questions.md
+    assets:
+      - ref: daily_qa_candidates_prompt
+      - ref: daily_qa_output_format
+      - ref: qa_style_guide
+    policy: daily_candidate_scope
+    tags: ["daily_qa", "candidate"]

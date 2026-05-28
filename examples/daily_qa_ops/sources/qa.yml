@@ -1,0 +1,23 @@
+sources:
+  - name: qa
+    description: Daily customer questions and support answers.
+    artifacts:
+      - name: questions
+        type: markdown_directory
+        path: data/qa/inbox/questions/
+        tags: ["qa", "daily"]
+      - name: answers
+        type: markdown_directory
+        path: data/qa/inbox/answers/
+        tags: ["qa", "daily"]
+  - name: reference
+    description: Current product and manual reference material.
+    artifacts:
+      - name: product_docs
+        type: markdown_directory
+        path: data/reference/product_docs/
+        tags: ["reference", "product"]
+      - name: current_manual
+        type: markdown_directory
+        path: data/reference/manual/
+        tags: ["reference", "manual"]

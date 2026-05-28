@@ -3,7 +3,7 @@
 This log records repeated or high-risk agent failure modes. Use it to turn
 mistakes into deterministic guardrails.
 
-Last reviewed: 2026-05-28.
+Last reviewed: 2026-05-29.
 
 No failures are currently active.
 
@@ -203,6 +203,48 @@ the source definition.
 Source fingerprints now include the resolved file set and per-file content
 fingerprints. A new file under a declared glob or directory source causes
 dependent transforms to plan as `run` with `source descriptor changed`.
+
+## F-011 Examples implied JSONL and review as defaults
+
+- **Status**: `fixed`
+- **Task**: `FBT-EXAMPLES-UX-002`
+- **Plan**: `docs/exec-plans/active/FBT-EXAMPLES-UX-002-plan.md`
+
+### Observation
+
+The practical examples and repeated-operation guidance could make users infer
+that fbt's source model was centered on JSONL files and that review gates were
+required for every artifact. That overfit the examples instead of teaching the
+core model: fbt tracks declared filesystem sources, and review is a workflow
+boundary, not a mandatory transform feature.
+
+### Permanent fix
+
+`examples/daily_qa_ops` now shows a daily workflow based on plain Markdown
+directory sources, multiple source artifacts, and multiple candidate outputs
+that do not require review. A separate promotion transform produces the formal
+manual update and requires review. The practical examples smoke runs this
+candidate-to-promotion path end to end so the distinction remains guarded.
+
+## F-012 Daily example encoded a fixed source date
+
+- **Status**: `fixed`
+- **Task**: `FBT-EXAMPLES-UX-002`
+- **Plan**: `docs/exec-plans/active/FBT-EXAMPLES-UX-002-plan.md`
+
+### Observation
+
+The first daily QA example used source paths like
+`data/qa/2026-05-29/questions/`. That made the example impossible to read as
+"run the same fbt flow once per day for newly arrived files" without editing
+project config or creating new transforms for each date.
+
+### Permanent fix
+
+The example now uses stable processing-window source paths under
+`data/qa/inbox/` and stable logical output paths under
+`target/artifacts/.../latest/`. Daily scheduling and input-window preparation
+remain outside fbt, while fbt records each run as artifact versions.
 
 ## Entry Template
 

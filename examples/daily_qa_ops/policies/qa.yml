@@ -1,0 +1,29 @@
+policies:
+  - name: daily_candidate_scope
+    read:
+      - data/qa/
+      - data/reference/
+    write:
+      - .fbt/work/
+      - target/artifacts/qa/
+    network: false
+    tools:
+      allowed: []
+    limits:
+      timeout_seconds: 120
+      max_output_bytes: 200000
+  - name: manual_promotion_scope
+    read:
+      - target/artifacts/qa/
+      - data/reference/
+    write:
+      - .fbt/work/
+      - target/artifacts/manual/
+    network: false
+    tools:
+      allowed:
+        - read_artifact
+        - write_artifact
+    limits:
+      timeout_seconds: 120
+      max_output_bytes: 200000

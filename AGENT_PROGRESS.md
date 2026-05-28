@@ -1,6 +1,6 @@
 # Agent Progress
 
-Last updated: 2026-05-28
+Last updated: 2026-05-29
 
 ## Current State
 
@@ -124,6 +124,13 @@ external-runner boundaries, command outcomes, generated files, and corrected
 doctor output for mixed runner diagnostics. The task also fixes source dirty
 detection for repeated operation: new files under declared source globs trigger
 `source descriptor changed`.
+`FBT-EXAMPLES-UX-002` is complete: `examples/daily_qa_ops` now demonstrates an
+offline daily QA workflow with stable Markdown directory sources under
+`data/qa/inbox/`, multiple source artifacts, multiple candidate outputs under
+`target/artifacts/.../latest/`, no review requirement for intermediate
+candidates, and a reviewed promotion artifact. The practical examples smoke
+now builds this flow end to end from a copied project and checks the candidate
+and promotion review states.
 `FBT-RUNNER-008` is complete: `runners/openai` now provides an optional
 out-of-core OpenAI Responses runner that reads `OPENAI_API_KEY`, calls
 `/v1/responses`, writes output candidates under `work.outputs`, and is wired

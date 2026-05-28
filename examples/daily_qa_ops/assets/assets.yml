@@ -1,0 +1,13 @@
+assets:
+  - name: daily_qa_candidates_prompt
+    type: prompt
+    path: assets/daily_qa_candidates_prompt.md
+  - name: daily_qa_output_format
+    type: format
+    path: assets/daily_qa_output_format.md
+  - name: manual_promotion_prompt
+    type: prompt
+    path: assets/manual_promotion_prompt.md
+  - name: qa_style_guide
+    type: style_guide
+    path: assets/qa_style_guide.md
