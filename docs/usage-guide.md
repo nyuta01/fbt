@@ -469,9 +469,20 @@ fbt export openlineage --output target/lineage/openlineage.ndjson
 The OpenLineage export keeps fbt-native state as the source of truth. It emits
 transform runs, input and output datasets, and fbt-specific `fbt_` facets for
 artifact descriptors, confidence, approvals, evals, runner/model, and policy
-metadata without exporting raw artifact content or prompts. OpenTelemetry and
-OpenMetadata exports remain reserved by
-[Standard Export Spec](standard-export-spec.md).
+metadata without exporting raw artifact content or prompts. OpenMetadata export
+remains reserved by [Standard Export Spec](standard-export-spec.md).
+
+Export execution telemetry when you want traces in an OpenTelemetry-compatible
+backend:
+
+```sh
+fbt export otel --output target/telemetry/otel.json
+```
+
+The OTel export emits an OTLP/JSON trace payload. Build invocations and
+transform runs become spans, runner events become span events, and usage/cost
+plus model metadata becomes span attributes. fbt does not start a network
+exporter by default; feed the JSON file to your collector/backend workflow.
 
 ## 14. Day-2 Operation
 

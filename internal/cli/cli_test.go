@@ -315,6 +315,79 @@ func TestRunExportOpenLineage(t *testing.T) {
 	}
 }
 
+func TestRunExportOTel(t *testing.T) {
+	root := writeCLIProject(t)
+	store, version := writeCLICurrentArtifact(t, root)
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":   "invocation_started",
+		"invocation_id": "inv_cli",
+		"started_at":    "2026-05-28T00:00:00Z",
+		"command":       "build",
+		"project_name":  "knowledge_ops",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":        "transform_run",
+		"invocation_id":      "inv_cli",
+		"run_id":             version.GeneratedBy,
+		"transform_id":       "transform.knowledge_ops.case_summaries",
+		"status":             "success",
+		"started_at":         "2026-05-28T00:00:01Z",
+		"completed_at":       "2026-05-28T00:00:02Z",
+		"committed_versions": []string{version.VersionID},
+		"usage": map[string]any{
+			"gen_ai.usage.input_tokens":  10,
+			"gen_ai.usage.output_tokens": 2,
+			"fbt.usage.total_tokens":     12,
+		},
+		"events": []map[string]any{
+			{
+				"event_type": "usage",
+				"time":       "2026-05-28T00:00:02Z",
+				"attributes": map[string]any{"fbt.usage.total_tokens": 12},
+			},
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendRunResult(map[string]any{
+		"record_type":   "invocation_completed",
+		"invocation_id": "inv_cli",
+		"completed_at":  "2026-05-28T00:00:03Z",
+		"status":        "success",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	outputPath := filepath.Join(t.TempDir(), "otel.json")
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	code := Run([]string{"export", "otel", "--output", outputPath, "--project-dir", root}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("export otel failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "OTel traces written") || !strings.Contains(stdout.String(), "Spans: 2") {
+		t.Fatalf("unexpected otel export output: %q", stdout.String())
+	}
+	data, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	for _, expected := range []string{
+		`"resourceSpans"`,
+		`"fbt.invocation.id"`,
+		`"fbt.transform.id"`,
+		`"gen_ai.usage.input_tokens"`,
+		`"usage"`,
+	} {
+		if !strings.Contains(content, expected) {
+			t.Fatalf("expected %q in OTel export:\n%s", expected, content)
+		}
+	}
+}
+
 func TestRunEvalAndReviewCommands(t *testing.T) {
 	root := writeCLIProject(t)
 	store, version := writeCLICurrentArtifact(t, root)

@@ -231,6 +231,21 @@ Record types:
     "fbt.usage.total_tokens": 13800,
     "fbt.estimated_cost_usd": 0.42
   },
+  "events": [
+    {
+      "request_id": "req_123",
+      "transform_run_id": "transform_run.run_01H...",
+      "time": "2026-05-28T10:07:55Z",
+      "event_type": "usage",
+      "level": "info",
+      "message": "LLM request completed",
+      "attributes": {
+        "gen_ai.usage.input_tokens": 12000,
+        "gen_ai.usage.output_tokens": 1800,
+        "fbt.usage.total_tokens": 13800
+      }
+    }
+  ],
   "trace": {
     "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
   },
@@ -238,6 +253,10 @@ Record types:
   "error": null
 }
 ```
+
+`events` stores runner protocol events that are safe for telemetry export.
+Default state records omit raw `tool_call` payloads; redacted event attributes
+are sufficient for `fbt export otel` span events.
 
 `invocation_completed`:
 

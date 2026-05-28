@@ -122,6 +122,12 @@ grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
 grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
 grep -q '"fbt_evaluations"' "$tmpdir/openlineage.ndjson"
 
+go run ./cmd/fbt export otel --project-dir "$project" --output "$tmpdir/otel.json" >"$tmpdir/export-otel.txt"
+grep -q "OTel traces written" "$tmpdir/export-otel.txt"
+grep -q '"resourceSpans"' "$tmpdir/otel.json"
+grep -q '"fbt.transform.id"' "$tmpdir/otel.json"
+grep -q '"progress"' "$tmpdir/otel.json"
+
 go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
 grep -q "status: pending" "$tmpdir/review-status.txt"
 

@@ -47,18 +47,19 @@ Implemented export commands:
 
 ```sh
 fbt export openlineage [--output PATH]
+fbt export otel [--output PATH]
 ```
 
 Reserved export commands:
 
 ```sh
-fbt export otel [--output PATH]
 fbt export openmetadata [--output PATH]
 ```
 
-OpenLineage is implemented first. The other commands are reserved by this
-contract and implemented by later tasks. Default output is newline-delimited
-JSON on stdout unless `--output` is set.
+OpenLineage and OTel are implemented first. OpenMetadata is reserved by this
+contract and implemented by later tasks. OpenLineage default output is
+newline-delimited JSON on stdout unless `--output` is set. OTel default output
+is the OTLP/JSON payload on stdout unless `--output` is set.
 `--json` returns an fbt command envelope with summary counts and the output
 path; the exported records themselves remain in the selected standard format.
 
@@ -148,8 +149,8 @@ Minimum OpenLineage event:
 ## 5. OpenTelemetry Mapping
 
 OpenTelemetry export is for execution telemetry, not artifact lineage graph
-identity. fbt exports OTLP-compatible trace payloads and may later add metrics
-or logs. No network exporter is enabled by default.
+identity. fbt exports OTLP/JSON-compatible trace payloads and may later add
+metrics or logs. No network exporter is enabled by default.
 
 Mapping:
 

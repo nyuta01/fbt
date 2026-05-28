@@ -893,7 +893,7 @@
       "id": "FBT-STD-003",
       "title": "Add OpenTelemetry-compatible execution telemetry export",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-001",
@@ -901,23 +901,27 @@
         "FBT-MVP-010",
         "FBT-MVP-013"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-003-plan.md",
       "paths": [
         "internal/build",
-        "internal/protocol",
+        "internal/cli",
+        "internal/telemetry",
         "internal/state",
-        "runners/llm",
-        "runners/agent",
+        "scripts/smoke-cli.sh",
+        "docs/standard-export-spec.md",
+        "docs/state-and-run-results-spec.md",
+        "docs/cli-reference.md",
         "docs/runner-protocol-spec.md",
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
+        "go_test": true,
+        "cli_smoke": true,
         "manual_opt_in_smoke": false,
-        "validate_docs": false
+        "validate_docs": true
       },
-      "notes": "Preserve local-first behavior while adding OTel-compatible trace context and export for transform runs, runner events, usage, tool calls, and GenAI semantic attributes. Target standard backends such as an OTel Collector plus Jaeger, Tempo, or Grafana for trace visualization; avoid making a network OTLP exporter part of the default verification gate."
+      "verification_override_reason": "No network OTel backend is required for default verification; OTLP/JSON payload shape and CLI export are covered by Go tests and smoke.",
+      "notes": "Implements `fbt export otel [--output PATH]` as local-first OTLP/JSON trace export. Build invocations and transform runs become spans, safe runner events become span events, and usage, cost, model, artifact, and policy metadata become attributes without adding a default network exporter."
     },
     {
       "id": "FBT-STD-004",

@@ -394,10 +394,37 @@ output path:
 }
 ```
 
-Reserved standard export commands:
+`fbt export otel` writes OpenTelemetry OTLP/JSON-compatible trace payloads for
+local execution telemetry. The default output is the OTLP JSON payload on
+stdout. Use `--output` to write a file for an OpenTelemetry Collector or
+compatible backend workflow.
 
 ```sh
 fbt export otel [--output PATH]
+```
+
+The export maps invocations and transform runs to spans, runner protocol events
+to span events, and usage/cost/model metadata to span attributes including
+`gen_ai.*` attributes where available. It does not start a network exporter.
+Tool-call payload fields are not exported by default; redacted runner event
+attributes are exported as span events.
+
+With `--json`, file-based export returns a command envelope with counts and the
+output path:
+
+```json
+{
+  "command": "export otel",
+  "status": "success",
+  "format": "otel",
+  "spans": 2,
+  "output_path": "target/telemetry/otel.json"
+}
+```
+
+Reserved standard export commands:
+
+```sh
 fbt export openmetadata [--output PATH]
 ```
 

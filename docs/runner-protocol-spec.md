@@ -315,6 +315,9 @@ Event types:
 - `debug`
 
 Raw prompts, inputs, and outputs should not be emitted by default.
+Core persists safe runner events in `run_results.jsonl` and maps them to
+OpenTelemetry span events in `fbt export otel`. Default telemetry export uses
+event attributes and does not include raw `tool_call` payload fields.
 
 ## 9. Tool Call Event
 

@@ -27,6 +27,7 @@ import (
 	"github.com/nyuta01/fbt/internal/protocol"
 	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/state"
+	"github.com/nyuta01/fbt/internal/telemetry"
 	"github.com/nyuta01/fbt/internal/templates"
 	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
@@ -275,10 +276,18 @@ func runExport(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
-	if exportOpts.Format != "openlineage" {
+	switch exportOpts.Format {
+	case "openlineage":
+		return runExportOpenLineage(opts, exportOpts, stdout, stderr)
+	case "otel":
+		return runExportOTel(opts, exportOpts, stdout, stderr)
+	default:
 		fmt.Fprintf(stderr, "unknown export format: %s\n", exportOpts.Format)
 		return 2
 	}
+}
+
+func runExportOpenLineage(opts options, exportOpts exportOptions, stdout io.Writer, stderr io.Writer) int {
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -347,6 +356,65 @@ func runExport(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 	return 0
 }
 
+func runExportOTel(opts options, exportOpts exportOptions, stdout io.Writer, stderr io.Writer) int {
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	runResults, err := ctx.Store.ReadRunResults()
+	if err != nil {
+		printError("export otel", err, stderr, opts.JSON)
+		return 5
+	}
+	versions, err := ctx.Store.ReadArtifactVersions()
+	if err != nil {
+		printError("export otel", err, stderr, opts.JSON)
+		return 5
+	}
+	payload := telemetry.OTLPTraces(telemetry.OTLPInput{
+		Manifest:         ctx.Manifest,
+		RunResults:       runResults,
+		ArtifactVersions: versions,
+		FBTVersion:       versioninfo.Version,
+	})
+	if exportOpts.OutputPath != "" {
+		if err := writeOTelOutput(exportOpts.OutputPath, payload); err != nil {
+			printError("export otel", err, stderr, opts.JSON)
+			return 5
+		}
+		spanCount := otelSpanCount(payload)
+		if opts.JSON {
+			writeJSON(stdout, map[string]any{
+				"command":     "export otel",
+				"status":      "success",
+				"format":      "otel",
+				"spans":       spanCount,
+				"output_path": exportOpts.OutputPath,
+			})
+			return 0
+		}
+		fmt.Fprintf(stdout, "OTel traces written to %s\n", exportOpts.OutputPath)
+		fmt.Fprintf(stdout, "Spans: %d\n", spanCount)
+		return 0
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{
+			"command": "export otel",
+			"status":  "success",
+			"format":  "otel",
+			"spans":   otelSpanCount(payload),
+			"payload": payload,
+		})
+		return 0
+	}
+	if err := telemetry.WriteOTLPJSON(stdout, payload); err != nil {
+		printError("export otel", err, stderr, opts.JSON)
+		return 5
+	}
+	return 0
+}
+
 type exportOptions struct {
 	Format     string
 	OutputPath string
@@ -390,6 +458,28 @@ func writeOpenLineageOutput(path string, events []lineage.RunEvent) error {
 	}
 	defer file.Close()
 	return lineage.WriteOpenLineageNDJSON(file, events)
+}
+
+func writeOTelOutput(path string, payload telemetry.TracesData) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return telemetry.WriteOTLPJSON(file, payload)
+}
+
+func otelSpanCount(payload telemetry.TracesData) int {
+	var count int
+	for _, resourceSpans := range payload.ResourceSpans {
+		for _, scopeSpans := range resourceSpans.ScopeSpans {
+			count += len(scopeSpans.Spans)
+		}
+	}
+	return count
 }
 
 func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) int {

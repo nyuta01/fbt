@@ -41,10 +41,13 @@ type Run struct {
 	TransformID       string
 	TransformRunID    string
 	Status            string
+	StartedAt         string
+	CompletedAt       string
 	CommittedVersions []string
 	EvaluationResults []string
 	Usage             map[string]any
 	Provenance        map[string]any
+	Events            []protocol.Event
 }
 
 type outputCandidate struct {
@@ -188,6 +191,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 
+	startedAt := time.Now().UTC()
 	outcome, err := client.RunTransform(runCtx, protocol.RunTransformParams{
 		Mode:           "run",
 		InvocationID:   invocationID,
@@ -219,8 +223,10 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		TransformID:    transformID,
 		TransformRunID: transformRunID,
 		Status:         outcome.Result.Status,
+		StartedAt:      startedAt.Format(time.RFC3339Nano),
 		Usage:          outcome.Result.Usage,
 		Provenance:     outcome.Result.Provenance,
+		Events:         redactedProtocolEvents(outcome.Events),
 	}
 	for _, candidate := range candidates {
 		if err := security.RequireWithin(workOutputs, candidate.Path); err != nil {
@@ -315,20 +321,35 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		LatestStatus:               outcome.Result.Status,
 		LatestEffectiveFingerprint: transform.Fingerprint["effective"],
 	}
+	completedAt := time.Now().UTC()
+	run.CompletedAt = completedAt.Format(time.RFC3339Nano)
 	if err := store.AppendRunResult(map[string]any{
 		"record_type":        "transform_run",
 		"invocation_id":      invocationID,
 		"run_id":             transformRunID,
 		"transform_id":       transformID,
 		"status":             outcome.Result.Status,
+		"started_at":         run.StartedAt,
+		"completed_at":       run.CompletedAt,
+		"duration_ms":        completedAt.Sub(startedAt).Milliseconds(),
 		"committed_versions": run.CommittedVersions,
 		"evaluation_results": run.EvaluationResults,
 		"usage":              run.Usage,
 		"provenance":         run.Provenance,
+		"events":             run.Events,
 	}); err != nil {
 		return Run{}, err
 	}
 	return run, nil
+}
+
+func redactedProtocolEvents(events []protocol.Event) []protocol.Event {
+	redacted := make([]protocol.Event, 0, len(events))
+	for _, event := range events {
+		event.ToolCall = nil
+		redacted = append(redacted, event)
+	}
+	return redacted
 }
 
 func policyForTransform(m manifest.Manifest, transform manifest.TransformResource) *manifest.PolicyResource {
