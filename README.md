@@ -22,10 +22,6 @@ Those capabilities live behind external runners. fbt core owns the project
 graph, planning, local state, artifact versions, evals, review gates, lineage,
 and standard exports.
 
-<p align="center">
-  <img src="apps/docs/public/graphs/support-knowledge-loop.svg" alt="Support tickets flow through fbt transforms, review, artifacts, local state, and standard exports." />
-</p>
-
 ## What can you actually do today?
 
 - Turn local evidence files into generated Markdown artifacts through demo or

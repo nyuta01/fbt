@@ -1467,7 +1467,6 @@
         "apps/docs/src/content/docs/get-started/manual-generation.mdx",
         "apps/docs/src/content/docs/standards/visualization.mdx",
         "apps/docs/src/styles/starlight-overrides.css",
-        "apps/docs/public/graphs/support-knowledge-loop.svg",
         "apps/docs/public/graphs/standard-exports.svg",
         "internal/templates",
         "examples/knowledge_ops/bin/fbt-demo-agent-runner",
@@ -1488,7 +1487,35 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Adds user-first docs grounded in a captured support quickstart, including actual command outputs, generated files, artifact excerpts, lineage/export outputs, and graph images. Also fixes generated demo runner wrappers so the documented quickstart works from outside the source checkout and guards that with e2e smoke."
+      "notes": "Adds user-first docs grounded in a captured support quickstart, including actual command outputs, generated files, artifact excerpts, lineage/export outputs, and a standard-export graph image. Also fixes generated demo runner wrappers so the documented quickstart works from outside the source checkout and guards that with e2e smoke."
+    },
+    {
+      "id": "FBT-DOCS-UX-002",
+      "title": "Remove ambiguous quickstart diagram",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-002-plan.md",
+      "paths": [
+        "README.md",
+        "docs/usage-guide.md",
+        "apps/docs/src/content/docs/index.mdx",
+        "apps/docs/src/content/docs/get-started/what-you-can-do.mdx",
+        "docs/exec-plans/active/FBT-DOCS-UX-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "docs_site_build": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Removes the ambiguous support-loop graphic from README and docs-site entry pages. The quickstart is now explained through actual command output, generated files, and standard export commands instead of an invented product diagram."
     },
     {
       "id": "FBT-PDCA-001",

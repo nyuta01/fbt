@@ -19,8 +19,9 @@ generated files, standards export output, install, examples, lineage, release,
 and harness sections.
 The docs site now includes a "What you can do today" page, an expanded
 quickstart with captured command output and artifact excerpts, practical
-manual-generation guidance, and graph images for the support knowledge loop and
-standard export path.
+manual-generation guidance, and a standards-export graph image. The ambiguous
+custom support-loop diagram was removed; quickstart behavior is documented
+through actual CLI output and generated files.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -126,6 +127,10 @@ for both `main` and `v0.1.0`.
 grounded in a captured support quickstart with exact commands, expected output,
 generated artifact paths, artifact excerpts, lineage/export commands, and graph
 images.
+`FBT-DOCS-UX-002` is complete: the ambiguous support-loop graph was removed
+from README and docs entry pages. Quickstart behavior is now shown with actual
+command output, generated file paths, artifact excerpts, and standard export
+commands instead of a custom invented diagram.
 
 ## Verification
 

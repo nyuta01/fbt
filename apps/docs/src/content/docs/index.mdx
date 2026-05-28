@@ -27,11 +27,6 @@ artifact versions, review gates, and lineage.
 The core stays small. It does not contain OCR, document conversion, LLM
 providers, or agent runtimes. Those live behind external runners.
 
-<figure className="fbt-figure">
-  <img src="/fbt/graphs/support-knowledge-loop.svg" alt="A support knowledge loop showing sources, transforms, review gate, artifacts, local state, and standard exports." />
-  <figcaption>The support quickstart produces the artifacts, state, generated docs, OpenLineage events, and OTLP/JSON traces shown in this graph.</figcaption>
-</figure>
-
 <FeatureGrid
   items={[
     {

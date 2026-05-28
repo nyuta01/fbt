@@ -34,9 +34,8 @@ fbt docs generate --project-dir knowledge_ops
 ```
 
 The support quickstart is intentionally small, but it exercises the implemented
-control-plane loop:
-
-![Support knowledge loop](../apps/docs/public/graphs/support-knowledge-loop.svg)
+control-plane loop. This guide uses command output and generated files as the
+evidence, not a custom product diagram.
 
 Captured result from the same flow on 2026-05-28, with long hashes shortened:
 
