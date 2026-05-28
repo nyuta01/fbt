@@ -553,7 +553,7 @@
       "id": "FBT-REL-002",
       "title": "Prepare public repository remote and signed release baseline",
       "priority": "P0",
-      "status": "blocked",
+      "status": "done",
       "owner": "maintainer",
       "depends": [
         "FBT-REL-001"
@@ -566,16 +566,16 @@
       ],
       "verification": {
         "manual_remote_check": true,
-        "signed_commit_check": false,
+        "signed_commit_check": true,
         "make_verify": true
       },
-      "notes": "Remote is configured for github.com:nyuta01/fbt and non-interactive ls-remote succeeds. Still blocked on maintainer signing setup and release-history decision: no signing config, latest local commits are unsigned, and no v0.1.0 tag exists. Local docs and tag-triggered verify workflow are prepared."
+      "notes": "Remote is configured for github.com:nyuta01/fbt, non-interactive ls-remote succeeds, and SSH signing is configured locally for the release point. Existing history is kept intact; release-baseline commits and the v0.1.0 tag are signed from this point forward."
     },
     {
       "id": "FBT-REL-003",
       "title": "Publish MVP release artifacts and checksums",
       "priority": "P0",
-      "status": "blocked",
+      "status": "todo",
       "owner": "agent",
       "depends": [
         "FBT-REL-001",
@@ -593,7 +593,7 @@
         "dist_check": false,
         "checksum_check": false
       },
-      "notes": "Blocked until FBT-REL-002 provides maintainer signing setup and a signed v0.1.0 tag; artifacts and checksums should not be published from the current unsigned local state."
+      "notes": "Pending signed v0.1.0 tag verification and push; then publish release artifacts and checksums for that tag."
     },
     {
       "id": "FBT-DOCS-001",

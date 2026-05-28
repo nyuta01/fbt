@@ -51,12 +51,22 @@ Release builds use the version metadata contract documented in
 build time.
 
 Before the first public MVP release, a maintainer must configure the GitHub
-remote and choose the signing policy:
+remote and choose the signing policy. GPG signing is acceptable:
 
 ```sh
 git remote add origin git@github.com:nyuta01/fbt.git
 git config commit.gpgsign true
 git config user.signingkey <KEY_ID>
+```
+
+SSH signing is also acceptable when the public key is registered with GitHub as
+a signing key:
+
+```sh
+git config gpg.format ssh
+git config user.signingkey "<SSH_PUBLIC_KEY>"
+git config commit.gpgsign true
+git config tag.gpgsign true
 ```
 
 The default policy is to keep existing local history intact and sign commits

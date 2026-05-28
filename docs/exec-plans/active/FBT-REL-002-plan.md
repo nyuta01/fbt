@@ -3,27 +3,27 @@
 ## Observation
 
 The repository now has `origin` configured for `github.com:nyuta01/fbt`, and a
-non-interactive `git ls-remote --heads origin` check succeeds. It still has no
-local commit signing settings, no signed release tag, and the latest local
-commit is unsigned. Those remaining steps require maintainer signing credentials
-and a release-history decision.
+non-interactive `git ls-remote --heads origin` check succeeds. SSH signing is
+configured locally for the release point using the maintainer SSH key loaded in
+the agent. Earlier commits remain unsigned by policy; signing starts from the
+release-baseline commit and tag.
 
 ## Decision
 
-Keep the current local history intact and document the maintainer-owned release
-baseline: keep the public GitHub remote, enable signing from the release point
-forward unless the maintainer intentionally rewrites history, push `main`, and
-create a signed `v0.1.0` tag after `make verify` passes.
+Keep the current local history intact, use SSH signing from the release point
+forward, push `main`, and create a signed `v0.1.0` tag after `make verify`
+passes.
 
 ## Permanent Fix
 
 Added maintainer release/signing guidance to `CONTRIBUTING.md`, release
-integrity expectations to `SECURITY.md`, and a tag trigger to the existing
-GitHub `verify` workflow so pushed release tags run `make verify`.
+integrity expectations to `SECURITY.md`, a tag trigger to the existing GitHub
+`verify` workflow, and local SSH signing configuration so release-baseline
+commits and tags can be signed without rewriting existing history.
 
 ## Next Check
 
-Maintainer-owned checks:
+Release-baseline checks:
 
 ```sh
 git remote -v

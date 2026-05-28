@@ -101,11 +101,12 @@ registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
 The practical local MVP is complete. The external runner hardening backlog is
-complete. Remaining tracked work is maintainer-owned release publication.
-`FBT-REL-002` is blocked on maintainer release credentials and signing setup:
-`origin` is configured for `github.com:nyuta01/fbt` and `git ls-remote --heads
-origin` succeeds, but no signing config or `v0.1.0` tag is present locally.
-`FBT-REL-003` is blocked until that signed release baseline exists.
+complete. `FBT-REL-002` is complete: `origin` is configured for
+`github.com:nyuta01/fbt`, `git ls-remote --heads origin` succeeds, and SSH
+signing is configured locally for release-baseline commits and tags without
+rewriting existing local history. `FBT-REL-003` is the remaining tracked task:
+publish artifacts and checksums after the signed `v0.1.0` tag verifies and is
+pushed.
 
 ## Verification
 

@@ -2,21 +2,19 @@
 
 ## Observation
 
-Release artifact publication depends on `FBT-REL-002`: the public remote is now
-configured, but the maintainer signing setup and signed `v0.1.0` tag are still
-not present locally. There is still no trusted release baseline for attaching
-artifacts or checksums.
+Release artifact publication depends on `FBT-REL-002`: the public remote and
+SSH signing setup are ready, and publication should start only after the signed
+`v0.1.0` tag verifies locally and is pushed to GitHub.
 
 ## Decision
 
-Do not publish or simulate a public MVP release from an unsigned local-only
-repository. Resume this task after the maintainer completes the signed release
-baseline.
+Do not publish or simulate a public MVP release before the signed tag exists.
+Resume this task after the signed release baseline verifies.
 
 ## Permanent Fix
 
-Marked this task blocked on `FBT-REL-002` so release publication is not treated
-as agent-complete before a signed tag and remote release target exist.
+Kept this task separate from `FBT-REL-002` so release publication is not treated
+as complete before artifacts and checksums are attached to the signed tag.
 
 ## Next Check
 
