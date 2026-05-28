@@ -112,7 +112,9 @@ approved.
 
 ## 8. Conformance Scenarios
 
-The MVP conformance suite should include the following scenarios.
+The MVP conformance suite in `tests/conformance/run.sh` runs deterministic
+local scenarios without external services. It should include the following
+scenario classes.
 
 | ID | Area | Scenario | Expected Result |
 |---|---|---|---|
@@ -137,7 +139,15 @@ The MVP conformance suite should include the following scenarios.
 Once product implementation begins, `make verify` should grow a deterministic
 conformance target that runs these scenarios without external services.
 
+Current executable coverage:
+
+- local support template build and pending-review commit
+- downstream build blocked before approval
+- approval promotes the current artifact for downstream reuse
+- downstream build succeeds after approval
+- docs generation succeeds after the review/build loop
+- policy-denied output is not committed to the official artifact path
+
 LLM and agent scenarios should use fake runners for conformance. Real provider
 smoke tests belong behind explicit opt-in commands and must not be required for
 the base verification gate.
-

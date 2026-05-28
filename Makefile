@@ -58,6 +58,14 @@ cli-smoke: ## Run a deterministic fbt CLI smoke.
 e2e-smoke: ## Run the local knowledge-loop smoke.
 	@bash scripts/smoke-knowledge-loop.sh
 
+.PHONY: conformance
+conformance: build ## Run deterministic MVP conformance scenarios.
+	@FBT_BIN="$(CURDIR)/bin/fbt" bash tests/conformance/run.sh
+
+.PHONY: dist-check
+dist-check: ## Build and smoke the local release binary.
+	@bash scripts/dist-check.sh
+
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

@@ -484,7 +484,7 @@
       "id": "FBT-MVP-016",
       "title": "Complete MVP conformance, packaging, and release smoke",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-001",
@@ -503,7 +503,7 @@
         "FBT-MVP-014",
         "FBT-MVP-015"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-016-plan.md",
       "paths": [
         "Makefile",
         ".github/workflows/verify.yml",
@@ -513,14 +513,14 @@
         "docs/usage-guide.md"
       ],
       "verification": {
-        "harness_check": false,
-        "go_test": false,
-        "cli_smoke": false,
-        "conformance": false,
-        "e2e_smoke": false,
-        "dist_check": false
+        "harness_check": true,
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "e2e_smoke": true,
+        "dist_check": true
       },
-      "notes": "Make the complete fbt init -> parse -> plan -> build -> eval -> review -> docs flow pass without external services, add release binary checks, and document opt-in real LLM smoke."
+      "notes": "Adds executable conformance scenarios, local release binary dist check, and wires conformance/dist checks into make verify alongside init -> parse -> plan -> build -> eval -> review -> docs smoke coverage."
     },
     {
       "id": "FBT-PDCA-001",

@@ -33,8 +33,8 @@ wired into build commit. Deterministic evals, pending review gates, approval
 state, confidence promotion, `fbt init` templates, and a runnable local
 knowledge-loop example are wired into build and CLI flows. Optional local LLM
 and agent runner examples are available under `runners/` without provider SDK
-dependencies. Diff and docs generation are implemented for local state.
-Conformance packaging is still pending.
+dependencies. Diff and docs generation are implemented for local state. The
+default verification gate includes conformance and local release-binary checks.
 
 The base runtime should work with only the local filesystem.
 
@@ -166,4 +166,4 @@ blank/support/incident projects through `fbt init`. Optional local fake,
 command, LLM, and agent runners exist for deterministic protocol and build
 tests, and `examples/knowledge_ops` exercises the local review loop. The CLI
 can compare artifact versions and generate static Markdown project docs.
-Conformance packaging is still pending.
+Conformance and local release-binary checks are wired into `make verify`.

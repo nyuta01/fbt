@@ -11,13 +11,15 @@ protocol client, local fake/command/LLM/agent runners, the first build
 lifecycle, deterministic evals, review approvals, confidence promotion, init
 templates, a runnable local knowledge-loop example, artifact diffing, and
 static Markdown docs generation.
+The current verification gate also includes deterministic conformance and local
+release-binary smoke checks.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-015` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-016` are complete. Remaining tracked work is the
+standing P1 self-PDCA and permanent-fix maintenance loop in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -37,10 +39,12 @@ This runs:
 - `make go-test`
 - `make cli-smoke`
 - `make e2e-smoke`
+- `make conformance`
+- `make dist-check`
 
 ## Next Steps
 
-1. Start `FBT-MVP-016` with conformance, packaging, and release smoke.
+1. Maintain the standing self-PDCA and permanent-fix loops as future work lands.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
