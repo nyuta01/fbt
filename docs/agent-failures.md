@@ -146,6 +146,24 @@ README now uses the simpler incident-notes to runbook workflow. The example
 shows the existing incident evidence, the desired runbook, the small recipe
 table, and then each command with its concrete result.
 
+## F-008 README commands lacked visible execution feedback
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-008`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-008-plan.md`
+
+### Observation
+
+Even after the example scenario became clearer, the README still made users
+infer command value from prose. It did not show enough actual CLI feedback to
+connect each lifecycle step with what appears in a terminal.
+
+### Permanent fix
+
+README now explains the example commands as checkpoints and includes partial
+actual output: incident `plan` output plus shortened offline quickstart
+lifecycle output for build, approval, and artifact history.
+
 ## Entry Template
 
 ```markdown

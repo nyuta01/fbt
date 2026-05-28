@@ -93,36 +93,67 @@ already contains a recipe that says:
 | Check | required runbook sections are present |
 | Review | SRE lead must approve the exact generated version |
 
-So the user workflow is short:
+The commands are checkpoints, not a script to memorize:
 
-```bash
-fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
-```
+1. Preview the work before spending runner time or writing files.
 
-You get a preview: fbt tells you whether the runbook will be created, skipped,
-or blocked before any file is generated.
+   ```bash
+   fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
+   ```
 
-```bash
-fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
-```
+   fbt reads the recipe and current state. You get a preview that says whether
+   the runbook will run, skip, or block, and why.
 
-You get the runbook file plus fbt's receipt: which source files, instructions,
-runner, checks, and artifact version produced it.
+   Actual output from this repository:
 
-```bash
-fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
-fbt review approve incident_response_runbook \
-  --project-dir examples/incident_response_runbook \
-  --comment "SRE lead approved"
-```
+   ```text
+   Plan: 1 selected, 1 run, 0 skipped, 0 blocked
+   run transform.incident_response_runbook.incident_response_runbook
+     reason: no previous successful run
+     reason: output missing
+   ```
 
-You get an approval record attached to that exact generated version.
+2. Generate the runbook.
 
-```bash
-fbt artifact history incident_response_runbook --project-dir examples/incident_response_runbook
-```
+   ```bash
+   fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+   ```
 
-You get the answer to "where did this runbook come from?"
+   fbt sends the allowed source files and instructions to the runner. You get
+   `target/artifacts/runbooks/incident_response_runbook.md` and a local receipt
+   under `.fbt/state` and `.fbt/artifacts`.
+
+3. Inspect the generated version before trusting it.
+
+   ```bash
+   fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
+   ```
+
+   You get the exact artifact version, path, status, and evidence needed for a
+   reviewer to decide whether it should be approved.
+
+4. Approve that exact version.
+
+   ```bash
+   fbt review approve incident_response_runbook \
+     --project-dir examples/incident_response_runbook \
+     --comment "SRE lead approved"
+   ```
+
+   fbt records a human approval against the artifact version, not just the
+   filename. Downstream work can now depend on the approved runbook version.
+
+5. Explain where the current runbook came from.
+
+   ```bash
+   fbt artifact history incident_response_runbook --project-dir examples/incident_response_runbook
+   ```
+
+   You get the runbook's previous and current versions, with the run and runner
+   evidence that produced them.
+
+The short version: `plan` is for deciding, `build` is for generating, `review`
+is for trusting, and `artifact history` is for explaining later.
 
 This example uses a real runner, so `build` requires the configured runner and
 credentials. The quickstart below uses demo runners and works offline.
@@ -148,6 +179,23 @@ fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
 fbt artifact history case_summaries --project-dir knowledge_ops
+```
+
+The output includes the same lifecycle signals, shortened here:
+
+```text
+Plan: 1 selected, 1 run, 0 skipped, 0 blocked
+Build: 1 selected, 1 run, 0 skipped, 0 blocked
+success transform.knowledge_ops.case_summaries
+  committed: artifact_version...sha256_a5b4...
+
+artifact.knowledge_ops.case_summaries
+  status: approved
+  confidence: reviewed
+
+artifact_version...sha256_a5b4...
+  current: true
+  approval_status: approved
 ```
 
 The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).

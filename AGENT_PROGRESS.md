@@ -37,7 +37,8 @@ what fbt records around the external runner.
 The README now leads with the simplified user mental model:
 `sources + instructions + runner -> artifact + build receipt`. Feature breadth
 is pushed into linked docs, and the primary example uses the more direct
-incident-notes to runbook workflow.
+incident-notes to runbook workflow. The example commands are now explained as
+checkpoints: preview, generate, inspect, approve, and explain.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -163,6 +164,10 @@ a local build receipt.
 `FBT-DOCS-UX-007` is complete: README now uses the simpler incident-notes to
 runbook workflow as the primary example, removes YAML from that section, and
 states what `plan`, `build`, `review`, and `artifact history` give the user.
+`FBT-DOCS-UX-008` is complete: README now explains the example commands as
+user checkpoints, with each step stating what the command is for, what fbt
+does, and what the user gets from running it. The README includes actual
+`plan` output and shortened offline quickstart lifecycle output.
 
 ## Verification
 

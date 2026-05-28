@@ -1647,6 +1647,30 @@
       "notes": "Replaces the README support-manual example with a simpler incident-notes-to-runbook workflow, removes YAML from the example, explains the recipe as a small table, and states what each command gives the user."
     },
     {
+      "id": "FBT-DOCS-UX-008",
+      "title": "Explain README commands as checkpoints",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-007"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-008-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-008-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Rewrites the README example command sequence as user checkpoints: preview, generate, inspect, approve, and explain, with each step stating what fbt does and what the user gets. Adds actual plan output and shortened offline quickstart lifecycle output."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
