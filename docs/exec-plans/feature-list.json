@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "updated": "2026-05-28",
+  "principles": [
+    "small-agent-entrypoint",
+    "repository-as-system-of-record",
+    "structured-task-state",
+    "one-task-at-a-time",
+    "shift-feedback-left",
+    "self-pdca",
+    "permanent-fix",
+    "deterministic-drift-detection",
+    "local-first-base-runtime"
+  ],
+  "tasks": [
+    {
+      "id": "FBT-H-001",
+      "title": "Install AI-first engineering harness baseline",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [],
+      "plan_url": "docs/exec-plans/active/FBT-H-001-plan.md",
+      "paths": [
+        "AGENTS.md",
+        "AGENT_PROGRESS.md",
+        ".gitignore",
+        ".github/workflows/verify.yml",
+        "Makefile",
+        "go.mod",
+        "cmd/fbt/main.go",
+        "internal/cli/cli.go",
+        "internal/cli/cli_test.go",
+        "scripts/agent-init.sh",
+        "scripts/harness_check.py",
+        "scripts/harness_drift.py",
+        "scripts/validate_docs.py",
+        "scripts/smoke-cli.sh",
+        "docs/methodology/harness-engineering.md",
+        "docs/methodology/self-pdca-loop.md",
+        "docs/methodology/permanent-fix-protocol.md",
+        "docs/exec-plans/README.md",
+        "docs/exec-plans/active/README.md",
+        "docs/exec-plans/active/FBT-H-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "harness_check": true,
+        "drift_check": true,
+        "validate_docs": true,
+        "fmt_check": true,
+        "go_test": true,
+        "cli_smoke": true
+      },
+      "notes": "Adds a restartable AI-first harness and minimal Go CLI scaffold so make verify is deterministic before product implementation begins."
+    },
+    {
+      "id": "FBT-H-002",
+      "title": "Define schema/versioning and artifact descriptor registries",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-H-002-plan.md",
+      "paths": [
+        "docs/spec.md",
+        "docs/project-config-spec.md",
+        "docs/manifest-spec.md",
+        "docs/state-and-run-results-spec.md",
+        "docs/schema-and-versioning-spec.md"
+      ],
+      "verification": {
+        "harness_check": true,
+        "validate_docs": true
+      },
+      "notes": "Pinned config_version, JSON schema family rules, artifact type registry, descriptor canonicalization, semantic descriptors, and artifact version IDs."
+    },
+    {
+      "id": "FBT-H-003",
+      "title": "Define runner discovery and plugin installation semantics",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-H-003-plan.md",
+      "paths": [
+        "docs/runner-discovery-spec.md",
+        "docs/runner-protocol-spec.md",
+        "docs/project-config-spec.md",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "harness_check": true,
+        "validate_docs": true
+      },
+      "notes": "Pinned resolution order, plugin manifest shape, MVP out-of-band installation rule, diagnostics, and capability negotiation."
+    },
+    {
+      "id": "FBT-H-004",
+      "title": "Define security model and conformance scenarios",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-H-004-plan.md",
+      "paths": [
+        "docs/design-doc.md",
+        "docs/spec.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/examples/knowledge-loop-example.md"
+      ],
+      "verification": {
+        "harness_check": true,
+        "validate_docs": true
+      },
+      "notes": "Pinned core/runner trust boundary, path safety, approval blocking, and MVP fake-runner conformance scenarios."
+    },
+    {
+      "id": "FBT-PDCA-001",
+      "title": "Maintain self-PDCA loop",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/methodology/self-pdca-loop.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "drift_check": false
+      },
+      "notes": "Standing task used by the drift check to keep retrospective updates explicit."
+    },
+    {
+      "id": "FBT-PERMANENT-FIX-001",
+      "title": "Maintain permanent-fix loop",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/methodology/permanent-fix-protocol.md",
+        "docs/agent-failures.md",
+        "scripts/harness_drift.py"
+      ],
+      "verification": {
+        "drift_check": false
+      },
+      "notes": "Standing task used by the drift check to ensure repeated failures get deterministic guards."
+    }
+  ]
+}

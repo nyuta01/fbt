@@ -1,0 +1,26 @@
+# Internal Package Boundaries
+
+`internal/` contains Go implementation packages for `fbt-core`. The current
+codebase only implements the CLI scaffold. Product packages should be added only
+when backed by an accepted spec or execution-plan task.
+
+Planned package boundaries:
+
+| Package | Responsibility |
+|---|---|
+| `project` | Project discovery, `fs_project.yml`, path defaults |
+| `config` | YAML decoding, validation, defaults, config versioning |
+| `manifest` | Parsed graph resources and manifest serialization |
+| `graph` | Dependency graph, selectors, parent and child maps |
+| `planner` | Dirty-state comparison and build plan generation |
+| `state` | Local state store, locks, run results, approvals |
+| `artifact` | Descriptor computation, artifact versions, commit boundary |
+| `runner` | Runner discovery, process lifecycle, protocol client |
+| `eval` | Deterministic and delegated eval orchestration |
+| `approval` | Review gates and artifact-version approval state |
+| `docs` | Static lineage and review documentation generation |
+| `plugin` | Runner/plugin manifest handling, not in-process execution |
+| `protocol` | JSON-RPC message types and compatibility checks |
+
+Do not place LLM provider clients, document converters, OCR engines, or agent
+runtimes in core packages. Those belong to external runners.

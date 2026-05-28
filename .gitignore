@@ -1,0 +1,37 @@
+# Go
+/bin/
+/dist/
+/build/
+*.test
+*.out
+coverage.txt
+
+# fbt local runtime outputs
+.fbt/
+target/
+
+# Python harness helpers
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node and generated docs, reserved for future UI/docs work
+node_modules/
+coverage/
+.cache/
+
+# Local environment
+.env
+.envrc
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+

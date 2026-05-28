@@ -1,0 +1,209 @@
+# fbt Schema and Versioning Spec
+
+Status: Draft  
+Created: 2026-05-28  
+Audience: implementers of project parsing, manifest/state files, artifact descriptors, and migrations
+
+## 1. Overview
+
+This spec fixes the first implementation baseline for machine-readable schemas,
+project configuration versioning, artifact type identifiers, descriptor
+canonicalization, and compatibility rules.
+
+The goal is to let `fbt` evolve without breaking local projects, cached state,
+or runner integrations unexpectedly.
+
+## 2. Version Families
+
+`fbt` uses separate version families:
+
+| Family | Field | Example | Meaning |
+|---|---|---|---|
+| Product version | `fbt_version` | `0.1.0` | Version of the core binary that produced an artifact |
+| Project config version | `config_version` | `1` | Version of `fs_project.yml` and resource YAML semantics |
+| JSON schema version | `fbt_schema_version` | `https://schemas.fbt.dev/fbt/manifest/v1.json` | Machine-readable file shape |
+| Runner protocol version | `protocol.version` | `0.1` | Core/runner wire protocol |
+| Artifact type version | `descriptor.artifact_type` | `fbt.artifact.markdown_directory.v1` | Descriptor and digest contract for content |
+
+These versions must not be inferred from one another.
+
+## 3. Project Config Version
+
+Every `fs_project.yml` must include:
+
+```yaml
+config_version: 1
+```
+
+`config_version` is an integer, not semver. It gates parsing semantics for YAML
+project files and resource definitions.
+
+MVP rules:
+
+- `config_version: 1` is required.
+- Missing or unsupported `config_version` fails parse with exit code `2`.
+- Generated project files must include `config_version: 1`.
+- Draft-period aliases may be accepted only when they can be normalized without
+  ambiguity.
+- Generated manifests and docs must use canonical `snake_case` field names.
+
+## 4. JSON Schema Versioning
+
+All machine-readable JSON files produced by core include
+`metadata.fbt_schema_version`.
+
+Initial schema URIs:
+
+| File | Schema URI |
+|---|---|
+| `manifest.json` | `https://schemas.fbt.dev/fbt/manifest/v1.json` |
+| `state.json` | `https://schemas.fbt.dev/fbt/state/v1.json` |
+| `artifact_versions.json` | `https://schemas.fbt.dev/fbt/artifact-versions/v1.json` |
+| `evaluation_results.json` | `https://schemas.fbt.dev/fbt/evaluation-results/v1.json` |
+| `policy_decisions.json` | `https://schemas.fbt.dev/fbt/policy-decisions/v1.json` |
+| `approvals.json` | `https://schemas.fbt.dev/fbt/approvals/v1.json` |
+| JSON CLI output | `https://schemas.fbt.dev/fbt/cli-output/v1.json` |
+
+Compatibility rules:
+
+- Additive optional fields may be added within the same major schema.
+- Removing fields, changing requiredness, or changing meaning requires a new
+  major schema URI.
+- Readers must reject unsupported major schema versions.
+- Readers may ignore unknown fields under `extensions` and `meta`.
+- Readers must not silently ignore unknown top-level resource types.
+- `fbt` should preserve unknown `meta` and `extensions` objects when round-tripping
+  state where practical.
+
+Docs are the source of truth until generated JSON Schemas are introduced.
+
+## 5. Artifact Type Registry
+
+User-facing YAML uses short artifact type aliases. Artifact descriptors use
+fully qualified artifact type identifiers.
+
+Reserved namespace:
+
+```text
+fbt.artifact.<type_name>.v<major>
+```
+
+Initial registry:
+
+| YAML alias | Descriptor artifact type | Path kind | Raw digest |
+|---|---|---|---|
+| `text` | `fbt.artifact.text_file.v1` | file | file bytes |
+| `markdown` | `fbt.artifact.markdown_document.v1` | file | file bytes |
+| `markdown_directory` | `fbt.artifact.markdown_directory.v1` | directory | canonical directory digest |
+| `docx` | `fbt.artifact.docx_document.v1` | file | file bytes |
+| `docx_directory` | `fbt.artifact.docx_directory.v1` | directory | canonical directory digest |
+| `xlsx` | `fbt.artifact.xlsx_workbook.v1` | file | file bytes |
+| `xlsx_directory` | `fbt.artifact.xlsx_directory.v1` | directory | canonical directory digest |
+| `pdf` | `fbt.artifact.pdf_document.v1` | file | file bytes |
+| `html` | `fbt.artifact.html_document.v1` | file | file bytes |
+| `json` | `fbt.artifact.json_document.v1` | file | file bytes |
+| `jsonl_directory` | `fbt.artifact.jsonl_directory.v1` | directory | canonical directory digest |
+| `directory` | `fbt.artifact.directory.v1` | directory | canonical directory digest |
+| `binary` | `fbt.artifact.binary_file.v1` | file | file bytes |
+
+Custom artifact types must use an extension namespace such as:
+
+```text
+x.<org>.<artifact_type>.v1
+```
+
+Custom types may be parsed and carried through state, but core only provides
+standard descriptor and semantic-digest behavior for the `fbt.artifact.*`
+registry.
+
+## 6. Descriptor Shape
+
+Required descriptor fields:
+
+```json
+{
+  "media_type": "text/markdown; charset=utf-8",
+  "digest": "sha256:...",
+  "size": 12345,
+  "artifact_type": "fbt.artifact.markdown_document.v1"
+}
+```
+
+Directory descriptors use:
+
+```json
+{
+  "media_type": "inode/directory",
+  "digest": "sha256:...",
+  "size": null,
+  "artifact_type": "fbt.artifact.markdown_directory.v1",
+  "file_count": 12
+}
+```
+
+`descriptor.digest` is always the authoritative content identity.
+
+## 7. Digest Canonicalization
+
+File digest:
+
+- Algorithm: SHA-256.
+- Input: exact file bytes.
+- Excluded: path, file name, mtime, owner, group, and platform metadata.
+
+Directory digest:
+
+- Walk the directory recursively.
+- Normalize paths to relative POSIX-style paths with `/`.
+- Reject absolute paths, `..` segments, and paths outside the declared root.
+- Sort entries lexicographically by normalized relative path.
+- For each file, include normalized path, kind, byte size, and SHA-256 file digest.
+- Exclude mtime, owner, group, and platform metadata.
+- Reject symlinks by default. A future policy may allow symlinks only if the
+  resolved target stays inside declared read/write scope.
+- Hash the canonical JSON representation of the sorted entry list.
+
+This makes directory digests stable across repeated builds and ordinary file
+copy operations.
+
+## 8. Semantic Descriptor Registry
+
+Semantic descriptors are optional and never replace raw descriptors.
+
+Initial methods:
+
+| Method | Applies To | Meaning |
+|---|---|---|
+| `text_normalized_v1` | text, Markdown, HTML | Normalized text digest |
+| `markdown_ast_v1` | Markdown | Markdown structure digest |
+| `docx_text_v1` | Word documents | Extracted text digest |
+| `xlsx_cells_v1` | Excel workbooks | Normalized workbook cell digest |
+| `pdf_text_v1` | PDF | Extracted text digest |
+
+Semantic descriptors are used for diffing, confidence, and optional approval
+carryover. They must not be used as the immutable artifact version identity.
+
+## 9. Artifact Version IDs
+
+Persisted artifact version IDs use the artifact logical ID plus the full digest
+token:
+
+```text
+artifact_version.<project>.<artifact>.sha256_<64_hex_chars>
+```
+
+Examples in docs may abbreviate the digest for readability, but state files must
+store the full digest token.
+
+## 10. Migration Policy
+
+MVP supports only `config_version: 1` and `v1` JSON schema families.
+
+When a breaking schema change is required:
+
+1. Add the new schema family.
+2. Add a deterministic migration command or automatic migration path.
+3. Keep old state readable until the next major product release.
+4. Record migration activity in `run_results.jsonl`.
+5. Never mutate artifact content during schema migration.
+

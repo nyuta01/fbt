@@ -1,0 +1,143 @@
+# fbt Security and Conformance Spec
+
+Status: Draft  
+Created: 2026-05-28  
+Audience: implementers of policy enforcement, runner invocation, state safety, and acceptance tests
+
+## 1. Overview
+
+`fbt` manages filesystem transformations that may involve LLMs and AI agents.
+The base security model is local-first and assumes external runners are trusted
+executables selected by the user or project. Core still owns the commit boundary
+and must prevent unsafe runner output from becoming official project state.
+
+This spec defines MVP security responsibilities and conformance scenarios.
+
+## 2. Trust Boundary
+
+Core trusts:
+
+- project files selected by the user
+- runner executables configured by the user or project
+- local filesystem APIs
+
+Core does not trust:
+
+- runner stdout
+- runner stderr
+- output candidate paths
+- tool-call event contents
+- model responses
+- generated documents
+- document metadata
+
+Core validates structured protocol messages before using them and treats all
+runner-provided paths as untrusted until normalized and scope-checked.
+
+## 3. Core-Enforced Guarantees
+
+MVP core must enforce:
+
+- source files are read-only from the perspective of official `fbt` commits
+- official artifact pointers update only through the core commit path
+- output candidates must live under the invocation work directory
+- logical artifact paths must live under `artifact_path`
+- failed, cancelled, interrupted, or denied runs do not update official pointers
+- `artifact_version` records are immutable
+- approval is bound to `artifact_version`
+- state files are written with temp-file plus atomic rename
+- one local build lock is held per project target
+- secrets and raw model responses are not stored by default
+- timeout, output-size, and declared cost limits are checked when data is available
+
+Core cannot fully sandbox arbitrary external processes in MVP. OS-level
+sandboxing is a post-MVP hardening layer.
+
+## 4. Runner Responsibilities
+
+Runners must:
+
+- respect read and write scope
+- respect network, tool, timeout, and cost policy
+- write output candidates only under the assigned work directory
+- return structured errors for policy denials and execution failures
+- redact credentials from structured events
+- avoid printing secrets to stdout
+- provide usage and cost metadata when available
+
+A runner that cannot satisfy policy must fail closed.
+
+## 5. Default Policy
+
+When a transform omits policy:
+
+- read scope is limited to declared inputs and transform assets
+- write scope is limited to the invocation work directory
+- source writes are denied
+- network is denied, except when a runner type explicitly requires network and
+  project policy allows it
+- shell tools are denied for `llm` and `agent` transforms
+- timeout and output-size defaults are applied by core
+
+Agent transforms should declare an explicit policy. Missing policy for an agent
+transform is a parse warning in draft mode and should become a parse error before
+stable v1.
+
+## 6. Path Rules
+
+Core path validation must:
+
+- resolve relative paths from the project directory
+- normalize paths before comparison
+- reject absolute output paths unless they are the assigned work directory
+- reject `..` escapes
+- reject symlink escapes by default
+- reject output candidates outside `.fbt/work/<invocation>/outputs`
+- reject logical artifact paths outside `artifact_path`
+
+Path validation must run before descriptor computation and before any commit.
+
+## 7. Approval and Downstream Blocking
+
+Review-required transforms may use one of two commit modes:
+
+- `commit_pending`: commit the artifact version and mark it pending review
+- `quarantine_until_approved`: keep output out of the logical artifact path until approved
+
+MVP default is `commit_pending`.
+
+Downstream transforms that require `confidence: reviewed` or
+`review.status: approved` must block until the referenced artifact version is
+approved.
+
+## 8. Conformance Scenarios
+
+The MVP conformance suite should include the following scenarios.
+
+| ID | Area | Scenario | Expected Result |
+|---|---|---|---|
+| `CONF-SCHEMA-001` | schema | `fs_project.yml` omits `config_version` | parse fails with exit code `2` |
+| `CONF-SCHEMA-002` | schema | `config_version` is unsupported | parse fails with exit code `2` |
+| `CONF-DESC-001` | descriptor | same directory content with different mtimes | identical directory digest |
+| `CONF-DESC-002` | descriptor | directory contains symlink escape | descriptor computation fails |
+| `CONF-RUNNER-001` | runner | transform references missing runner | build/plan fails with exit code `6` |
+| `CONF-RUNNER-002` | runner | runner lacks required capability | validation fails before commit |
+| `CONF-SEC-001` | policy | runner declares output outside work directory | output is denied; no pointer update |
+| `CONF-SEC-002` | policy | transform requires network but policy denies it | transform is blocked with exit code `3` |
+| `CONF-STATE-001` | state | runner fails after writing partial output | official pointer remains unchanged |
+| `CONF-STATE-002` | state | same digest is committed twice | commit is idempotent |
+| `CONF-REVIEW-001` | approval | review-required artifact is produced | artifact version is pending review |
+| `CONF-REVIEW-002` | approval | downstream requires reviewed artifact | downstream blocks until approval |
+| `CONF-REDACT-001` | redaction | runner reports env var names and values | values are not persisted |
+| `CONF-DIRTY-001` | planning | prompt, policy, or runner config changes | dependent transform is dirty |
+| `CONF-DOCS-001` | docs | docs are generated | lineage is shown; secret values are absent |
+
+## 9. Verification Target
+
+Once product implementation begins, `make verify` should grow a deterministic
+conformance target that runs these scenarios without external services.
+
+LLM and agent scenarios should use fake runners for conformance. Real provider
+smoke tests belong behind explicit opt-in commands and must not be required for
+the base verification gate.
+
