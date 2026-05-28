@@ -17,7 +17,8 @@ in `docs/` and use the site as the user-facing entry surface.
 
 Added an Astro/Starlight docs app, branded assets, curated MVP content, GitHub
 Pages workflow, and `make docs-site-build` wired into `make verify` so the site
-does not drift silently.
+does not drift silently. Hardened the task-state harness so done tasks cannot
+pass locally by referencing ignored, generated paths that are absent in CI.
 
 ## Next Check
 

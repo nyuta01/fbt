@@ -585,7 +585,6 @@
       "paths": [
         ".github/workflows",
         "scripts",
-        "dist",
         "README.md"
       ],
       "verification": {
@@ -1412,7 +1411,8 @@
         ".github/workflows/release-docs.yml",
         ".github/workflows/verify.yml",
         "Makefile",
-        "README.md"
+        "README.md",
+        "scripts/harness_check.py"
       ],
       "verification": {
         "docs_site_build": true,

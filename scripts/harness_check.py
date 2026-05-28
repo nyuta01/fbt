@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -19,6 +20,18 @@ def fail(message: str) -> None:
 
 def exists(relative: str) -> bool:
     return (ROOT / relative).exists()
+
+
+def has_tracked_content(relative: str) -> bool:
+    result = subprocess.run(
+        ["git", "ls-files", "--", relative],
+        cwd=ROOT,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+    return bool(result.stdout.strip())
 
 
 def read_text(relative: str) -> str:
@@ -150,6 +163,8 @@ def validate_tasks(tasks: list[dict]) -> None:
             for task_path in paths:
                 if not exists(task_path):
                     fail(f"{prefix}: done task references missing path {task_path}")
+                elif not has_tracked_content(task_path):
+                    fail(f"{prefix}: done task references untracked path {task_path}")
 
         verification = task.get("verification")
         if not isinstance(verification, dict):
