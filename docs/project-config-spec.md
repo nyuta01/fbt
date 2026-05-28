@@ -105,6 +105,10 @@ runners:
     type: llm
     protocol: stdio_jsonrpc
     command: fbt-openai-runner
+    args: ["--profile", "fbt"]
+    cwd: .
+    env:
+      - OPENAI_API_KEY
     config:
       provider: openai
       default_model: gpt-5
@@ -481,6 +485,7 @@ runners:
     type: llm
     protocol: stdio_jsonrpc
     command: fbt-openai-runner
+    args: ["--profile", "fbt"]
     env:
       - OPENAI_API_KEY
     config:
@@ -491,12 +496,27 @@ runners:
     type: agent
     protocol: stdio_jsonrpc
     command: fbt-langgraph-runner
+    cwd: .
 ```
 
 Runner resolution is defined in
 [Runner Discovery Spec](runner-discovery-spec.md). Project `runners` entries
 with explicit `command` take precedence over plugin manifests and `PATH`
 conventions.
+
+Runner fields:
+
+| Field | Required | Meaning |
+|---|---:|---|
+| `name` | yes | Logical runner name referenced by transforms |
+| `type` | yes | Runner class such as `command`, `llm`, `agent`, `eval`, or `converter` |
+| `protocol` | yes | `stdio_jsonrpc` for MVP |
+| `command` | no | Executable name or path; required unless discovery finds a plugin or `PATH` command |
+| `args` | no | Static process arguments passed after the runner command |
+| `cwd` | no | Working directory for the runner process; relative paths resolve from the project directory |
+| `env` | no | Environment variable names passed through to the runner; values are never written to manifest or diagnostics |
+| `config` | no | Runner-specific configuration passed to protocol runners and included in fingerprints |
+| `capabilities` | no | Static expected capabilities checked against `initialize` in runner validation |
 
 Runner fields:
 

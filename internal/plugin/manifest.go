@@ -15,6 +15,8 @@ type Manifest struct {
 	Version  string            `yaml:"version" json:"version"`
 	Protocol string            `yaml:"protocol" json:"protocol"`
 	Command  string            `yaml:"command" json:"command"`
+	Args     []string          `yaml:"args" json:"args,omitempty"`
+	CWD      string            `yaml:"cwd" json:"cwd,omitempty"`
 	Provides []ProvidedRunner  `yaml:"provides" json:"provides"`
 	Env      []string          `yaml:"env" json:"env,omitempty"`
 	Checksum map[string]string `yaml:"checksum" json:"checksum,omitempty"`

@@ -66,6 +66,8 @@ runners:
     type: llm
     protocol: stdio_jsonrpc
     command: fbt-openai-runner
+    args: ["--profile", "fbt"]
+    cwd: .
     env:
       - OPENAI_API_KEY
     config:
@@ -81,9 +83,18 @@ Fields:
 | `type` | yes | `command`, `extract`, `template`, `llm`, `agent`, `eval`, or `converter` |
 | `protocol` | yes | `stdio_jsonrpc` for MVP |
 | `command` | no | Executable name or path; required unless a plugin manifest provides it |
-| `env` | no | Environment variable names passed through by core |
+| `args` | no | Static process arguments passed after `command` |
+| `cwd` | no | Runner working directory; project config paths resolve from the project directory |
+| `env` | no | Environment variable names passed through by core; values are never stored or printed |
 | `config` | no | Runner-specific configuration included in fingerprints |
 | `capabilities` | no | Static expected capabilities; verified by `initialize` |
+
+If `cwd` is omitted, core leaves the runner process working directory unchanged
+from the parent `fbt` process. This preserves existing wrappers while allowing
+projects to opt into explicit working directories. Core passes a small base
+environment (`PATH`, `HOME`, user and temp directory variables when present)
+plus the declared `env` names. Missing declared environment variables are
+reported by `fbt runner doctor` and `fbt doctor` without printing values.
 
 ## 5. Plugin Manifest
 
@@ -96,6 +107,8 @@ name: fbt-openai
 version: 0.1.0
 protocol: stdio_jsonrpc
 command: fbt-openai-runner
+args: ["--profile", "fbt"]
+cwd: .
 provides:
   - runner: openai.responses
     type: llm
@@ -109,6 +122,10 @@ checksum:
 
 Core reads plugin manifests to resolve commands and expected capabilities. It
 does not load plugin code into the core process.
+
+For plugin manifests, relative `command` and `cwd` values resolve from the
+plugin manifest directory. If plugin `cwd` is omitted, core leaves the parent
+working directory unchanged.
 
 ## 6. Capability Negotiation
 
@@ -162,13 +179,14 @@ fbt runner validate openai.responses
 - logical runner name
 - resolution source
 - command
-- protocol
+- args, cwd, and env names when configured
 - negotiated status if recently validated
 
 `fbt runner doctor RUNNER` checks:
 
 - command exists and is executable
-- required env var names are present without printing values
+- configured cwd exists and is a directory
+- declared environment variable names are present without printing values
 - plugin manifest shape is valid
 - `initialize` succeeds
 - capabilities satisfy configured transforms
@@ -184,4 +202,3 @@ fingerprints. A runner identity change marks dependent transforms dirty.
 MVP does not require a committed lockfile. A future `fbt.lock.json` may pin
 runner package source, version, and digest for teams that need stronger
 reproducibility.
-

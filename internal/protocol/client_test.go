@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -82,6 +83,40 @@ func TestClientCancelsOnContext(t *testing.T) {
 	}
 }
 
+func TestStartUsesArgsEnvAndDir(t *testing.T) {
+	root := t.TempDir()
+	client, err := Start(context.Background(), os.Args[0], []string{"-test.run=TestInvocationRunnerProcess", "--", "runner-arg"}, Options{
+		Dir: root,
+		Env: []string{
+			"FBT_INVOCATION_RUNNER=1",
+			"FBT_EXPECTED_ENV=present",
+			"PATH=" + os.Getenv("PATH"),
+		},
+	})
+	if err != nil {
+		t.Fatalf("start invocation runner: %v", err)
+	}
+	defer client.Close()
+	result, err := client.Initialize(context.Background(), InitializeParams{})
+	if err != nil {
+		t.Fatalf("initialize: %v", err)
+	}
+	expectedCWD, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		expectedCWD = filepath.Clean(root)
+	}
+	if result.Runner["cwd"] != filepath.Clean(expectedCWD) {
+		t.Fatalf("expected cwd %s, got %+v", expectedCWD, result.Runner)
+	}
+	if result.Runner["env"] != "present" {
+		t.Fatalf("expected env passthrough, got %+v", result.Runner)
+	}
+	args, ok := result.Runner["args"].([]any)
+	if !ok || len(args) == 0 || args[len(args)-1] != "runner-arg" {
+		t.Fatalf("expected runner args, got %+v", result.Runner)
+	}
+}
+
 func startFakeRunner(t *testing.T, mode string) *Client {
 	t.Helper()
 	ctx := context.Background()
@@ -92,6 +127,46 @@ func startFakeRunner(t *testing.T, mode string) *Client {
 		t.Fatalf("start fake runner: %v", err)
 	}
 	return client
+}
+
+func TestInvocationRunnerProcess(t *testing.T) {
+	if os.Getenv("FBT_INVOCATION_RUNNER") != "1" {
+		return
+	}
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		var request struct {
+			ID     string `json:"id"`
+			Method string `json:"method"`
+		}
+		if err := json.Unmarshal(scanner.Bytes(), &request); err != nil {
+			os.Exit(2)
+		}
+		switch request.Method {
+		case "initialize":
+			cwd, _ := os.Getwd()
+			args := make([]string, len(os.Args))
+			copy(args, os.Args)
+			writeFake(map[string]any{
+				"jsonrpc": "2.0",
+				"id":      request.ID,
+				"result": map[string]any{
+					"runner": map[string]any{
+						"name": "invocation",
+						"cwd":  filepath.Clean(cwd),
+						"env":  os.Getenv("FBT_EXPECTED_ENV"),
+						"args": args,
+					},
+					"protocol":     map[string]any{"version": "0.1", "framing": "jsonl"},
+					"capabilities": map[string]any{"run_transform": true},
+				},
+			})
+		case "initialized":
+		default:
+			os.Exit(0)
+		}
+	}
+	os.Exit(0)
 }
 
 func TestFakeRunnerProcess(t *testing.T) {

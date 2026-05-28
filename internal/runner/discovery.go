@@ -32,6 +32,8 @@ type Resolved struct {
 	Type        string         `json:"type"`
 	Protocol    string         `json:"protocol"`
 	Command     string         `json:"command"`
+	Args        []string       `json:"args,omitempty"`
+	CWD         string         `json:"cwd,omitempty"`
 	CommandPath string         `json:"command_path,omitempty"`
 	Source      Source         `json:"source"`
 	PluginName  string         `json:"plugin_name,omitempty"`
@@ -113,6 +115,24 @@ func Diagnose(resolved Resolved) []Diagnostic {
 		diagnostics = append(diagnostics, Diagnostic{Severity: "error", Code: "RUNNER_COMMAND_MISSING", Message: "runner command is not configured"})
 		return diagnostics
 	}
+	if resolved.CWD != "" {
+		info, err := os.Stat(resolved.CWD)
+		if err != nil {
+			diagnostics = append(diagnostics, Diagnostic{Severity: "error", Code: "RUNNER_CWD_NOT_ACCESSIBLE", Message: err.Error()})
+		} else if !info.IsDir() {
+			diagnostics = append(diagnostics, Diagnostic{Severity: "error", Code: "RUNNER_CWD_NOT_DIRECTORY", Message: fmt.Sprintf("runner cwd is not a directory: %s", resolved.CWD)})
+		} else {
+			diagnostics = append(diagnostics, Diagnostic{Severity: "info", Code: "RUNNER_CWD_OK", Message: fmt.Sprintf("runner cwd is accessible: %s", resolved.CWD)})
+		}
+	}
+	for _, name := range resolved.Env {
+		if _, ok := os.LookupEnv(name); !ok {
+			diagnostics = append(diagnostics, Diagnostic{Severity: "error", Code: "RUNNER_ENV_MISSING", Message: fmt.Sprintf("runner env %s is not set", name)})
+		}
+	}
+	if len(resolved.Env) > 0 && !hasDiagnosticCode(diagnostics, "RUNNER_ENV_MISSING") {
+		diagnostics = append(diagnostics, Diagnostic{Severity: "info", Code: "RUNNER_ENV_OK", Message: "declared runner environment is available"})
+	}
 	commandPath := resolved.CommandPath
 	if commandPath == "" {
 		if path, err := exec.LookPath(resolved.Command); err == nil {
@@ -165,6 +185,8 @@ func (d Discovery) resolveProjectConfig(name string) (Resolved, bool, error) {
 		Type:        runner.Type,
 		Protocol:    runner.Protocol,
 		Command:     runner.Command,
+		Args:        append([]string(nil), runner.Args...),
+		CWD:         resolveConfiguredCWD(d.ProjectDir, runner.CWD, ""),
 		CommandPath: commandPath,
 		Source:      SourceProjectConfig,
 		Env:         append([]string(nil), runner.Env...),
@@ -201,12 +223,23 @@ func resolvedFromPlugin(name string, manifest plugin.Manifest, provided plugin.P
 		Type:        provided.Type,
 		Protocol:    manifest.Protocol,
 		Command:     manifest.Command,
+		Args:        append([]string(nil), manifest.Args...),
+		CWD:         resolveConfiguredCWD(manifest.RootDir, manifest.CWD, ""),
 		CommandPath: commandPath,
 		Source:      source,
 		PluginName:  manifest.Name,
 		Version:     manifest.Version,
 		Env:         append([]string(nil), manifest.Env...),
 	}
+}
+
+func hasDiagnosticCode(diagnostics []Diagnostic, code string) bool {
+	for _, diagnostic := range diagnostics {
+		if diagnostic.Code == code {
+			return true
+		}
+	}
+	return false
 }
 
 func resolveConfiguredCommand(baseDir, command string) string {
@@ -223,6 +256,16 @@ func resolveConfiguredCommand(baseDir, command string) string {
 		return path
 	}
 	return ""
+}
+
+func resolveConfiguredCWD(baseDir, cwd, fallback string) string {
+	if cwd == "" {
+		return fallback
+	}
+	if filepath.IsAbs(cwd) {
+		return cwd
+	}
+	return filepath.Join(baseDir, cwd)
 }
 
 func (d Discovery) fbtHome() string {

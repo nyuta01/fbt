@@ -321,6 +321,8 @@ fbt runner validate RUNNER_NAME
 Runner discovery order is project config, project-local plugin manifest,
 user-local plugin manifest, then `PATH` convention. See
 [Runner Discovery Spec](runner-discovery-spec.md).
+`runner list` and `runner doctor` show configured command, args, cwd, and env
+names, but never print environment variable values.
 
 MVP does not download or install plugins. `fbt plugin install` is reserved for a
 future release; use host package managers or checked-in plugin manifests and then

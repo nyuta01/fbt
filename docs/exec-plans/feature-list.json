@@ -1182,27 +1182,31 @@
       "id": "FBT-RUNNER-002",
       "title": "Harden runner process invocation with args, env, and cwd",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-007",
         "FBT-MVP-008"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-002-plan.md",
       "paths": [
         "internal/config",
+        "internal/plugin",
+        "internal/manifest",
         "internal/runner",
         "internal/protocol",
         "internal/cli",
         "docs/project-config-spec.md",
-        "docs/runner-discovery-spec.md"
+        "docs/runner-discovery-spec.md",
+        "docs/cli-reference.md",
+        "docs/exec-plans/active/FBT-RUNNER-002-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
-      "notes": "Add runner `args`, explicit working directory behavior, declared environment passthrough, missing-env diagnostics, and tests so wrappers for provider CLIs and SDK adapters can be configured without shell scripts or accidental credential exposure."
+      "notes": "Adds runner `args` and optional `cwd` to project config and plugin manifests, passes configured args/cwd/env to runner processes, filters env passthrough to base variables plus declared names, and reports missing declared env names without printing values."
     },
     {
       "id": "FBT-RUNNER-003",

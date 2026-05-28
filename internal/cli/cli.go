@@ -832,6 +832,15 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 			fmt.Fprintf(stdout, "%s\n", runner.Name)
 			fmt.Fprintf(stdout, "  source: %s\n", runner.Source)
 			fmt.Fprintf(stdout, "  command: %s\n", runner.Command)
+			if len(runner.Args) > 0 {
+				fmt.Fprintf(stdout, "  args: %s\n", strings.Join(runner.Args, " "))
+			}
+			if runner.CWD != "" {
+				fmt.Fprintf(stdout, "  cwd: %s\n", runner.CWD)
+			}
+			if len(runner.Env) > 0 {
+				fmt.Fprintf(stdout, "  env: %s\n", strings.Join(runner.Env, ", "))
+			}
 			for _, diagnostic := range runner.Diagnostics {
 				fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
 			}
@@ -861,6 +870,15 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		fmt.Fprintf(stdout, "%s\n", resolved.Name)
 		fmt.Fprintf(stdout, "  source: %s\n", resolved.Source)
 		fmt.Fprintf(stdout, "  command: %s\n", resolved.Command)
+		if len(resolved.Args) > 0 {
+			fmt.Fprintf(stdout, "  args: %s\n", strings.Join(resolved.Args, " "))
+		}
+		if resolved.CWD != "" {
+			fmt.Fprintf(stdout, "  cwd: %s\n", resolved.CWD)
+		}
+		if len(resolved.Env) > 0 {
+			fmt.Fprintf(stdout, "  env: %s\n", strings.Join(resolved.Env, ", "))
+		}
 		for _, diagnostic := range diagnostics {
 			fmt.Fprintf(stdout, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
 		}

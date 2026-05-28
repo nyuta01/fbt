@@ -161,6 +161,8 @@ type RunnerResource struct {
 	RunnerType   string         `json:"runner_type"`
 	Protocol     string         `json:"protocol"`
 	Command      string         `json:"command,omitempty"`
+	Args         []string       `json:"args,omitempty"`
+	CWD          string         `json:"cwd,omitempty"`
 	Env          []string       `json:"env,omitempty"`
 	Config       map[string]any `json:"config,omitempty"`
 	Capabilities map[string]any `json:"capabilities,omitempty"`
@@ -362,6 +364,8 @@ func (b *manifestBuilder) addRunner(runner config.RunnerConfig) {
 		RunnerType:   runner.Type,
 		Protocol:     runner.Protocol,
 		Command:      runner.Command,
+		Args:         append([]string(nil), runner.Args...),
+		CWD:          slashPath(runner.CWD),
 		Env:          sortedCopy(runner.Env),
 		Config:       runner.Config,
 		Capabilities: runner.Capabilities,

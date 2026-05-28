@@ -276,6 +276,8 @@ func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
 	repoRoot := repoRoot(t)
 	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), `    command: bin/fbt-fake-runner
 `, `    command: bin/fbt-fake-runner
+    env:
+      - FBT_FAKE_RUNNER_CAPTURE_PARAMS
     config:
       provider: test
       default_model: fake
@@ -302,7 +304,8 @@ func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
 	}
 
 	capturePath := filepath.Join(root, ".fbt", "captured-runner-params.json")
-	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_CAPTURE_PARAMS="+shellQuote(capturePath)+"\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	t.Setenv("FBT_FAKE_RUNNER_CAPTURE_PARAMS", capturePath)
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}

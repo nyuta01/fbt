@@ -63,6 +63,8 @@ type RunnerConfig struct {
 	Type         string         `yaml:"type"`
 	Protocol     string         `yaml:"protocol"`
 	Command      string         `yaml:"command"`
+	Args         []string       `yaml:"args"`
+	CWD          string         `yaml:"cwd"`
 	Env          []string       `yaml:"env"`
 	Config       map[string]any `yaml:"config"`
 	Capabilities map[string]any `yaml:"capabilities"`

@@ -553,6 +553,8 @@ func protocolRunner(transform manifest.TransformResource, m manifest.Manifest, r
 		record["config"] = runnerResource.Config
 		record["capabilities"] = runnerResource.Capabilities
 		record["fingerprint"] = runnerResource.Fingerprint
+		record["args"] = runnerResource.Args
+		record["cwd"] = runnerResource.CWD
 	}
 	if resolved.PluginName != "" {
 		record["plugin_name"] = resolved.PluginName
