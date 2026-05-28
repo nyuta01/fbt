@@ -19,7 +19,7 @@ visualization, export OpenLineage or OTel records into standard tools.
 | You want to | Use | Result |
 |---|---|---|
 | Prove the local control-plane loop | `fbt init knowledge_ops --template support` | A runnable support project with demo LLM and agent runners. |
-| See what will happen before running it | `fbt parse`, `fbt doctor`, `fbt plan` | Manifest, readiness checks, and run or blocked reasons. |
+| See what will happen before running it | `fbt doctor`, `fbt plan` | Readiness checks plus run or blocked reasons. |
 | Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts` and an immutable copy in `.fbt/artifacts`. |
 | Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and policy state. |
 | Generate local project documentation | `fbt docs generate` | `target/docs/index.md` summarizing transforms, artifacts, evals, and policy decisions. |
@@ -45,7 +45,7 @@ machine. It is a fixture, not a realistic support-manual workflow.
 
 The quickstart answers this question:
 
-> Can fbt parse a local project, run configured runners, version artifacts,
+> Can fbt check a local project, run configured runners, version artifacts,
 > connect upstream artifacts to downstream transforms, and export local
 > lineage/telemetry?
 

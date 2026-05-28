@@ -2033,6 +2033,35 @@
       "notes": "Removed fbt-native review/approval behavior so core stays a file build tool. Human approval and publishing are documented as external workflows; smoke coverage asserts `fbt review` is not a command."
     },
     {
+      "id": "FBT-UNIX-012",
+      "title": "Make CLI argument handling strict",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-012-plan.md",
+      "paths": [
+        "internal/cli",
+        "internal/build",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "apps/docs",
+        "docs/exec-plans",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Unknown command flags, unsupported global flags, extra positional arguments, and selectors that match no transforms now fail instead of being ignored. Build selection now supports the same selector forms as plan, keeping the primary CLI predictable and scriptable."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

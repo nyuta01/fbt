@@ -20,7 +20,6 @@ your knowledge-base workflow.
 The source checkout includes a practical example:
 
 ```sh
-fbt parse --project-dir examples/incident_response_runbook
 fbt doctor --project-dir examples/incident_response_runbook
 fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
 ```
@@ -56,7 +55,6 @@ artifact is committed.
 ## Support resolution manual
 
 ```sh
-fbt parse --project-dir examples/support_resolution_manual
 fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
 ```
@@ -64,7 +62,6 @@ fbt plan --project-dir examples/support_resolution_manual --select support_resol
 Plan output before the first build:
 
 ```text
-Parsed 13 resources
 Plan: 1 selected, 1 run, 0 skipped, 0 blocked
 run transform.support_resolution_manual.support_resolution_manual
   reason: no previous successful run

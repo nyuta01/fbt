@@ -21,7 +21,7 @@ Both examples use the same production loop:
 
 ```text
 primary records
-  -> fbt parse / doctor / plan
+  -> fbt doctor / plan
   -> external LLM runner
   -> deterministic section eval
   -> committed manual artifact
@@ -72,7 +72,6 @@ data/reference/runbooks/
 Build flow:
 
 ```sh
-fbt parse --project-dir examples/incident_response_runbook
 fbt doctor --project-dir examples/incident_response_runbook
 fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
 fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
@@ -99,7 +98,6 @@ data/reference/macros/
 Build flow:
 
 ```sh
-fbt parse --project-dir examples/support_resolution_manual
 fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
 fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual

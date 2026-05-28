@@ -14,13 +14,12 @@ Basic workflow:
 
 ```sh
 fbt init
-fbt parse
-fbt plan
 fbt doctor
+fbt plan
 fbt build
 fbt artifact show case_summaries
 fbt diff case_summaries --against previous
-fbt docs generate
+fbt export openlineage
 ```
 
 ## 2. Global Flags
@@ -29,11 +28,16 @@ fbt docs generate
 |---|---|
 | `--project-dir PATH` | Directory containing `fs_project.yml`; defaults to the current directory |
 | `--state-dir PATH` | Local state directory; defaults to `.fbt/state` |
-| `--select EXPR` | Select resources |
+| `--select EXPR` | Select transforms for `plan`, `build`, and `eval` |
 | `--json` | Machine-readable JSON output |
 
 MVP does not accept `--exclude`, `--target`, `--vars`, `--dry-run`,
 `--log-level`, `--no-color`, or `--quiet`.
+
+Commands fail with exit code `2` when they receive unknown flags, unsupported
+global flags, extra positional arguments, or a `--select` expression that
+matches no transforms. fbt should never silently turn a typo into a broader
+build.
 
 ## 3. Exit Codes
 
@@ -102,8 +106,9 @@ for real provider-backed execution.
 
 ### 5.2 fbt parse
 
-Parse project files and generate `.fbt/state/manifest.json`. Does not start
-runners.
+Advanced command for tooling and debugging. Parse project files and generate
+`.fbt/state/manifest.json`. Does not start runners. Most users should use
+`fbt doctor` or `fbt plan`; both parse the project internally.
 
 ```sh
 fbt parse
@@ -150,7 +155,7 @@ parse -> plan -> run external runner -> eval -> commit -> write state
 
 ### 5.5 fbt eval
 
-Run evals against an artifact or artifact version.
+Advanced command. Re-run evals against an artifact or artifact version.
 
 ```sh
 fbt eval TARGET [--select EVAL_EXPR]
@@ -180,7 +185,8 @@ MVP supports raw text diff and Markdown heading-aware diff.
 
 ### 5.7 fbt docs generate
 
-Generate static Markdown docs.
+Generate static Markdown docs from local state. This is a local report helper,
+not the main fbt artifact workflow.
 
 ```sh
 fbt docs generate
@@ -191,7 +197,8 @@ versions, eval results, policy decisions, and diff links.
 
 ### 5.8 fbt state
 
-Inspect local state.
+Advanced command for inspecting local state files. Prefer `fbt artifact` for
+normal artifact inspection.
 
 ```sh
 fbt state status
@@ -220,7 +227,8 @@ lists prior versions for the same logical artifact.
 
 ### 5.10 fbt runner
 
-Inspect runner availability and capabilities.
+Advanced command for runner authors and debugging. Normal users should start
+with `fbt doctor`.
 
 ```sh
 fbt runner list
@@ -304,16 +312,15 @@ stderr.
 
 The main user-facing path stays small:
 
-- `fbt parse`
-- `fbt plan`
+- `fbt init`
 - `fbt doctor`
+- `fbt plan`
 - `fbt build`
-- `fbt eval`
-- `fbt diff`
 - `fbt artifact`
-- `fbt docs generate`
+- `fbt diff`
 - `fbt export`
 
-`state` and `runner` are advanced or diagnostic commands. `fbt` does not own
-human review or approval workflows; use Git, PRs, CI, release tooling, or
-catalog systems around the files and standard exports that fbt produces.
+`parse`, `eval`, `docs`, `state`, and `runner` are advanced or diagnostic
+commands. `fbt` does not own human review or approval workflows; use Git, PRs,
+CI, release tooling, or catalog systems around the files and standard exports
+that fbt produces.

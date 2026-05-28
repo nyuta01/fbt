@@ -20,7 +20,6 @@ From a source checkout:
 
 ```sh
 fbt init knowledge_ops --template support
-fbt parse --project-dir knowledge_ops
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
@@ -142,7 +141,6 @@ transforms:
 ## 5. Daily Workflow
 
 ```sh
-fbt parse
 fbt doctor
 fbt plan --select tag:support
 fbt build --select case_summaries

@@ -12,6 +12,7 @@ import (
 
 	"github.com/nyuta01/fbt/internal/artifact"
 	evalmgr "github.com/nyuta01/fbt/internal/eval"
+	"github.com/nyuta01/fbt/internal/graph"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
@@ -664,11 +665,36 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 	if expr == "" {
 		return nil, nil
 	}
+	var ids []string
+	var err error
+	switch {
+	case strings.HasPrefix(expr, "selector:"):
+		name := strings.TrimPrefix(expr, "selector:")
+		definition, ok := m.Selectors[name]
+		if !ok {
+			return nil, fmt.Errorf("unknown selector: %s", name)
+		}
+		ids, err = graph.SelectDefinition(m, definition)
+	case strings.HasPrefix(expr, "tag:"):
+		ids, err = graph.Select(m, graph.Selector{Method: "tag", Value: strings.TrimPrefix(expr, "tag:")})
+	case strings.HasPrefix(expr, "path:"):
+		ids, err = graph.Select(m, graph.Selector{Method: "path", Value: strings.TrimPrefix(expr, "path:")})
+	case strings.HasPrefix(expr, "resource_type:"):
+		ids, err = graph.Select(m, graph.Selector{Method: "resource_type", Value: strings.TrimPrefix(expr, "resource_type:")})
+	default:
+		ids, err = graph.Select(m, graph.Selector{Method: "name", Value: strings.Trim(expr, "+")})
+	}
+	if err != nil {
+		return nil, err
+	}
 	selected := map[string]struct{}{}
-	for id, transform := range m.Transforms {
-		if transform.Name == strings.Trim(expr, "+") || id == expr {
+	for _, id := range ids {
+		if _, ok := m.Transforms[id]; ok {
 			selected[id] = struct{}{}
 		}
+	}
+	if len(selected) == 0 {
+		return nil, fmt.Errorf("selector matched no transforms: %s", expr)
 	}
 	return selected, nil
 }

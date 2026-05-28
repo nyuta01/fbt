@@ -6,7 +6,6 @@ description: Parse, plan, build, inspect, and document a project.
 The normal fbt loop is:
 
 ```sh
-fbt parse
 fbt doctor
 fbt plan
 fbt build
@@ -14,10 +13,11 @@ fbt artifact explain <artifact>
 fbt docs generate
 ```
 
-## Parse
+## Check
 
-`fbt parse` reads `fs_project.yml` plus source, transform, asset, policy, eval,
-and runner YAML files. It writes `.fbt/state/manifest.json`.
+`fbt doctor` reads `fs_project.yml` plus source, transform, asset, policy,
+eval, and runner YAML files. It checks state and runner readiness before any
+build work starts.
 
 ## Plan
 
@@ -37,5 +37,5 @@ and why a transform will run or skip.
 
 ## Docs
 
-`fbt docs generate` writes project-local Markdown docs with artifact lineage,
+`fbt docs generate` optionally writes project-local Markdown docs with artifact lineage,
 eval results, and policy decision references.

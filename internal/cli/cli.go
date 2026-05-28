@@ -31,19 +31,27 @@ import (
 	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
 
-var implementedCommands = []string{
-	"parse",
-	"init",
-	"plan",
-	"build",
-	"eval",
-	"diff",
-	"docs",
-	"state",
-	"artifact",
-	"runner",
-	"doctor",
-	"export",
+type commandHelp struct {
+	Name        string
+	Description string
+}
+
+var primaryCommands = []commandHelp{
+	{"init", "Create a project"},
+	{"doctor", "Check project and runner readiness"},
+	{"plan", "Preview run, skip, and blocked transforms"},
+	{"build", "Run selected transforms and commit artifacts"},
+	{"artifact", "Inspect artifact paths, versions, and lineage"},
+	{"diff", "Compare artifact versions"},
+	{"export", "Write standard lineage or trace records"},
+}
+
+var advancedCommands = []commandHelp{
+	{"parse", "Validate project files and write the manifest"},
+	{"eval", "Re-run eval checks for an artifact"},
+	{"docs", "Generate local Markdown docs"},
+	{"state", "Inspect local state files"},
+	{"runner", "Inspect runner discovery and protocol compatibility"},
 }
 
 type options struct {
@@ -71,6 +79,14 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 
 	switch commandArgs[0] {
 	case "version", "--version", "-v":
+		if err := rejectSelect("version", opts); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
+		if err := expectNoArgs("version", commandArgs[1:]); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
 		info := versioninfo.Current()
 		if opts.JSON {
 			writeJSON(stdout, map[string]any{
@@ -87,11 +103,11 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 	case "init":
 		return runInit(opts, commandArgs[1:], stdout, stderr)
 	case "parse":
-		return runParse(opts, stdout, stderr)
+		return runParse(opts, commandArgs[1:], stdout, stderr)
 	case "plan":
-		return runPlan(opts, stdout, stderr)
+		return runPlan(opts, commandArgs[1:], stdout, stderr)
 	case "build":
-		return runBuild(opts, stdout, stderr)
+		return runBuild(opts, commandArgs[1:], stdout, stderr)
 	case "eval":
 		return runEval(opts, commandArgs[1:], stdout, stderr)
 	case "diff":
@@ -105,7 +121,7 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 	case "runner":
 		return runRunner(opts, commandArgs[1:], stdout, stderr)
 	case "doctor":
-		return runDoctor(opts, stdout, stderr)
+		return runDoctor(opts, commandArgs[1:], stdout, stderr)
 	case "export":
 		return runExport(opts, commandArgs[1:], stdout, stderr)
 	default:
@@ -115,7 +131,54 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 	}
 }
 
+func expectNoArgs(command string, args []string) error {
+	if len(args) == 0 {
+		return nil
+	}
+	arg := args[0]
+	if strings.HasPrefix(arg, "-") {
+		return fmt.Errorf("unknown %s flag: %s", command, arg)
+	}
+	return fmt.Errorf("%s accepts no arguments", command)
+}
+
+func rejectSelect(command string, opts options) error {
+	if opts.Select == "" {
+		return nil
+	}
+	return fmt.Errorf("%s does not accept --select", command)
+}
+
+func expectArgs(command string, args []string, count int) error {
+	if len(args) < count {
+		return fmt.Errorf("%s requires %d argument(s)", command, count)
+	}
+	if len(args) > count {
+		arg := args[count]
+		if strings.HasPrefix(arg, "-") {
+			return fmt.Errorf("unknown %s flag: %s", command, arg)
+		}
+		return fmt.Errorf("%s accepts %d argument(s)", command, count)
+	}
+	return nil
+}
+
+func expectAtMostArgs(command string, args []string, count int) error {
+	if len(args) <= count {
+		return nil
+	}
+	arg := args[count]
+	if strings.HasPrefix(arg, "-") {
+		return fmt.Errorf("unknown %s flag: %s", command, arg)
+	}
+	return fmt.Errorf("%s accepts at most %d argument(s)", command, count)
+}
+
 func runDiff(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("diff", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	diffOpts, err := parseDiffArgs(args)
 	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -196,6 +259,10 @@ func parseDiffArgs(args []string) (diffOptions, error) {
 }
 
 func runDocs(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("docs", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	docsOpts, err := parseDocsArgs(args)
 	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -234,6 +301,7 @@ type docsOptions struct {
 
 func parseDocsArgs(args []string) (docsOptions, error) {
 	opts := docsOptions{Subcommand: "generate"}
+	seenSubcommand := false
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
 		switch {
@@ -248,16 +316,21 @@ func parseDocsArgs(args []string) (docsOptions, error) {
 		case strings.HasPrefix(arg, "--"):
 			return docsOptions{}, fmt.Errorf("unknown docs flag: %s", arg)
 		default:
-			if opts.Subcommand != "generate" {
+			if seenSubcommand {
 				return docsOptions{}, fmt.Errorf("docs accepts one subcommand")
 			}
 			opts.Subcommand = arg
+			seenSubcommand = true
 		}
 	}
 	return opts, nil
 }
 
 func runExport(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("export", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	exportOpts, err := parseExportArgs(args)
 	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -464,6 +537,10 @@ func otelSpanCount(payload telemetry.TracesData) int {
 }
 
 func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("init", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	initOpts, err := parseInitArgs(args)
 	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
@@ -531,8 +608,12 @@ func parseInitArgs(args []string) (initOptions, error) {
 }
 
 func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if len(args) < 1 {
-		fmt.Fprintln(stderr, "Error: eval requires a target")
+	if len(args) == 0 {
+		fmt.Fprintln(stderr, "Error: eval requires 1 argument(s)")
+		return 2
+	}
+	if err := expectArgs("eval", args, 1); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
 	ctx, err := loadProject(opts)
@@ -598,7 +679,11 @@ func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 	return code
 }
 
-func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
+func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := expectNoArgs("build", args); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	result, err := buildmgr.RunBuild(context.Background(), buildmgr.Options{
 		ProjectDir: opts.ProjectDir,
 		StateDir:   opts.StateDir,
@@ -609,6 +694,9 @@ func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
 		printError("build", err, stderr, opts.JSON)
 		if errors.Is(err, runnermgr.ErrCapabilityIncompatible) {
 			return 6
+		}
+		if isSelectionError(err) {
+			return 2
 		}
 		return 1
 	}
@@ -638,7 +726,19 @@ func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
 	return 0
 }
 
+func isSelectionError(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := err.Error()
+	return strings.Contains(message, "selector matched no transforms") || strings.Contains(message, "unknown selector")
+}
+
 func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("runner", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -651,6 +751,10 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 	}
 	switch subcommand {
 	case "list":
+		if err := expectAtMostArgs("runner list", args, 1); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
 		resolved, err := discovery.List()
 		if err != nil {
 			printError("runner list", err, stderr, opts.JSON)
@@ -680,7 +784,11 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		return 0
 	case "doctor", "validate":
 		if len(args) < 2 {
-			fmt.Fprintf(stderr, "Error: runner %s requires a runner name\n", subcommand)
+			fmt.Fprintf(stderr, "Error: runner %s requires 1 argument(s)\n", subcommand)
+			return 2
+		}
+		if err := expectArgs("runner "+subcommand, args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		resolved, err := discovery.Resolve(args[1])
@@ -732,7 +840,15 @@ type doctorCheck struct {
 	Severity string `json:"severity"`
 }
 
-func runDoctor(opts options, stdout io.Writer, stderr io.Writer) int {
+func runDoctor(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("doctor", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	if err := expectNoArgs("doctor", args); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -898,12 +1014,17 @@ func printHelp(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  fbt <command> [flags]")
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "Implemented commands:")
-	fmt.Fprintln(w, "  help       Show this help")
-	fmt.Fprintln(w, "  version    Print version")
-	for _, command := range implementedCommands {
-		fmt.Fprintf(w, "  %-10s\n", command)
+	fmt.Fprintln(w, "Primary commands:")
+	for _, command := range primaryCommands {
+		fmt.Fprintf(w, "  %-10s %s\n", command.Name, command.Description)
 	}
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Advanced/debug commands:")
+	for _, command := range advancedCommands {
+		fmt.Fprintf(w, "  %-10s %s\n", command.Name, command.Description)
+	}
+	fmt.Fprintln(w, "  version    Print version")
+	fmt.Fprintln(w, "  help       Show this help")
 }
 
 func parseOptions(args []string) (options, []string, error) {
@@ -967,7 +1088,15 @@ func loadProject(opts options) (projectContext, error) {
 	return projectContext{ParseResult: parseResult, Manifest: m, Store: state.Open(stateDir)}, nil
 }
 
-func runParse(opts options, stdout io.Writer, stderr io.Writer) int {
+func runParse(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("parse", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	if err := expectNoArgs("parse", args); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -999,7 +1128,11 @@ func runParse(opts options, stdout io.Writer, stderr io.Writer) int {
 	return 0
 }
 
-func runPlan(opts options, stdout io.Writer, stderr io.Writer) int {
+func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := expectNoArgs("plan", args); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -1052,6 +1185,10 @@ func printPlanNode(stdout io.Writer, node planner.Node) {
 }
 
 func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("state", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -1063,6 +1200,10 @@ func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 	}
 	switch subcommand {
 	case "status":
+		if err := expectAtMostArgs("state status", args, 1); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
 		snapshot, err := ctx.Store.ReadState()
 		if err != nil {
 			printError("state", err, stderr, opts.JSON)
@@ -1083,6 +1224,10 @@ func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		fmt.Fprintf(stdout, "Artifact versions: %d\n", len(versions.ArtifactVersions))
 		return 0
 	case "ls":
+		if err := expectAtMostArgs("state ls", args, 1); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
 		files, err := stateFiles(ctx.Store.Dir)
 		if err != nil {
 			printError("state", err, stderr, opts.JSON)
@@ -1098,7 +1243,11 @@ func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		return 0
 	case "current":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: state current requires a target")
+			fmt.Fprintln(stderr, "Error: state current requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("state current", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return runStateCurrent(ctx.Store, args[1], opts.JSON, stdout, stderr)
@@ -1131,6 +1280,10 @@ func runStateCurrent(store state.Store, target string, jsonOutput bool, stdout i
 }
 
 func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if err := rejectSelect("artifact", opts); err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
 	ctx, err := loadProject(opts)
 	if err != nil {
 		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
@@ -1147,6 +1300,10 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 	}
 	switch subcommand {
 	case "ls":
+		if err := expectAtMostArgs("artifact ls", args, 1); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
 		ids := artifactIDs(versions)
 		if opts.JSON {
 			writeJSON(stdout, map[string]any{"command": "artifact ls", "status": "success", "artifacts": ids})
@@ -1158,31 +1315,51 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 		return 0
 	case "show":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact show requires a target")
+			fmt.Fprintln(stderr, "Error: artifact show requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("artifact show", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return runArtifactShow(ctx, versions, args[1], opts.JSON, stdout, stderr)
 	case "explain":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact explain requires a target")
+			fmt.Fprintln(stderr, "Error: artifact explain requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("artifact explain", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return runArtifactExplain(ctx, args[1], opts.JSON, stdout, stderr)
 	case "path":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact path requires a target")
+			fmt.Fprintln(stderr, "Error: artifact path requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("artifact path", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return runArtifactPath(ctx, versions, args[1], opts.JSON, stdout, stderr)
 	case "history":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact history requires a target")
+			fmt.Fprintln(stderr, "Error: artifact history requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("artifact history", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return runArtifactHistory(ctx, versions, args[1], opts.JSON, stdout, stderr)
 	case "versions":
 		if len(args) < 2 {
-			fmt.Fprintln(stderr, "Error: artifact versions requires a target")
+			fmt.Fprintln(stderr, "Error: artifact versions requires 1 argument(s)")
+			return 2
+		}
+		if err := expectArgs("artifact versions", args, 2); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
 		return printArtifactVersion("artifact versions", versions, args[1], true, opts.JSON, stdout, stderr)
@@ -1391,6 +1568,9 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 		if _, ok := m.Transforms[id]; ok {
 			selected[id] = struct{}{}
 		}
+	}
+	if len(selected) == 0 {
+		return nil, fmt.Errorf("selector matched no transforms: %s", expr)
 	}
 	return selected, nil
 }

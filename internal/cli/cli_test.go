@@ -89,6 +89,82 @@ func TestRunUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestRunRejectsUnknownAndExtraArguments(t *testing.T) {
+	root := writeCLIProject(t)
+
+	cases := []struct {
+		name     string
+		args     []string
+		expected string
+	}{
+		{
+			name:     "plan unknown flag",
+			args:     []string{"plan", "--bogus", "--project-dir", root},
+			expected: "unknown plan flag: --bogus",
+		},
+		{
+			name:     "build extra arg",
+			args:     []string{"build", "case_summaries", "--project-dir", root},
+			expected: "build accepts no arguments",
+		},
+		{
+			name:     "artifact extra flag",
+			args:     []string{"artifact", "show", "case_summaries", "--bogus", "--project-dir", root},
+			expected: "unknown artifact show flag: --bogus",
+		},
+		{
+			name:     "runner list extra arg",
+			args:     []string{"runner", "list", "openai.responses", "--project-dir", root},
+			expected: "runner list accepts at most 1 argument(s)",
+		},
+		{
+			name:     "docs extra arg",
+			args:     []string{"docs", "generate", "extra", "--project-dir", root},
+			expected: "docs accepts one subcommand",
+		},
+		{
+			name:     "docs rejects select",
+			args:     []string{"docs", "--select", "tag:support", "--project-dir", root},
+			expected: "docs does not accept --select",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			if code := Run(tc.args, &stdout, &stderr); code != 2 {
+				t.Fatalf("expected exit code 2, got %d; stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+			}
+			if !strings.Contains(stderr.String(), tc.expected) {
+				t.Fatalf("expected %q in stderr, got %q", tc.expected, stderr.String())
+			}
+		})
+	}
+}
+
+func TestRunSelectNoMatchFails(t *testing.T) {
+	root := writeCLIProject(t)
+
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--select", "no_such", "--project-dir", root}, &planOut, &planErr); code != 2 {
+		t.Fatalf("expected plan exit code 2, got %d; stdout=%q stderr=%q", code, planOut.String(), planErr.String())
+	}
+	if !strings.Contains(planErr.String(), "selector matched no transforms: no_such") {
+		t.Fatalf("expected selector error, got %q", planErr.String())
+	}
+
+	var buildOut bytes.Buffer
+	var buildErr bytes.Buffer
+	if code := Run([]string{"build", "--select", "no_such", "--project-dir", root}, &buildOut, &buildErr); code != 2 {
+		t.Fatalf("expected build exit code 2, got %d; stdout=%q stderr=%q", code, buildOut.String(), buildErr.String())
+	}
+	if !strings.Contains(buildErr.String(), "selector matched no transforms: no_such") {
+		t.Fatalf("expected selector error, got %q", buildErr.String())
+	}
+}
+
 func TestRunParseWritesManifest(t *testing.T) {
 	root := writeCLIProject(t)
 	var stdout bytes.Buffer

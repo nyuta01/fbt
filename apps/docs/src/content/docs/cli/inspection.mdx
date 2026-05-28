@@ -6,12 +6,11 @@ description: Commands for explaining artifacts and runs.
 fbt is designed for inspectability. These commands are useful after a build:
 
 ```sh
-fbt state summary
 fbt artifact path case_summaries
 fbt artifact show case_summaries
 fbt artifact history case_summaries
 fbt artifact explain weekly_support_insights
-fbt diff case_summaries --from previous --to latest
+fbt diff case_summaries --against previous
 ```
 
 ## Explain a plan decision

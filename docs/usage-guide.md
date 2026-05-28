@@ -44,18 +44,22 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 
 | Command | Purpose |
 |---|---|
-| `fbt parse` | Validate project YAML and write the manifest. |
+| `fbt doctor` | Check project config, local state, and runner readiness. |
 | `fbt plan` | Show run/skip/block decisions before a runner is called. |
-| `fbt doctor` | Check local state and runner readiness. |
 | `fbt build` | Invoke external runners, run checks, commit artifacts, and write state. |
-| `fbt eval` | Re-run deterministic checks for an artifact version. |
 | `fbt diff --against previous` | Compare generated versions. |
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |
 | `fbt artifact history` | List versions for a logical artifact. |
 | `fbt artifact explain` | Explain why an artifact will run, skip, or block. |
-| `fbt docs generate` | Write static Markdown docs from local state. |
 | `fbt export openlineage` | Export artifact lineage as OpenLineage NDJSON. |
 | `fbt export otel` | Export local execution traces as OTLP/JSON. |
+
+Advanced commands exist for tooling and debugging: `fbt parse`, `fbt eval`,
+`fbt docs generate`, `fbt state`, and `fbt runner`. The daily path should not
+need them.
+
+CLI safety rule: unknown flags, extra arguments, and selectors that match no
+transforms fail instead of being ignored.
 
 ## 4. Real Runner Use
 

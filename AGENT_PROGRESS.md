@@ -16,20 +16,20 @@ The `review` command, approval state, review gates, `human_review` evals, and
 approval facets have been removed from core. Human approval belongs in Git,
 PRs, CI, release tooling, ticket systems, or knowledge-base publishing flows.
 
-The command surface is now centered on:
+The primary command surface is now centered on:
 
 - `fbt init`
-- `fbt parse`
 - `fbt doctor`
 - `fbt plan`
 - `fbt build`
-- `fbt eval`
 - `fbt artifact`
 - `fbt diff`
-- `fbt docs generate`
-- `fbt runner`
 - `fbt export openlineage`
 - `fbt export otel`
+
+`parse`, `eval`, `docs`, `state`, and `runner` remain advanced/debugging
+surfaces. CLI argument handling is strict: unknown flags, extra arguments, and
+selectors that match no transforms fail instead of being ignored.
 
 Docs and examples are aligned with the simpler model:
 

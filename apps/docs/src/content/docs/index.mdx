@@ -62,8 +62,7 @@ providers, or agent runtimes. Those live behind external runners.
 # 1. Create a local project.
 fbt init knowledge_ops --template support
 
-# 2. Parse resources and inspect what will run.
-fbt parse --project-dir knowledge_ops
+# 2. Check readiness and inspect what will run.
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 

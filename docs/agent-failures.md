@@ -267,6 +267,26 @@ and standard-export approval facets were removed. The CLI smoke now asserts
 that `fbt review` is an unknown command, so the removed feature cannot
 accidentally reappear without changing tests.
 
+## F-014 CLI ignored typos and empty selectors
+
+- **Status**: `fixed`
+- **Task**: `FBT-UNIX-012`
+- **Plan**: `docs/exec-plans/active/FBT-UNIX-012-plan.md`
+
+### Observation
+
+The CLI accepted extra arguments for core commands. For example,
+`fbt plan --bogus` still ran a plan, and `fbt build --select no_such` could
+fall back to a broad build because an empty selector set was treated like no
+selector. That violates the Unix-style expectation that scripts fail fast on
+typos.
+
+### Permanent fix
+
+Command and subcommand argument validation now rejects unknown flags and extra
+positionals. Selectors that match no transforms now fail. Build selection uses
+the same selector semantics as plan, and CLI tests cover the typo cases.
+
 ## Entry Template
 
 ```markdown

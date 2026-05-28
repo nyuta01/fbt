@@ -296,14 +296,12 @@ Core commands:
 
 ```sh
 fbt init
-fbt parse
+fbt doctor
 fbt plan
 fbt build
-fbt eval weekly_report
 fbt diff weekly_report --against previous
 fbt artifact show weekly_report
 fbt artifact history weekly_report
-fbt docs generate
 fbt export openlineage
 fbt export otel
 ```

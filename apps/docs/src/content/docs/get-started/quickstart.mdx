@@ -33,7 +33,6 @@ what will run before any artifact is generated.
 
 ```sh
 fbt init knowledge_ops --template support
-fbt parse --project-dir knowledge_ops
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 ```
@@ -44,9 +43,6 @@ Expected output:
 Initialized support project at <tmp>/knowledge_ops
 Files: 12
 Demo runners: configured as demo.*; replace runner commands in fs_project.yml for real provider execution
-
-Parsed 11 resources
-Manifest written to <tmp>/knowledge_ops/.fbt/state/manifest.json
 
 Doctor: ok
 ok PROJECT_CONFIG_OK: project config parsed
@@ -144,8 +140,8 @@ Generated downstream excerpt:
 
 ## 4. Generate Docs
 
-This step proves that fbt can summarize the local project state without a
-server or database.
+This optional step proves that fbt can summarize the local project state
+without a server or database.
 
 ```sh
 fbt docs generate --project-dir knowledge_ops
