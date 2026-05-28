@@ -24,7 +24,8 @@ repository/release publication, MVP-ready docs, actionable blocked/skipped
 guidance, artifact explain/path/show/history, safer review inspection,
 project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
 command-surface cleanup, OpenLineage/OpenTelemetry/OpenMetadata export planning,
-expanded conformance, full policy-decision records, and semantic descriptors.
+standard-compatible visualization recipes, expanded conformance, full
+policy-decision records, and semantic descriptors.
 
 ## Verification
 
@@ -52,7 +53,8 @@ This runs:
 2. Start `FBT-UX-001` if prioritizing day-to-day user workflow polish, or
    `FBT-REL-001` if prioritizing release publication readiness.
 3. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
-   keep fbt-native state as the internal source of truth.
+   keep fbt-native state as the internal source of truth and delegate graph,
+   trace, and catalog visualization to standard-compatible tools where possible.
 4. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
 5. Keep `make verify` green after each bounded task.
