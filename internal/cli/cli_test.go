@@ -262,6 +262,59 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 }
 
+func TestRunExportOpenLineage(t *testing.T) {
+	root := writeCLIProject(t)
+	store, version := writeCLICurrentArtifact(t, root)
+	if err := store.PutApproval(state.Approval{
+		ArtifactVersionID: version.VersionID,
+		ArtifactID:        version.ArtifactID,
+		Digest:            version.Descriptor.Digest,
+		Status:            "approved",
+		ReviewGroup:       "support_leads",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.PutEvaluationResult(state.EvaluationResult{
+		ResultID:          "eval_result.knowledge_ops.case_summaries.required_case_sections",
+		EvalID:            "eval.knowledge_ops.required_case_sections",
+		ArtifactVersionID: version.VersionID,
+		TransformRunID:    version.GeneratedBy,
+		Status:            "pass",
+		GrantsConfidence:  "structural",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	outputPath := filepath.Join(t.TempDir(), "openlineage.ndjson")
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	code := Run([]string{"export", "openlineage", "--output", outputPath, "--project-dir", root}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("export openlineage failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "OpenLineage events written") || !strings.Contains(stdout.String(), "Events: 1") {
+		t.Fatalf("unexpected export output: %q", stdout.String())
+	}
+	data, err := os.ReadFile(outputPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	content := string(data)
+	for _, expected := range []string{
+		`"eventType":"COMPLETE"`,
+		`"namespace":"fbt:knowledge_ops"`,
+		`"name":"transform.knowledge_ops.case_summaries"`,
+		`"fbt_artifact"`,
+		`"fbt_approval"`,
+		`"fbt_evaluations"`,
+		version.VersionID,
+	} {
+		if !strings.Contains(content, expected) {
+			t.Fatalf("expected %q in OpenLineage export:\n%s", expected, content)
+		}
+	}
+}
+
 func TestRunEvalAndReviewCommands(t *testing.T) {
 	root := writeCLIProject(t)
 	store, version := writeCLICurrentArtifact(t, root)

@@ -30,6 +30,12 @@ grep -q "generated_by: transform_run.run_" "$tmpdir/artifact-show.txt"
 go run ./cmd/fbt artifact history case_summaries --project-dir "$project" >"$tmpdir/artifact-history.txt"
 grep -q "artifact_version.knowledge_ops.case_summaries" "$tmpdir/artifact-history.txt"
 
+go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
+grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
+grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
+grep -q '"name":"transform.knowledge_ops.case_summaries"' "$tmpdir/openlineage.ndjson"
+grep -q '"fbt_artifact"' "$tmpdir/openlineage.ndjson"
+
 go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
 grep -q "status: pending" "$tmpdir/review-status.txt"
 grep -q "next: fbt review show case_summaries" "$tmpdir/review-status.txt"

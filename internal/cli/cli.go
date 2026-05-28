@@ -20,6 +20,7 @@ import (
 	docsgen "github.com/nyuta01/fbt/internal/docs"
 	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/graph"
+	"github.com/nyuta01/fbt/internal/lineage"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
@@ -43,6 +44,7 @@ var implementedCommands = []string{
 	"artifact",
 	"runner",
 	"doctor",
+	"export",
 }
 
 var plannedCommands = []string{
@@ -112,6 +114,8 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runRunner(opts, commandArgs[1:], stdout, stderr)
 	case "doctor":
 		return runDoctor(opts, stdout, stderr)
+	case "export":
+		return runExport(opts, commandArgs[1:], stdout, stderr)
 	default:
 		if isPlannedCommand(commandArgs[0]) {
 			fmt.Fprintf(stderr, "fbt %s: not implemented yet\n", commandArgs[0])
@@ -263,6 +267,129 @@ func parseDocsArgs(args []string) (docsOptions, error) {
 		}
 	}
 	return opts, nil
+}
+
+func runExport(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	exportOpts, err := parseExportArgs(args)
+	if err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return 2
+	}
+	if exportOpts.Format != "openlineage" {
+		fmt.Fprintf(stderr, "unknown export format: %s\n", exportOpts.Format)
+		return 2
+	}
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	snapshot, err := ctx.Store.ReadState()
+	if err != nil {
+		printError("export openlineage", err, stderr, opts.JSON)
+		return 5
+	}
+	versions, err := ctx.Store.ReadArtifactVersions()
+	if err != nil {
+		printError("export openlineage", err, stderr, opts.JSON)
+		return 5
+	}
+	evaluations, err := ctx.Store.ReadEvaluationResults()
+	if err != nil {
+		printError("export openlineage", err, stderr, opts.JSON)
+		return 5
+	}
+	approvals, err := ctx.Store.ReadApprovals()
+	if err != nil {
+		printError("export openlineage", err, stderr, opts.JSON)
+		return 5
+	}
+	events := lineage.OpenLineageEvents(lineage.OpenLineageInput{
+		Manifest:          ctx.Manifest,
+		Snapshot:          snapshot,
+		ArtifactVersions:  versions,
+		EvaluationResults: evaluations,
+		Approvals:         approvals,
+	})
+	if exportOpts.OutputPath != "" {
+		if err := writeOpenLineageOutput(exportOpts.OutputPath, events); err != nil {
+			printError("export openlineage", err, stderr, opts.JSON)
+			return 5
+		}
+		if opts.JSON {
+			writeJSON(stdout, map[string]any{
+				"command":     "export openlineage",
+				"status":      "success",
+				"format":      "openlineage",
+				"events":      len(events),
+				"output_path": exportOpts.OutputPath,
+			})
+			return 0
+		}
+		fmt.Fprintf(stdout, "OpenLineage events written to %s\n", exportOpts.OutputPath)
+		fmt.Fprintf(stdout, "Events: %d\n", len(events))
+		return 0
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{
+			"command": "export openlineage",
+			"status":  "success",
+			"format":  "openlineage",
+			"events":  len(events),
+			"records": events,
+		})
+		return 0
+	}
+	if err := lineage.WriteOpenLineageNDJSON(stdout, events); err != nil {
+		printError("export openlineage", err, stderr, opts.JSON)
+		return 5
+	}
+	return 0
+}
+
+type exportOptions struct {
+	Format     string
+	OutputPath string
+}
+
+func parseExportArgs(args []string) (exportOptions, error) {
+	opts := exportOptions{}
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--output":
+			i++
+			if i >= len(args) {
+				return exportOptions{}, fmt.Errorf("--output requires a value")
+			}
+			opts.OutputPath = args[i]
+		case strings.HasPrefix(arg, "--output="):
+			opts.OutputPath = strings.TrimPrefix(arg, "--output=")
+		case strings.HasPrefix(arg, "--"):
+			return exportOptions{}, fmt.Errorf("unknown export flag: %s", arg)
+		default:
+			if opts.Format != "" {
+				return exportOptions{}, fmt.Errorf("export accepts one format")
+			}
+			opts.Format = arg
+		}
+	}
+	if opts.Format == "" {
+		return exportOptions{}, fmt.Errorf("export requires a format")
+	}
+	return opts, nil
+}
+
+func writeOpenLineageOutput(path string, events []lineage.RunEvent) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return lineage.WriteOpenLineageNDJSON(file, events)
 }
 
 func runInit(opts options, args []string, stdout io.Writer, stderr io.Writer) int {

@@ -43,16 +43,22 @@ External references:
 
 ## 3. Command Surface
 
-Reserved export commands:
+Implemented export commands:
 
 ```sh
 fbt export openlineage [--output PATH]
+```
+
+Reserved export commands:
+
+```sh
 fbt export otel [--output PATH]
 fbt export openmetadata [--output PATH]
 ```
 
-The commands are reserved by this contract and implemented by later tasks.
-Default output is newline-delimited JSON on stdout unless `--output` is set.
+OpenLineage is implemented first. The other commands are reserved by this
+contract and implemented by later tasks. Default output is newline-delimited
+JSON on stdout unless `--output` is set.
 `--json` returns an fbt command envelope with summary counts and the output
 path; the exported records themselves remain in the selected standard format.
 

@@ -860,7 +860,7 @@
       "id": "FBT-STD-002",
       "title": "Implement Marquez-compatible OpenLineage export for artifact lineage",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-001",
@@ -869,22 +869,25 @@
         "FBT-MVP-010",
         "FBT-MVP-012"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-002-plan.md",
       "paths": [
         "internal/cli",
         "internal/manifest",
         "internal/state",
         "internal/lineage",
+        "scripts/smoke-cli.sh",
+        "scripts/smoke-knowledge-loop.sh",
+        "docs/standard-export-spec.md",
         "docs/cli-reference.md",
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "conformance": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Add an export command such as `fbt lineage export --format openlineage` or `fbt export openlineage`. Map fbt artifacts/artifact_versions to OpenLineage datasets, transforms to jobs, transform_runs to runs, and confidence, approval, eval, descriptor, model, and policy metadata to facets. Keep the output consumable by Marquez/OpenLineage tooling so lineage visualization is handled outside fbt."
+      "notes": "Implements `fbt export openlineage [--output PATH]` as OpenLineage RunEvent NDJSON. Maps fbt artifacts/artifact_versions to datasets, transforms to jobs, transform_runs to UUID-backed runs, and confidence, approval, eval, descriptor, model, and policy metadata to `fbt_` custom facets so Marquez/OpenLineage tooling can own visualization."
     },
     {
       "id": "FBT-STD-003",

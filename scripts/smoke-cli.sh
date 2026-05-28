@@ -117,6 +117,11 @@ test -f "$project/target/artifacts/support/case_summaries/index.md"
 go run ./cmd/fbt eval case_summaries --project-dir "$project" >"$tmpdir/eval.txt"
 grep -q "pass eval.knowledge_ops.required_case_sections" "$tmpdir/eval.txt"
 
+go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
+grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
+grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
+grep -q '"fbt_evaluations"' "$tmpdir/openlineage.ndjson"
+
 go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
 grep -q "status: pending" "$tmpdir/review-status.txt"
 

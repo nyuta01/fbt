@@ -365,18 +365,45 @@ readiness checks fail. Use `--json` for machine-readable check records.
 
 ### 5.15 Standard exports
 
-The standard export command surface is reserved by
-[Standard Export Spec](standard-export-spec.md):
+`fbt export openlineage` writes OpenLineage-compatible run events for artifact
+lineage. The default output is newline-delimited JSON on stdout. Use `--output`
+to write a file that can be passed to OpenLineage-compatible tooling such as
+Marquez.
 
 ```sh
 fbt export openlineage [--output PATH]
+```
+
+The export maps fbt transforms to OpenLineage jobs, transform runs to runs,
+source and input artifacts to input datasets, and generated artifacts to output
+datasets. fbt-specific confidence, approval, eval, descriptor, runner/model,
+and policy metadata are included as `fbt_` custom facets. Raw artifact content,
+raw prompts, raw model responses, credentials, and absolute project paths are
+not exported by default.
+
+With `--json`, file-based export returns a command envelope with counts and the
+output path:
+
+```json
+{
+  "command": "export openlineage",
+  "status": "success",
+  "format": "openlineage",
+  "events": 1,
+  "output_path": "target/lineage/openlineage.ndjson"
+}
+```
+
+Reserved standard export commands:
+
+```sh
 fbt export otel [--output PATH]
 fbt export openmetadata [--output PATH]
 ```
 
-These commands are not implemented in the MVP CLI. The contract keeps fbt-native
-state as the source of truth and delegates lineage, trace, and catalog
-visualization to standard-compatible tools.
+The contract keeps fbt-native state as the source of truth and delegates
+lineage, trace, and catalog visualization to standard-compatible tools. See
+[Standard Export Spec](standard-export-spec.md).
 
 ## 6. JSON Output
 

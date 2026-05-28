@@ -459,10 +459,19 @@ Docs show:
 - Eval results
 - Review approvals
 
-Standard lineage and telemetry exports are planned as explicit export commands,
-not as replacements for local state. See
-[Standard Export Spec](standard-export-spec.md) for the OpenLineage,
-OpenTelemetry, OpenMetadata, and visualization contract.
+Export artifact lineage when you want to inspect it in OpenLineage-compatible
+tools:
+
+```sh
+fbt export openlineage --output target/lineage/openlineage.ndjson
+```
+
+The OpenLineage export keeps fbt-native state as the source of truth. It emits
+transform runs, input and output datasets, and fbt-specific `fbt_` facets for
+artifact descriptors, confidence, approvals, evals, runner/model, and policy
+metadata without exporting raw artifact content or prompts. OpenTelemetry and
+OpenMetadata exports remain reserved by
+[Standard Export Spec](standard-export-spec.md).
 
 ## 14. Day-2 Operation
 
