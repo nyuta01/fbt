@@ -3,6 +3,8 @@
 This log records repeated or high-risk agent failure modes. Use it to turn
 mistakes into deterministic guardrails.
 
+Last reviewed: 2026-05-28.
+
 No failures are currently active.
 
 ## Entry Template
@@ -22,4 +24,3 @@ What happened.
 
 What changed to make recurrence less likely.
 ```
-

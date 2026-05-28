@@ -546,21 +546,21 @@
       "id": "FBT-PERMANENT-FIX-001",
       "title": "Maintain permanent-fix loop",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-H-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-PERMANENT-FIX-001-plan.md",
       "paths": [
         "docs/methodology/permanent-fix-protocol.md",
         "docs/agent-failures.md",
         "scripts/harness_drift.py"
       ],
       "verification": {
-        "drift_check": false
+        "drift_check": true
       },
-      "notes": "Standing task used by the drift check to ensure repeated failures get deterministic guards."
+      "notes": "Standing permanent-fix loop checked after MVP task execution; no repeated active failure required a new guard, and failure-log invariants remain enforced by make verify."
     }
   ]
 }
