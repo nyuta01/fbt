@@ -826,6 +826,12 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			return 2
 		}
 		return printArtifactVersion("artifact show", versions, args[1], false, opts.JSON, stdout, stderr)
+	case "explain":
+		if len(args) < 2 {
+			fmt.Fprintln(stderr, "Error: artifact explain requires a target")
+			return 2
+		}
+		return runArtifactExplain(ctx, args[1], opts.JSON, stdout, stderr)
 	case "versions":
 		if len(args) < 2 {
 			fmt.Fprintln(stderr, "Error: artifact versions requires a target")
@@ -836,6 +842,79 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 		fmt.Fprintf(stderr, "unknown artifact command: %s\n", subcommand)
 		return 2
 	}
+}
+
+type artifactExplanation struct {
+	ArtifactID     string                     `json:"artifact_id"`
+	TransformID    string                     `json:"transform_id"`
+	TransformName  string                     `json:"transform_name"`
+	Action         planner.Action             `json:"action"`
+	Inputs         []manifest.TransformInput  `json:"inputs,omitempty"`
+	Outputs        []manifest.TransformOutput `json:"outputs,omitempty"`
+	DirtyReasons   []string                   `json:"dirty_reasons,omitempty"`
+	BlockedReasons []string                   `json:"blocked_reasons,omitempty"`
+	NextSteps      []string                   `json:"next_steps,omitempty"`
+	Current        *state.ArtifactPointer     `json:"current,omitempty"`
+	PreviousRun    *state.LatestRun           `json:"previous_run,omitempty"`
+}
+
+func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	artifactID, ok := resolveArtifactID(ctx.Manifest, target)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
+		return 2
+	}
+	transform, ok := producerTransform(ctx.Manifest, artifactID)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: producer transform not found for %s\n", artifactID)
+		return 2
+	}
+	var previous *manifest.Manifest
+	if prev, err := ctx.Store.ReadManifest(); err == nil {
+		previous = &prev
+	} else if !errors.Is(err, os.ErrNotExist) {
+		printError("artifact explain", err, stderr, jsonOutput)
+		return 5
+	}
+	snapshot, err := ctx.Store.ReadState()
+	if err != nil {
+		printError("artifact explain", err, stderr, jsonOutput)
+		return 5
+	}
+	plan := planner.Build(planner.Inputs{
+		Manifest:         ctx.Manifest,
+		PreviousManifest: previous,
+		State:            snapshot,
+		Selected:         map[string]struct{}{transform.UniqueID: {}},
+	})
+	if len(plan.Nodes) == 0 {
+		fmt.Fprintf(stderr, "Error: plan node not found for %s\n", transform.UniqueID)
+		return 2
+	}
+	node := plan.Nodes[0]
+	explanation := artifactExplanation{
+		ArtifactID:     artifactID,
+		TransformID:    transform.UniqueID,
+		TransformName:  transform.Name,
+		Action:         node.Action,
+		Inputs:         transform.Inputs,
+		Outputs:        transform.Outputs,
+		DirtyReasons:   node.DirtyReasons,
+		BlockedReasons: node.BlockedReasons,
+		NextSteps:      node.NextSteps,
+	}
+	if pointer, ok := snapshot.CurrentArtifacts[artifactID]; ok {
+		explanation.Current = &pointer
+	}
+	if latest, ok := snapshot.LatestRuns[transform.UniqueID]; ok {
+		explanation.PreviousRun = &latest
+	}
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "artifact explain", "status": "success", "explanation": explanation})
+		return 0
+	}
+	printArtifactExplanation(stdout, explanation)
+	return 0
 }
 
 func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}, error) {
@@ -871,6 +950,58 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 		}
 	}
 	return selected, nil
+}
+
+func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation) {
+	fmt.Fprintf(stdout, "%s\n", explanation.ArtifactID)
+	fmt.Fprintf(stdout, "  transform: %s\n", explanation.TransformID)
+	fmt.Fprintf(stdout, "  action: %s\n", explanation.Action)
+	for _, input := range explanation.Inputs {
+		fmt.Fprintf(stdout, "  input: %s %s\n", input.Kind, input.UniqueID)
+	}
+	for _, output := range explanation.Outputs {
+		fmt.Fprintf(stdout, "  output: %s\n", output.UniqueID)
+	}
+	if explanation.Current != nil {
+		fmt.Fprintf(stdout, "  current_version: %s\n", explanation.Current.CurrentVersionID)
+		fmt.Fprintf(stdout, "  confidence: %s\n", explanation.Current.Confidence)
+		fmt.Fprintf(stdout, "  approval_status: %s\n", explanation.Current.ApprovalStatus)
+	} else {
+		fmt.Fprintln(stdout, "  current_version: none")
+	}
+	if explanation.PreviousRun != nil {
+		fmt.Fprintf(stdout, "  previous_run: %s %s\n", explanation.PreviousRun.LatestRunID, explanation.PreviousRun.LatestStatus)
+	} else {
+		fmt.Fprintln(stdout, "  previous_run: none")
+	}
+	for _, reason := range explanation.DirtyReasons {
+		fmt.Fprintf(stdout, "  reason: %s\n", reason)
+	}
+	for _, reason := range explanation.BlockedReasons {
+		fmt.Fprintf(stdout, "  blocked: %s\n", reason)
+	}
+	for _, step := range explanation.NextSteps {
+		fmt.Fprintf(stdout, "  next: %s\n", step)
+	}
+}
+
+func resolveArtifactID(m manifest.Manifest, target string) (string, bool) {
+	if _, ok := m.Artifacts[target]; ok {
+		return target, true
+	}
+	for id, artifact := range m.Artifacts {
+		if artifact.Name == target || strings.HasSuffix(id, "."+target) {
+			return id, true
+		}
+	}
+	for _, transform := range m.Transforms {
+		for _, output := range transform.Outputs {
+			if output.Name == target || output.UniqueID == target || strings.HasSuffix(output.UniqueID, "."+target) {
+				return output.UniqueID, true
+			}
+		}
+	}
+	return "", false
 }
 
 func printArtifactVersion(command string, index state.ArtifactVersionsIndex, target string, all bool, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {

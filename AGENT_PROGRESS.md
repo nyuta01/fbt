@@ -15,7 +15,8 @@ The current verification gate also includes deterministic conformance and local
 release-binary smoke checks. The MVP source default is `0.1.0`, and release
 builds can stamp version, commit, and build date metadata into the CLI.
 Plan and build output now include concrete `next:` commands for blocked and
-skipped work.
+skipped work, and `fbt artifact explain TARGET` gives a focused explanation of
+one artifact's plan decision.
 
 The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
@@ -23,8 +24,8 @@ conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication, artifact explain/path/show/history, safer
-review inspection, project-level doctor checks, stronger YAML diagnostics,
+repository/release publication, artifact path/show/history, safer review
+inspection, project-level doctor checks, stronger YAML diagnostics,
 opt-in real LLM smoke, command-surface cleanup,
 OpenLineage/OpenTelemetry/OpenMetadata export planning, standard-compatible
 visualization recipes, expanded conformance, full policy-decision records, and
@@ -59,7 +60,7 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue with `FBT-UX-002` and `FBT-UX-003`; `FBT-STD-001` depends on both.
+3. Continue with `FBT-UX-003`; `FBT-STD-001` depends on `FBT-UX-003`.
 4. Start `FBT-STD-001` before implementing standard lineage/telemetry exports;
    keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where possible.

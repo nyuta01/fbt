@@ -338,6 +338,16 @@ blocked transform.knowledge_ops.weekly_support_insights
 
 `fbt plan` explains both what will run and why something is blocked.
 
+For a single artifact, use `artifact explain`:
+
+```sh
+fbt artifact explain weekly_support_insights
+```
+
+This shows the producing transform, inputs, current version if present,
+previous run evidence, blocked or dirty reasons, and the same `next:` commands
+shown in the plan.
+
 ## 9. Build
 
 ```sh

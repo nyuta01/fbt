@@ -157,6 +157,9 @@ Shows:
 - Confidence requirements
 - Required review through blocked/pending state
 
+Use `fbt artifact explain TARGET` to focus on one artifact's plan decision,
+inputs, current version, previous run evidence, and next steps.
+
 Example:
 
 ```text
@@ -290,6 +293,7 @@ Inspect artifacts and versions.
 ```sh
 fbt artifact ls
 fbt artifact show TARGET
+fbt artifact explain TARGET
 fbt artifact versions TARGET
 ```
 

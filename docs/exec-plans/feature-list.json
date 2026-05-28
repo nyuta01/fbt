@@ -674,14 +674,14 @@
       "id": "FBT-UX-002",
       "title": "Add artifact explanation command for plan decisions",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-005",
         "FBT-MVP-006",
         "FBT-MVP-012"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-002-plan.md",
       "paths": [
         "internal/cli",
         "internal/planner",
@@ -690,9 +690,9 @@
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
       "notes": "Add a user-facing explanation surface such as `fbt explain <artifact>` or `fbt plan --why` that reports why an artifact will run, skip, or block, including upstream dependencies, dirty reasons, approval/confidence constraints, and previous run evidence. User research analogs: Bazel query somepath/allpaths and Dagster asset selection/lineage."
     },

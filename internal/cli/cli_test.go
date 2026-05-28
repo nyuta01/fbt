@@ -135,6 +135,18 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(planOut.String(), "next: fbt build --select case_summaries") {
 		t.Fatalf("expected blocked next step, got %q", planOut.String())
 	}
+
+	var explainOut bytes.Buffer
+	var explainErr bytes.Buffer
+	if code := Run([]string{"artifact", "explain", "weekly_support_insights", "--project-dir", root}, &explainOut, &explainErr); code != 0 {
+		t.Fatalf("generated project should explain artifact: code=%d stderr=%q", code, explainErr.String())
+	}
+	if !strings.Contains(explainOut.String(), "action: blocked") {
+		t.Fatalf("expected blocked explanation, got %q", explainOut.String())
+	}
+	if !strings.Contains(explainOut.String(), "next: fbt build --select case_summaries") {
+		t.Fatalf("expected explanation next step, got %q", explainOut.String())
+	}
 }
 
 func TestRunPlanJSON(t *testing.T) {
