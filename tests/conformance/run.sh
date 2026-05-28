@@ -28,6 +28,7 @@ if [[ "$blocked_code" -ne 3 ]]; then
   cat "$tmpdir/build-weekly-blocked.err" >&2
   exit 1
 fi
+grep -q "next: fbt review approve case_summaries" "$tmpdir/build-weekly-blocked.txt"
 
 "$FBT_BIN" review approve case_summaries --project-dir "$happy" --comment "conformance" >"$tmpdir/review-approve.txt"
 grep -q "status: approved" "$tmpdir/review-approve.txt"

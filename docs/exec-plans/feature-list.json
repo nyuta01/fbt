@@ -645,7 +645,7 @@
       "id": "FBT-UX-001",
       "title": "Show actionable next steps for blocked and skipped work",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-005",
@@ -653,19 +653,20 @@
         "FBT-MVP-012",
         "FBT-MVP-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-001-plan.md",
       "paths": [
         "internal/planner",
         "internal/build",
         "internal/cli",
+        "tests/conformance/run.sh",
         "docs/cli-reference.md",
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "e2e_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "e2e_smoke": true,
+        "validate_docs": true
       },
       "notes": "When plan/build reports blocked or skipped artifacts, include the concrete unblock command or next inspection command. User research analogs: DVC status/repro, dbt build skip behavior, and Terraform/Pulumi preview/apply flows make the next safe action explicit."
     },

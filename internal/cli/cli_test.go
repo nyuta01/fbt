@@ -126,6 +126,15 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if code := Run([]string{"parse", "--project-dir", root}, &parseOut, &parseErr); code != 0 {
 		t.Fatalf("generated project should parse: code=%d stderr=%q", code, parseErr.String())
 	}
+
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--project-dir", root, "--select", "tag:support"}, &planOut, &planErr); code != 0 {
+		t.Fatalf("generated project should plan: code=%d stderr=%q", code, planErr.String())
+	}
+	if !strings.Contains(planOut.String(), "next: fbt build --select case_summaries") {
+		t.Fatalf("expected blocked next step, got %q", planOut.String())
+	}
 }
 
 func TestRunPlanJSON(t *testing.T) {

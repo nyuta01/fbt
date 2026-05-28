@@ -465,6 +465,12 @@ func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
 			fmt.Fprintf(stdout, "  committed: %s\n", version)
 		}
 	}
+	for _, node := range result.Plan.Nodes {
+		if node.Action == planner.ActionRun {
+			continue
+		}
+		printPlanNode(stdout, node)
+	}
 	if result.Plan.Summary.Blocked > 0 {
 		return 3
 	}
@@ -691,15 +697,22 @@ func runPlan(opts options, stdout io.Writer, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "Plan: %d selected, %d run, %d skipped, %d blocked\n", plan.Summary.Selected, plan.Summary.Run, plan.Summary.Skipped, plan.Summary.Blocked)
 	for _, node := range plan.Nodes {
-		fmt.Fprintf(stdout, "%s %s\n", node.Action, node.TransformID)
-		for _, reason := range node.DirtyReasons {
-			fmt.Fprintf(stdout, "  reason: %s\n", reason)
-		}
-		for _, reason := range node.BlockedReasons {
-			fmt.Fprintf(stdout, "  blocked: %s\n", reason)
-		}
+		printPlanNode(stdout, node)
 	}
 	return 0
+}
+
+func printPlanNode(stdout io.Writer, node planner.Node) {
+	fmt.Fprintf(stdout, "%s %s\n", node.Action, node.TransformID)
+	for _, reason := range node.DirtyReasons {
+		fmt.Fprintf(stdout, "  reason: %s\n", reason)
+	}
+	for _, reason := range node.BlockedReasons {
+		fmt.Fprintf(stdout, "  blocked: %s\n", reason)
+	}
+	for _, step := range node.NextSteps {
+		fmt.Fprintf(stdout, "  next: %s\n", step)
+	}
 }
 
 func runState(opts options, args []string, stdout io.Writer, stderr io.Writer) int {

@@ -333,6 +333,7 @@ run transform.knowledge_ops.case_summaries
 
 blocked transform.knowledge_ops.weekly_support_insights
   blocked: requires artifact.knowledge_ops.case_summaries current artifact
+  next: fbt build --select case_summaries
 ```
 
 `fbt plan` explains both what will run and why something is blocked.

@@ -163,10 +163,12 @@ Example:
 Plan: 2 selected, 1 run, 0 skipped, 1 blocked
 
 run transform.knowledge_ops.case_summaries
-  reason: no previous run
+  reason: no previous successful run
 
 blocked transform.knowledge_ops.weekly_support_insights
-  reason: requires artifact.knowledge_ops.case_summaries confidence reviewed
+  blocked: requires artifact.knowledge_ops.case_summaries confidence reviewed
+  next: fbt review status case_summaries
+  next: fbt review approve case_summaries --comment "reviewed"
 ```
 
 ### 5.4 fbt build
@@ -339,8 +341,19 @@ With `--json`, stdout contains machine-readable JSON and human logs go to stderr
       "transform_id": "transform.knowledge_ops.case_summaries",
       "name": "case_summaries",
       "action": "run",
-      "dirty_reasons": ["source support.raw_tickets changed"],
-      "blocked_reasons": []
+      "dirty_reasons": ["source support.raw_tickets changed"]
+    },
+    {
+      "transform_id": "transform.knowledge_ops.weekly_support_insights",
+      "name": "weekly_support_insights",
+      "action": "blocked",
+      "blocked_reasons": [
+        "requires artifact.knowledge_ops.case_summaries confidence reviewed"
+      ],
+      "next_steps": [
+        "fbt review status case_summaries",
+        "fbt review approve case_summaries --comment \"reviewed\""
+      ]
     }
   ]
 }

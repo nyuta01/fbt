@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/state"
@@ -42,6 +43,7 @@ type Node struct {
 	Action         Action   `json:"action"`
 	DirtyReasons   []string `json:"dirty_reasons,omitempty"`
 	BlockedReasons []string `json:"blocked_reasons,omitempty"`
+	NextSteps      []string `json:"next_steps,omitempty"`
 	Outputs        []string `json:"outputs,omitempty"`
 }
 
@@ -79,10 +81,68 @@ func Build(inputs Inputs) Plan {
 				plan.Summary.Skipped++
 			}
 		}
+		node.NextSteps = nextSteps(transform, node.Action, inputs.State)
 		plan.Nodes = append(plan.Nodes, node)
 		plan.Summary.Selected++
 	}
 	return plan
+}
+
+func nextSteps(transform manifest.TransformResource, action Action, snapshot state.Snapshot) []string {
+	switch action {
+	case ActionBlocked:
+		return blockedNextSteps(transform, snapshot)
+	case ActionSkip:
+		return skippedNextSteps(transform)
+	default:
+		return nil
+	}
+}
+
+func blockedNextSteps(transform manifest.TransformResource, snapshot state.Snapshot) []string {
+	var steps []string
+	for _, input := range transform.Inputs {
+		if input.Kind != "ref" {
+			continue
+		}
+		target := targetName(input.Name, input.UniqueID)
+		pointer, ok := snapshot.CurrentArtifacts[input.UniqueID]
+		if !ok {
+			steps = append(steps, fmt.Sprintf("fbt build --select %s", target))
+			continue
+		}
+		if required, ok := stringFromMap(input.Require, "confidence"); ok && !confidenceSatisfies(pointer.Confidence, required) {
+			if required == "reviewed" {
+				steps = append(steps,
+					fmt.Sprintf("fbt review status %s", target),
+					fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
+				)
+			} else {
+				steps = append(steps, fmt.Sprintf("fbt eval %s", target))
+			}
+		}
+		if review, ok := mapFromMap(input.Require, "review"); ok {
+			if requiredStatus, ok := stringFromMap(review, "status"); ok && pointer.ApprovalStatus != requiredStatus {
+				steps = append(steps,
+					fmt.Sprintf("fbt review status %s", target),
+					fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
+				)
+			}
+		}
+	}
+	return uniqueStrings(steps)
+}
+
+func skippedNextSteps(transform manifest.TransformResource) []string {
+	var steps []string
+	for _, output := range transform.Outputs {
+		target := targetName(output.Name, output.UniqueID)
+		steps = append(steps, fmt.Sprintf("fbt artifact show %s", target))
+	}
+	if len(steps) == 0 && transform.Name != "" {
+		steps = append(steps, fmt.Sprintf("fbt plan --select %s", transform.Name))
+	}
+	return uniqueStrings(steps)
 }
 
 func blockedReasons(transform manifest.TransformResource, snapshot state.Snapshot) []string {
@@ -177,6 +237,32 @@ func outputIDs(transform manifest.TransformResource) []string {
 	}
 	sort.Strings(outputs)
 	return outputs
+}
+
+func targetName(name, id string) string {
+	if name != "" {
+		return name
+	}
+	if index := strings.LastIndex(id, "."); index >= 0 && index+1 < len(id) {
+		return id[index+1:]
+	}
+	return id
+}
+
+func uniqueStrings(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
 }
 
 func confidenceSatisfies(current, required string) bool {

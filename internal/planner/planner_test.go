@@ -42,6 +42,7 @@ func TestBuildSkipsCleanTransform(t *testing.T) {
 	if plan.Nodes[0].Action != ActionSkip {
 		t.Fatalf("expected skip, got %+v", plan.Nodes[0])
 	}
+	assertContains(t, plan.Nodes[0].NextSteps, "fbt artifact show case_summaries")
 }
 
 func TestBuildDetectsManifestDirtyReasons(t *testing.T) {
@@ -110,6 +111,8 @@ func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 	}
 	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries confidence reviewed, current is semantic")
 	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries review status approved, current is pending")
+	assertContains(t, node.NextSteps, "fbt review status case_summaries")
+	assertContains(t, node.NextSteps, "fbt review approve case_summaries --comment \"reviewed\"")
 }
 
 func TestBuildAllowsApprovedReviewedInput(t *testing.T) {
