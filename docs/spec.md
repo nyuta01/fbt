@@ -451,6 +451,15 @@ A transform becomes dirty when any relevant input to the effective transform cha
 - Missing output
 - Forced rebuild
 
+For local file, directory, and glob sources, the source fingerprint includes
+the resolved file set and file content fingerprints. Adding, removing, or
+changing a file under a declared source path makes dependent transforms dirty.
+
+Dirty detection is at source-artifact and transform granularity. `fbt` does not
+include a daemon, scheduler, watermark store, or built-in per-file partition
+engine. Large daily batches should be partitioned in project structure or
+driven by an external scheduler.
+
 `fbt plan` must show dirty reasons.
 
 ## 18. Immutability and Idempotency

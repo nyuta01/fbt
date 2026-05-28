@@ -182,6 +182,10 @@ Source artifact fields:
 | `tests` | no | Source checks |
 | `meta` | no | Arbitrary metadata |
 
+For local file, directory, and glob paths, fbt fingerprints the resolved file
+set and file contents. Adding a new file under a declared glob or directory
+source changes the source fingerprint and makes dependent transforms dirty.
+
 Source ID format:
 
 ```text

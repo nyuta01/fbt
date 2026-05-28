@@ -1369,6 +1369,43 @@
       "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, review gates, and a parse/plan smoke that runs without provider calls."
     },
     {
+      "id": "FBT-EXAMPLES-UX-001",
+      "title": "Improve examples for first-time users",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-EXAMPLE-001",
+        "FBT-DOCS-UX-008"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-EXAMPLES-UX-001-plan.md",
+      "paths": [
+        "examples/README.md",
+        "examples/knowledge_ops/README.md",
+        "examples/incident_response_runbook/README.md",
+        "examples/support_resolution_manual/README.md",
+        "internal/cli/cli.go",
+        "internal/cli/cli_test.go",
+        "internal/manifest/manifest.go",
+        "internal/manifest/manifest_test.go",
+        "internal/planner/planner_test.go",
+        "docs/spec.md",
+        "docs/project-config-spec.md",
+        "docs/exec-plans/active/FBT-EXAMPLES-UX-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "go_test": true,
+        "practical_examples_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Adds an examples index, rewrites all example READMEs around user intent, input evidence, output artifacts, credential boundaries, command outcomes, repeated source growth, and generated receipts. Source fingerprints now include resolved file sets and file content so adding files under glob sources makes dependent transforms dirty, and mixed-status doctor diagnostics no longer mark executable runner checks as errors."
+    },
+    {
       "id": "FBT-RUNNER-008",
       "title": "Add optional OpenAI Responses runner",
       "priority": "P1",

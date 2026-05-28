@@ -976,7 +976,11 @@ func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig, m manifest.
 		diagnostics := runnermgr.Diagnose(runner)
 		if runnermgr.HasErrors(diagnostics) {
 			for _, diagnostic := range diagnostics {
-				checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: "error", Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
+				status := "ok"
+				if diagnostic.Severity == "error" {
+					status = "error"
+				}
+				checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: status, Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
 			}
 			continue
 		}

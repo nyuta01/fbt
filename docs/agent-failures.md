@@ -164,6 +164,46 @@ README now explains the example commands as checkpoints and includes partial
 actual output: incident `plan` output plus shortened offline quickstart
 lifecycle output for build, approval, and artifact history.
 
+## F-009 Examples did not route users by intent
+
+- **Status**: `fixed`
+- **Task**: `FBT-EXAMPLES-UX-001`
+- **Plan**: `docs/exec-plans/active/FBT-EXAMPLES-UX-001-plan.md`
+
+### Observation
+
+The examples were valid but did not make it obvious which one was safe to run
+offline, which one represented the main practical value, what each command gave
+the user, or why practical examples stopped without credentials. A mixed
+`doctor` diagnostic also reported an executable runner as `error
+RUNNER_COMMAND_OK` when a separate env var was missing.
+
+### Permanent fix
+
+`examples/README.md` now routes users by intent. Each example README explains
+its job, inputs, outputs, credential boundary, command outcomes, and generated
+receipts. Doctor now preserves per-diagnostic status so successful runner
+checks remain `ok` even when another runner check fails.
+
+## F-010 Source growth did not dirty glob-backed transforms
+
+- **Status**: `fixed`
+- **Task**: `FBT-EXAMPLES-UX-001`
+- **Plan**: `docs/exec-plans/active/FBT-EXAMPLES-UX-001-plan.md`
+
+### Observation
+
+Testing the realistic daily-operation path showed that adding a new JSONL file
+under a declared glob source could still leave the consuming transform skipped.
+The manifest recorded resolved paths, but the source fingerprint only covered
+the source definition.
+
+### Permanent fix
+
+Source fingerprints now include the resolved file set and per-file content
+fingerprints. A new file under a declared glob or directory source causes
+dependent transforms to plan as `run` with `source descriptor changed`.
+
 ## Entry Template
 
 ```markdown

@@ -68,6 +68,34 @@ func TestBuildDetectsManifestDirtyReasons(t *testing.T) {
 	assertContains(t, node.DirtyReasons, "transform asset changed")
 }
 
+func TestBuildDetectsSourceDirtyReason(t *testing.T) {
+	previous := fixtureManifest("asset-old")
+	current := fixtureManifest("asset-old")
+	transformID := manifest.TransformID("knowledge_ops", "case_summaries")
+	sourceID := manifest.SourceID("knowledge_ops", "support", "raw_tickets")
+	artifactID := manifest.ArtifactID("knowledge_ops", "case_summaries")
+	current.Sources[sourceID] = manifest.SourceResource{
+		UniqueID:     sourceID,
+		ResourceType: "source",
+		Fingerprint:  manifest.Fingerprint{Value: "source-new"},
+	}
+	snapshot := emptyState()
+	snapshot.CurrentArtifacts[artifactID] = state.ArtifactPointer{ArtifactID: artifactID}
+	snapshot.LatestRuns[transformID] = state.LatestRun{
+		LatestRunID:                "transform_run.run_1",
+		LatestSuccessfulRunID:      "transform_run.run_1",
+		LatestStatus:               "success",
+		LatestEffectiveFingerprint: previous.Transforms[transformID].Fingerprint["effective"],
+	}
+
+	plan := Build(Inputs{Manifest: current, PreviousManifest: &previous, State: snapshot})
+	node := plan.Nodes[0]
+	if node.Action != ActionRun {
+		t.Fatalf("expected run, got %+v", node)
+	}
+	assertContains(t, node.DirtyReasons, "source descriptor changed")
+}
+
 func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")

@@ -65,6 +65,36 @@ func TestManifestJSONIsDeterministic(t *testing.T) {
 	}
 }
 
+func TestSourceFingerprintChangesWhenGlobFilesChange(t *testing.T) {
+	root := writeManifestProject(t)
+	firstParse, err := parser.ParseProject(parser.Options{ProjectDir: root})
+	if err != nil {
+		t.Fatalf("parse first fixture: %v", err)
+	}
+	first, err := Build(firstParse, BuildOptions{GeneratedAt: fixedTime()})
+	if err != nil {
+		t.Fatalf("build first manifest: %v", err)
+	}
+
+	writeFile(t, root, "data/support/tickets/2026-05-29.jsonl", "{\"id\":\"T-2\"}\n")
+	secondParse, err := parser.ParseProject(parser.Options{ProjectDir: root})
+	if err != nil {
+		t.Fatalf("parse second fixture: %v", err)
+	}
+	second, err := Build(secondParse, BuildOptions{GeneratedAt: fixedTime()})
+	if err != nil {
+		t.Fatalf("build second manifest: %v", err)
+	}
+
+	sourceID := SourceID("knowledge_ops", "support", "raw_tickets")
+	if first.Sources[sourceID].Fingerprint.Value == second.Sources[sourceID].Fingerprint.Value {
+		t.Fatalf("expected source fingerprint to change when a glob-matched file is added")
+	}
+	if len(second.Sources[sourceID].ResolvedPaths) != 2 {
+		t.Fatalf("expected new resolved source file, got %v", second.Sources[sourceID].ResolvedPaths)
+	}
+}
+
 func resourceExists(m Manifest, id string) bool {
 	_, ok := m.ResourceSummaries()[id]
 	return ok

@@ -562,6 +562,30 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	}
 }
 
+func TestRunDoctorShowsMixedRunnerDiagnosticStatuses(t *testing.T) {
+	root := writeCLIProject(t)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexit 0\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner\n    env: [\"OPENAI_API_KEY\"]")
+	writeFile(t, root, "fs_project.yml", content)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"doctor", "--project-dir", root}, &stdout, &stderr); code != 6 {
+		t.Fatalf("expected missing env exit code 6, got %d; stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	out := stdout.String()
+	if !strings.Contains(out, "error RUNNER_ENV_MISSING") {
+		t.Fatalf("expected missing env diagnostic, got %q", out)
+	}
+	if !strings.Contains(out, "ok RUNNER_COMMAND_OK") {
+		t.Fatalf("expected executable command to remain ok, got %q", out)
+	}
+}
+
 func writeCLIArtifactVersion(t *testing.T, store state.Store, root, versionID, storagePath, body string) state.ArtifactVersion {
 	t.Helper()
 	writeFile(t, root, filepath.Join(storagePath, "index.md"), "# Summary\n"+body+"\n")

@@ -39,6 +39,16 @@ The README now leads with the simplified user mental model:
 is pushed into linked docs, and the primary example uses the more direct
 incident-notes to runbook workflow. The example commands are now explained as
 checkpoints: preview, generate, inspect, approve, and explain.
+The `examples/` directory now has its own routing README. The checked-in
+examples are split clearly between the offline `knowledge_ops` control-plane
+fixture and the practical incident-runbook/support-manual external-runner
+workflows, each with user intent, input evidence, output artifacts, credential
+requirements, command outcomes, and generated receipts.
+Local source fingerprints now include resolved file sets and file content, so
+adding files under a declared glob or directory source makes dependent
+transforms dirty. This supports daily source growth at source-artifact and
+transform granularity; scheduling and per-file partitioning remain outside
+core.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -108,6 +118,12 @@ inquiry/response logs to an approved support resolution manual. Both examples
 include realistic source records, format assets, policies, deterministic
 section evals, review gates, and parse/plan smoke coverage without provider
 calls.
+`FBT-EXAMPLES-UX-001` is complete: examples are now organized for first-time
+users with an examples index, clearer per-example READMEs, explicit offline vs
+external-runner boundaries, command outcomes, generated files, and corrected
+doctor output for mixed runner diagnostics. The task also fixes source dirty
+detection for repeated operation: new files under declared source globs trigger
+`source descriptor changed`.
 `FBT-RUNNER-008` is complete: `runners/openai` now provides an optional
 out-of-core OpenAI Responses runner that reads `OPENAI_API_KEY`, calls
 `/v1/responses`, writes output candidates under `work.outputs`, and is wired

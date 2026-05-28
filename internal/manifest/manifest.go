@@ -276,10 +276,27 @@ func (b *manifestBuilder) addSource(source parser.Source) {
 			ArtifactType:  artifact.Type,
 			Path:          slashPath(artifact.Path),
 			ResolvedPaths: resolved,
-			Fingerprint:   Fingerprint{Method: "definition", Value: hashJSON(artifact)},
+			Fingerprint:   b.sourceFingerprint(artifact, resolved),
 			Tags:          sortedCopy(artifact.Tags),
 			Meta:          artifact.Meta,
 		}
+	}
+}
+
+func (b *manifestBuilder) sourceFingerprint(artifact parser.SourceArtifact, resolved []string) Fingerprint {
+	files := make([]map[string]string, 0, len(resolved))
+	for _, path := range resolved {
+		files = append(files, map[string]string{
+			"path":        slashPath(path),
+			"fingerprint": b.fileFingerprint(path).Value,
+		})
+	}
+	return Fingerprint{
+		Method: "content",
+		Value: hashJSON(map[string]any{
+			"definition":     artifact,
+			"resolved_files": files,
+		}),
 	}
 }
 
