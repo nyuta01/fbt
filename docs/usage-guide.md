@@ -510,7 +510,41 @@ Provider credentials, endpoints, and SDK dependencies belong to the external
 runner and its environment. If `FBT_REAL_LLM_RUNNER_COMMAND` is unset, the smoke
 prints `skipped` and exits successfully.
 
-## 15. Day-2 Operation
+## 15. Use External CLI Agents Safely
+
+External coding-agent CLIs can be used behind an fbt runner adapter. Do not set
+`runner.command` directly to an arbitrary interactive agent command unless that
+command speaks the fbt stdio JSON-RPC protocol.
+
+The recommended shape is:
+
+```text
+fbt build
+  -> fbt protocol adapter command
+  -> Codex CLI, Claude Code, Gemini CLI, or another agent runtime
+  -> staged files
+  -> fbt output candidates under work.outputs
+```
+
+Adapter commands should:
+
+- run the external agent in a staging workspace or scoped copy
+- translate fbt policy into the agent's permission, sandbox, network, tool, and
+  timeout controls where supported
+- fail closed when policy cannot be enforced safely
+- copy final files into `work.outputs`
+- emit redacted fbt events and output candidates
+
+Core still owns the official commit. It validates negotiated capabilities,
+rejects output candidates outside `work.outputs`, computes descriptors, records
+state, and updates logical artifact paths only after policy/eval/review checks.
+
+This is intentionally runner-agnostic. Codex CLI and Claude Code both expose
+local command-line automation modes, but fbt does not depend on their packages
+or provider SDKs. Install and configure those tools outside fbt core, then wrap
+them with an adapter that implements the runner protocol.
+
+## 16. Day-2 Operation
 
 The operating loop:
 
@@ -527,7 +561,7 @@ The operating loop:
 
 The purpose is to turn messy primary documents into reusable, reviewed knowledge artifacts that continuously improve operational work.
 
-## 16. What fbt Does Not Do
+## 17. What fbt Does Not Do
 
 `fbt` core does not implement:
 

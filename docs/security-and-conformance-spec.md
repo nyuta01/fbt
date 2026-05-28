@@ -67,7 +67,31 @@ Runners must:
 
 A runner that cannot satisfy policy must fail closed.
 
-## 5. Default Policy
+## 5. CLI Agent Adapter Boundary
+
+CLI-agent adapters wrap external tools such as Codex CLI, Claude Code, Gemini
+CLI, provider SDK agents, or internal agent launchers. The adapter is the fbt
+runner process and owns translation between fbt policy and the external tool's
+permission model.
+
+Safe adapters must:
+
+- run the agent in a staging workspace, scoped working tree, or isolated copy
+- expose only declared inputs/assets plus policy-approved extra read paths to
+  the agent
+- map network, shell/tool, timeout, turn, and cost limits to the external
+  tool's controls where available
+- refuse execution when the requested policy cannot be enforced or represented
+- place final candidate files under the assigned `work.outputs` directory
+- emit only redacted structured events and declared output candidates
+
+Adapters must not let the external agent write directly to logical artifact
+paths, immutable artifact storage, `.fbt/state`, or source paths as part of the
+normal fbt build path. Even if an adapter makes a mistake, core treats all
+runner paths as untrusted and rejects candidates outside `work.outputs` before
+descriptor computation or commit.
+
+## 6. Default Policy
 
 When a transform omits policy:
 
@@ -83,7 +107,7 @@ Agent transforms should declare an explicit policy. Missing policy for an agent
 transform is a parse warning in draft mode and should become a parse error before
 stable v1.
 
-## 6. Path Rules
+## 7. Path Rules
 
 Core path validation must:
 
@@ -97,7 +121,7 @@ Core path validation must:
 
 Path validation must run before descriptor computation and before any commit.
 
-## 7. Approval and Downstream Blocking
+## 8. Approval and Downstream Blocking
 
 Review-required transforms may use one of two commit modes:
 
@@ -110,7 +134,7 @@ Downstream transforms that require `confidence: reviewed` or
 `review.status: approved` must block until the referenced artifact version is
 approved.
 
-## 8. Conformance Scenarios
+## 9. Conformance Scenarios
 
 The MVP conformance suite in `tests/conformance/run.sh` runs deterministic
 local scenarios without external services. It should include the following
@@ -124,7 +148,7 @@ scenario classes.
 | `CONF-DESC-002` | descriptor | directory contains symlink escape | descriptor computation fails |
 | `CONF-RUNNER-001` | runner | transform references missing runner | build/plan fails with exit code `6` |
 | `CONF-RUNNER-002` | runner | runner lacks required capability | validation fails before commit |
-| `CONF-SEC-001` | policy | runner declares output outside work directory | output is denied; no pointer update |
+| `CONF-SEC-001` | path | runner declares output outside work directory | output is denied before descriptor computation; no pointer update |
 | `CONF-SEC-002` | policy | transform requires network but policy denies it | transform is blocked with exit code `3` |
 | `CONF-STATE-001` | state | runner fails after writing partial output | official pointer remains unchanged |
 | `CONF-STATE-002` | state | same digest is committed twice | commit is idempotent |
@@ -137,7 +161,7 @@ scenario classes.
 | `CONF-STD-002` | standard export | OTel export is generated from run results | OTLP/JSON contains resource spans, invocation/transform spans, GenAI usage attributes, and runner span events |
 | `CONF-STD-003` | redaction | standard exports run on inputs/assets containing a marker secret | exported OpenLineage and OTel payloads do not contain raw source content or the marker secret |
 
-## 9. Verification Target
+## 10. Verification Target
 
 Once product implementation begins, `make verify` should grow a deterministic
 conformance target that runs these scenarios without external services.
@@ -149,6 +173,8 @@ Current executable coverage:
 - clean rerun skips unchanged artifact work
 - downstream build blocked before approval
 - incompatible runner capability validation fails before output commit
+- runner-declared output candidates outside `work.outputs` fail before output
+  commit
 - approval promotes the current artifact for downstream reuse
 - downstream build succeeds after approval
 - docs generation succeeds after the review/build loop

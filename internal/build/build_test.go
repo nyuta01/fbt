@@ -104,6 +104,22 @@ func TestRunBuildRejectsIncompatibleRunnerCapabilities(t *testing.T) {
 	}
 }
 
+func TestRunBuildRejectsOutputCandidateOutsideWorkOutputs(t *testing.T) {
+	root := writeBuildProject(t)
+	repoRoot := repoRoot(t)
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err == nil || !strings.Contains(err.Error(), "output candidate outside work outputs") {
+		t.Fatalf("expected output containment error, got %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+}
+
 func TestRunBuildRecordsEvalAndPendingReview(t *testing.T) {
 	root := writeBuildProject(t)
 	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "transforms", "case.yml")), `    tags: ["support"]

@@ -91,6 +91,28 @@ if [[ "$capability_mismatch_code" -ne 6 ]]; then
 fi
 grep -q "runner capability incompatible" "$tmpdir/build-capability-mismatch.err"
 
+candidate_escape="$tmpdir/candidate-escape"
+"$FBT_BIN" init "$candidate_escape" --template support >"$tmpdir/init-candidate-escape.txt"
+cat >"$candidate_escape/bin/fbt-local-llm-runner" <<EOF_RUNNER
+#!/usr/bin/env sh
+export FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1
+exec go run "$ROOT_DIR/runners/fake" "\$@"
+EOF_RUNNER
+chmod +x "$candidate_escape/bin/fbt-local-llm-runner"
+set +e
+"$FBT_BIN" build --project-dir "$candidate_escape" --select case_summaries >"$tmpdir/build-candidate-escape.txt" 2>"$tmpdir/build-candidate-escape.err"
+candidate_escape_code=$?
+set -e
+if [[ "$candidate_escape_code" -eq 0 ]]; then
+  echo "expected output candidate outside work dir to fail" >&2
+  exit 1
+fi
+grep -q "output candidate outside work outputs" "$tmpdir/build-candidate-escape.err"
+if [[ -e "$candidate_escape/target/artifacts/support/case_summaries/index.md" ]]; then
+  echo "outside-work output candidate was committed" >&2
+  exit 1
+fi
+
 "$FBT_BIN" review approve case_summaries --project-dir "$happy" --comment "conformance" >"$tmpdir/review-approve.txt"
 grep -q "status: approved" "$tmpdir/review-approve.txt"
 "$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"

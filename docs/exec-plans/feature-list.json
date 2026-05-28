@@ -1240,25 +1240,28 @@
       "id": "FBT-RUNNER-004",
       "title": "Define safe CLI-agent adapter contract for Codex and Claude Code",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-011",
         "FBT-RUNNER-001",
         "FBT-RUNNER-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-004-plan.md",
       "paths": [
         "docs/runner-protocol-spec.md",
         "docs/security-and-conformance-spec.md",
         "docs/usage-guide.md",
+        "internal/build",
+        "runners/fake",
         "tests/conformance"
       ],
       "verification": {
-        "conformance": false,
-        "validate_docs": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Specify how agent CLI wrappers run existing tools such as Codex or Claude Code in a staging workspace, avoid direct writes to managed artifacts, redact tool-call payloads, and return only declared output candidates for fbt core to commit."
+      "notes": "Defines the safe adapter contract for wrapping existing CLI agents behind the fbt stdio protocol, requiring staging workspaces, fail-closed policy translation, redacted events, and output candidates under work.outputs. Go and conformance tests verify outside-work candidates are rejected before official commit."
     },
     {
       "id": "FBT-RUNNER-005",

@@ -553,7 +553,65 @@ Runner requirements:
 The full MVP security boundary and fake-runner conformance suite are defined in
 [Security and Conformance Spec](security-and-conformance-spec.md).
 
-## 15. Commit Boundary
+## 15. CLI Agent Adapter Contract
+
+External coding-agent CLIs such as Codex CLI or Claude Code are not required to
+speak the fbt protocol directly. The supported integration shape is a thin
+adapter process:
+
+```text
+fbt core
+  -> stdio JSON-RPC fbt runner adapter
+  -> external agent CLI or SDK
+  -> staged output files under work.outputs
+  -> declared fbt/outputCandidate messages
+  -> fbt core commit boundary
+```
+
+The adapter is the fbt runner. It receives `fbt/runTransform`, starts the
+external agent with the project-selected `command`, `args`, `cwd`, and declared
+environment, then translates the agent result into protocol events and output
+candidates.
+
+Adapter requirements:
+
+- run the external agent against a staging workspace, isolated copy, or scoped
+  working tree prepared by the adapter
+- keep official artifact paths, `.fbt/state`, and source paths outside the
+  agent's write target unless project policy explicitly permits a separate
+  non-fbt side effect
+- pass declared inputs, assets, policy, and output contract to the agent prompt
+  or SDK call
+- map fbt policy to the agent's permission, sandbox, allowed-tool,
+  disallowed-tool, timeout, network, and max-turn controls where the external
+  CLI supports them
+- fail closed when the requested policy cannot be represented safely by the
+  selected CLI or SDK
+- collect final files from the staging workspace, copy or write them under
+  `work.outputs`, and declare only those paths as output candidates
+- never declare output candidates outside `work.outputs`
+- never update logical artifact paths, immutable artifact storage, approvals,
+  or state files directly
+- redact prompts, tool arguments, tool results, credentials, and raw model
+  responses before emitting `fbt/event` or tool-call events
+- report provider usage and model metadata when available, but do not put
+  provider secrets in structured output
+
+Core requirements for these adapters:
+
+- treat the adapter exactly like any other untrusted runner process
+- validate negotiated capabilities before `fbt/runTransform`
+- pass only declared environment variables, not the full ambient environment
+- reject output candidates outside the invocation `work.outputs` directory
+- compute descriptors and semantic descriptors itself
+- commit official artifact versions only through the normal commit boundary
+
+This contract keeps fbt independent of a particular agent runtime. Codex,
+Claude Code, Gemini CLI, provider SDK agents, or internal tools can all be used
+when a wrapper implements the same stdio protocol and satisfies the safety
+rules.
+
+## 16. Commit Boundary
 
 ```text
 runner output candidate
@@ -566,7 +624,7 @@ runner output candidate
 
 This keeps official state safe across retries, failures, and interruptions.
 
-## 16. Dry Run and Cost Estimate
+## 17. Dry Run and Cost Estimate
 
 LLM and agent transforms need a good planning experience.
 
@@ -579,7 +637,7 @@ In `plan` or `dry_run` mode, runners may return:
 - policy risks
 - whether the runner supports the requested artifact types
 
-## 17. Versioning
+## 18. Versioning
 
 Protocol versioning:
 
@@ -592,7 +650,7 @@ Static runner manifests are advisory. The `initialize` response is authoritative
 for the current process. Authoritative artifact descriptors and digests are
 computed by core, not by runners.
 
-## 18. MVP Required Capabilities
+## 19. MVP Required Capabilities
 
 Required:
 
@@ -612,7 +670,7 @@ Not required in MVP:
 - gRPC
 - plugin marketplace
 
-## 19. Bundled Local AI Runner Examples
+## 20. Bundled Local AI Runner Examples
 
 The repository includes optional protocol-compatible local examples:
 
@@ -632,7 +690,7 @@ Use `make real-llm-smoke` with `FBT_REAL_LLM_RUNNER_COMMAND` to opt into a
 local smoke against one of those external commands. This target is intentionally
 not part of `make verify`.
 
-## 20. Remaining Protocol Decisions
+## 21. Remaining Protocol Decisions
 
 MVP is fixed as JSON-RPC 2.0 compatible messages over stdio, JSONL framing,
 runner process isolation, project/plugin/PATH discovery, and core-owned

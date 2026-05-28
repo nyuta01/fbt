@@ -137,6 +137,9 @@ func runFake(req request) error {
 			name = "output"
 		}
 		outPath := filepath.Join(params.Work.Outputs, name)
+		if envBool("FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK", false) {
+			outPath = filepath.Join(filepath.Dir(params.Work.Outputs), "outside-outputs", name)
+		}
 		if isDirectoryType(declared.ArtifactType) {
 			if err := os.MkdirAll(outPath, 0o755); err != nil {
 				return err
