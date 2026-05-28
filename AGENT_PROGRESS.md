@@ -13,8 +13,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-`FBT-MVP-001` through `FBT-MVP-010` are complete. The remaining practical-MVP
-work is registered as `FBT-MVP-011` through `FBT-MVP-016` in
+`FBT-MVP-001` through `FBT-MVP-011` are complete. The remaining practical-MVP
+work is registered as `FBT-MVP-012` through `FBT-MVP-016` in
 `docs/exec-plans/feature-list.json`.
 
 ## Verification
@@ -36,9 +36,9 @@ This runs:
 
 ## Next Steps
 
-1. Start `FBT-MVP-011` with a plan for policy and security enforcement.
-2. Harden build-time read/write scope, output candidate, source mutation,
-   redaction, timeout, and failed-run state safety checks.
+1. Start `FBT-MVP-012` with a plan for evals, review gates, approvals, and
+   confidence.
+2. Wire deterministic evals and review approval state into build and CLI flows.
 3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
 4. Keep `make verify` green after each bounded MVP task.

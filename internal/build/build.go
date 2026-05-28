@@ -14,6 +14,7 @@ import (
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
+	"github.com/nyuta01/fbt/internal/policy"
 	"github.com/nyuta01/fbt/internal/protocol"
 	"github.com/nyuta01/fbt/internal/runner"
 	"github.com/nyuta01/fbt/internal/security"
@@ -159,6 +160,15 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 	}); err != nil {
 		return Run{}, err
 	}
+	policyResource := policyForTransform(m, transform)
+	runCtx := ctx
+	var cancel context.CancelFunc
+	if policyResource != nil {
+		if timeout := policy.Timeout(*policyResource); timeout > 0 {
+			runCtx, cancel = context.WithTimeout(ctx, timeout)
+			defer cancel()
+		}
+	}
 
 	transformRunID := newID("transform_run.run")
 	workRootRel := filepath.Join(".fbt", "work", invocationID, transform.Name)
@@ -172,7 +182,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 
-	outcome, err := client.RunTransform(ctx, protocol.RunTransformParams{
+	outcome, err := client.RunTransform(runCtx, protocol.RunTransformParams{
 		Mode:           "run",
 		InvocationID:   invocationID,
 		TransformRunID: transformRunID,
@@ -212,6 +222,10 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		descriptor, err := artifact.Describe(parseResult.ProjectDir, relCandidate, output.ArtifactType)
 		if err != nil {
 			return Run{}, err
+		}
+		decision := policy.EvaluateCommit(parseResult.ProjectDir, parseResult.Config.ArtifactPath, policyResource, output, descriptor)
+		if decision.Status != "allowed" {
+			return Run{}, fmt.Errorf("policy denied output %s: %s", output.Name, firstFailedCheck(decision))
 		}
 		versionID, err := artifact.VersionID(parseResult.Config.Name, output.Name, descriptor.Digest)
 		if err != nil {
@@ -271,6 +285,26 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 	return run, nil
+}
+
+func policyForTransform(m manifest.Manifest, transform manifest.TransformResource) *manifest.PolicyResource {
+	if transform.Policy == "" {
+		return nil
+	}
+	policyResource, ok := m.Policies[transform.Policy]
+	if !ok {
+		return nil
+	}
+	return &policyResource
+}
+
+func firstFailedCheck(decision policy.Decision) string {
+	for _, check := range decision.Checks {
+		if check.Status == "fail" {
+			return check.Message
+		}
+	}
+	return "unknown policy denial"
 }
 
 func protocolOutputs(transform manifest.TransformResource) []any {

@@ -33,6 +33,23 @@ func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
 	}
 }
 
+func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
+	root := writeBuildProject(t)
+	writeFile(t, root, "policies/support.yml", `policies:
+  - name: support_agent_scope
+    read: ["data/support/"]
+    write: ["target/artifacts/other/"]
+    network: true
+`)
+	_, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err == nil {
+		t.Fatal("expected policy denial")
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+}
+
 func writeBuildProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
