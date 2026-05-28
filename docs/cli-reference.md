@@ -323,6 +323,8 @@ user-local plugin manifest, then `PATH` convention. See
 [Runner Discovery Spec](runner-discovery-spec.md).
 `runner list` and `runner doctor` show configured command, args, cwd, and env
 names, but never print environment variable values.
+`runner doctor` and `runner validate` initialize the runner and check negotiated
+capabilities against configured transforms.
 
 MVP does not download or install plugins. `fbt plugin install` is reserved for a
 future release; use host package managers or checked-in plugin manifests and then

@@ -1212,26 +1212,29 @@
       "id": "FBT-RUNNER-003",
       "title": "Enforce runner capability negotiation in doctor and build",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-007",
         "FBT-MVP-008"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-003-plan.md",
       "paths": [
         "internal/runner",
         "internal/cli",
         "internal/build",
         "docs/runner-discovery-spec.md",
-        "tests/conformance"
+        "docs/cli-reference.md",
+        "docs/security-and-conformance-spec.md",
+        "tests/conformance",
+        "docs/exec-plans/active/FBT-RUNNER-003-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true
       },
-      "notes": "Make `initialize` capabilities authoritative: reject incompatible protocol versions, missing transform types, missing artifact types, missing output-candidate support, or required event/usage capabilities before running transforms when possible."
+      "notes": "Makes runner `initialize` capabilities authoritative for protocol version, transform types, output artifact types, and output-candidate support. Build fails before transform execution on incompatibility, and doctor/runner validate report the same diagnostics."
     },
     {
       "id": "FBT-RUNNER-004",

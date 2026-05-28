@@ -71,6 +71,26 @@ if [[ "$blocked_code" -ne 3 ]]; then
 fi
 grep -q "next: fbt review approve case_summaries" "$tmpdir/build-weekly-blocked.txt"
 
+capability_mismatch="$tmpdir/capability-mismatch"
+"$FBT_BIN" init "$capability_mismatch" --template support >"$tmpdir/init-capability-mismatch.txt"
+cat >"$capability_mismatch/bin/fbt-local-llm-runner" <<EOF_RUNNER
+#!/usr/bin/env sh
+export FBT_FAKE_RUNNER_ARTIFACT_TYPES=text
+exec go run "$ROOT_DIR/runners/fake" "\$@"
+EOF_RUNNER
+chmod +x "$capability_mismatch/bin/fbt-local-llm-runner"
+set +e
+"$FBT_BIN" build --project-dir "$capability_mismatch" --select case_summaries >"$tmpdir/build-capability-mismatch.txt" 2>"$tmpdir/build-capability-mismatch.err"
+capability_mismatch_code=$?
+set -e
+if [[ "$capability_mismatch_code" -ne 6 ]]; then
+  echo "expected runner capability mismatch exit code 6, got $capability_mismatch_code" >&2
+  cat "$tmpdir/build-capability-mismatch.txt" >&2
+  cat "$tmpdir/build-capability-mismatch.err" >&2
+  exit 1
+fi
+grep -q "runner capability incompatible" "$tmpdir/build-capability-mismatch.err"
+
 "$FBT_BIN" review approve case_summaries --project-dir "$happy" --comment "conformance" >"$tmpdir/review-approve.txt"
 grep -q "status: approved" "$tmpdir/review-approve.txt"
 "$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"

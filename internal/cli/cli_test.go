@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -537,8 +538,9 @@ func TestRunRunnerListAndDoctor(t *testing.T) {
 
 func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	root := writeCLIProject(t)
+	repoRoot := repoRoot(t)
 	command := filepath.Join(root, "bin", "fbt-openai-runner")
-	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexit 0\n")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
 	if err := os.Chmod(command, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -551,6 +553,9 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "RUNNER_COMMAND_OK") {
 		t.Fatalf("expected ok diagnostic, got %q", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "RUNNER_CAPABILITIES_OK") {
+		t.Fatalf("expected capability diagnostic, got %q", stdout.String())
 	}
 }
 
@@ -704,4 +709,17 @@ func readFile(t *testing.T, path string) string {
 		t.Fatal(err)
 	}
 	return string(data)
+}
+
+func repoRoot(t *testing.T) string {
+	t.Helper()
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime caller failed")
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(file), "..", ".."))
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
 }

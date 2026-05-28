@@ -148,6 +148,7 @@ Current executable coverage:
 - local support template build and pending-review commit
 - clean rerun skips unchanged artifact work
 - downstream build blocked before approval
+- incompatible runner capability validation fails before output commit
 - approval promotes the current artifact for downstream reuse
 - downstream build succeeds after approval
 - docs generation succeeds after the review/build loop

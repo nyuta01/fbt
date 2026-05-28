@@ -778,6 +778,9 @@ func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
 	})
 	if err != nil {
 		printError("build", err, stderr, opts.JSON)
+		if errors.Is(err, runnermgr.ErrCapabilityIncompatible) {
+			return 6
+		}
 		return 1
 	}
 	if opts.JSON {
@@ -857,6 +860,9 @@ func runRunner(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 			return 6
 		}
 		diagnostics := runnermgr.Diagnose(resolved)
+		if !runnermgr.HasErrors(diagnostics) {
+			diagnostics = append(diagnostics, runnerProtocolDiagnostics(resolved, capabilityRequirementsForRunner(ctx.Manifest, resolved.Name))...)
+		}
 		status := "success"
 		code := 0
 		if runnermgr.HasErrors(diagnostics) {
@@ -907,7 +913,7 @@ func runDoctor(opts options, stdout io.Writer, stderr io.Writer) int {
 		{Name: "project_config", Status: "ok", Code: "PROJECT_CONFIG_OK", Severity: "info", Message: "project config parsed"},
 	}
 	checks = append(checks, stateDoctorChecks(ctx.Store)...)
-	checks = append(checks, runnerDoctorChecks(ctx.ParseResult.ProjectDir, ctx.ParseResult.Config)...)
+	checks = append(checks, runnerDoctorChecks(ctx.ParseResult.ProjectDir, ctx.ParseResult.Config, ctx.Manifest)...)
 	status := "ok"
 	code := 0
 	if doctorHasErrors(checks) {
@@ -953,7 +959,7 @@ func stateDoctorChecks(store state.Store) []doctorCheck {
 	return checks
 }
 
-func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig) []doctorCheck {
+func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig, m manifest.Manifest) []doctorCheck {
 	discovery := runnermgr.NewDiscovery(projectDir, cfg)
 	resolved, err := discovery.List()
 	if err != nil {
@@ -974,30 +980,66 @@ func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig) []doctorChe
 		for _, diagnostic := range diagnostics {
 			checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: "ok", Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
 		}
-		checks = append(checks, runnerProtocolDoctorCheck(runner))
+		checks = append(checks, runnerProtocolDoctorChecks(runner, capabilityRequirementsForRunner(m, runner.Name))...)
 	}
 	return checks
 }
 
-func runnerProtocolDoctorCheck(resolved runnermgr.Resolved) doctorCheck {
+func runnerProtocolDoctorChecks(resolved runnermgr.Resolved, requirements []runnermgr.CapabilityRequirement) []doctorCheck {
+	var checks []doctorCheck
+	for _, diagnostic := range runnerProtocolDiagnostics(resolved, requirements) {
+		status := "ok"
+		if diagnostic.Severity == "error" {
+			status = "error"
+		}
+		checks = append(checks, doctorCheck{Name: "runner." + resolved.Name, Status: status, Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
+	}
+	return checks
+}
+
+func runnerProtocolDiagnostics(resolved runnermgr.Resolved, requirements []runnermgr.CapabilityRequirement) []runnermgr.Diagnostic {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	client, err := runnermgr.StartProtocolClient(ctx, resolved)
 	if err != nil {
-		return doctorError("runner."+resolved.Name, "RUNNER_PROTOCOL_START_ERROR", err.Error())
+		return []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_START_ERROR", Message: err.Error()}}
 	}
 	defer client.Close()
-	if _, err := client.Initialize(ctx, protocol.InitializeParams{
+	initResult, err := client.Initialize(ctx, protocol.InitializeParams{
 		Core: map[string]string{"name": "fbt-core", "version": versioninfo.Version},
 		Protocol: map[string]any{
 			"versions": []string{"0.1"},
 			"framing":  "jsonl",
 		},
 		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
-	}); err != nil {
-		return doctorError("runner."+resolved.Name, "RUNNER_PROTOCOL_INIT_ERROR", err.Error())
+	})
+	if err != nil {
+		return []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_INIT_ERROR", Message: err.Error()}}
 	}
-	return doctorOK("runner."+resolved.Name, "RUNNER_PROTOCOL_OK", "runner protocol initialize succeeded")
+	diagnostics := []runnermgr.Diagnostic{{Severity: "info", Code: "RUNNER_PROTOCOL_OK", Message: "runner protocol initialize succeeded"}}
+	diagnostics = append(diagnostics, runnermgr.ValidateCapabilities(initResult, requirements)...)
+	return diagnostics
+}
+
+func capabilityRequirementsForRunner(m manifest.Manifest, runnerName string) []runnermgr.CapabilityRequirement {
+	var requirements []runnermgr.CapabilityRequirement
+	for transformID, transform := range m.Transforms {
+		runnerResource, ok := m.Runners[transform.Runner]
+		if !ok || runnerResource.Name != runnerName {
+			continue
+		}
+		artifactTypes := make([]string, 0, len(transform.Outputs))
+		for _, output := range transform.Outputs {
+			artifactTypes = append(artifactTypes, output.ArtifactType)
+		}
+		requirements = append(requirements, runnermgr.CapabilityRequirement{
+			TransformID:             transformID,
+			TransformType:           transform.TransformType,
+			ArtifactTypes:           artifactTypes,
+			RequireOutputCandidates: true,
+		})
+	}
+	return requirements
 }
 
 func doctorOK(name, code, message string) doctorCheck {

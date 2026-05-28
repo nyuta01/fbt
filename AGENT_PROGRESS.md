@@ -47,6 +47,9 @@ dirty reasons, and review context.
 `args` and optional `cwd`, runner startup passes configured args/cwd plus a
 filtered environment, and runner diagnostics report missing declared env names
 without printing values.
+`FBT-RUNNER-003` is complete: runner `initialize` capabilities are validated
+for protocol version, transform types, output artifact types, and output
+candidate support in build, doctor, and runner validate paths.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -98,9 +101,9 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue external runner hardening with `FBT-RUNNER-003`, then proceed
-   through safe CLI-agent adapters, authoring fixtures, demo-runner UX, and
-   optional provider adapter packaging.
+3. Continue external runner hardening with `FBT-RUNNER-004`, then proceed
+   through authoring fixtures, demo-runner UX, and optional provider adapter
+   packaging.
 4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
 5. Keep fbt-native state as the internal source of truth and delegate graph,

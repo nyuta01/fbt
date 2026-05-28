@@ -143,6 +143,20 @@ Core must reject a runner when:
 Runner incompatibility exits with code `6` when detected before invocation and
 code `4` when detected as a protocol error during invocation.
 
+Implemented validation checks:
+
+- `protocol.version` must be `0.1`.
+- `capabilities.transform_types` must include every configured transform type
+  using the runner.
+- `capabilities.artifact_types` must include every declared output artifact
+  type for those transforms.
+- `capabilities.output_candidates` must be `true` for build transforms because
+  core only commits declared output candidates.
+
+`fbt doctor`, `fbt runner doctor`, and `fbt runner validate` report these checks
+as runner diagnostics. `fbt build` fails before transform execution when the
+selected runner is incompatible.
+
 ## 7. Plugin Installation Semantics
 
 MVP does not download or install plugins. Installation is out-of-band through

@@ -161,15 +161,19 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 	defer client.Close()
-	if _, err := client.Initialize(ctx, protocol.InitializeParams{
+	initResult, err := client.Initialize(ctx, protocol.InitializeParams{
 		Core: map[string]string{"name": "fbt-core", "version": m.Metadata.FBTVersion},
 		Protocol: map[string]any{
 			"versions": []string{"0.1"},
 			"framing":  "jsonl",
 		},
 		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
-	}); err != nil {
+	})
+	if err != nil {
 		return Run{}, err
+	}
+	if diagnostics := runner.ValidateCapabilities(initResult, []runner.CapabilityRequirement{capabilityRequirement(transformID, transform)}); runner.HasErrors(diagnostics) {
+		return Run{}, runner.CapabilityError(diagnostics)
 	}
 	policyResource := policyForTransform(m, transform)
 	runCtx := ctx
@@ -362,6 +366,19 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return Run{}, err
 	}
 	return run, nil
+}
+
+func capabilityRequirement(transformID string, transform manifest.TransformResource) runner.CapabilityRequirement {
+	artifactTypes := make([]string, 0, len(transform.Outputs))
+	for _, output := range transform.Outputs {
+		artifactTypes = append(artifactTypes, output.ArtifactType)
+	}
+	return runner.CapabilityRequirement{
+		TransformID:             transformID,
+		TransformType:           transform.TransformType,
+		ArtifactTypes:           artifactTypes,
+		RequireOutputCandidates: true,
+	}
 }
 
 func redactedProtocolEvents(events []protocol.Event) []protocol.Event {

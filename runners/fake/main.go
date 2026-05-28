@@ -52,10 +52,10 @@ func main() {
 					"framing": "jsonl",
 				},
 				"capabilities": map[string]any{
-					"transform_types":   []string{"command", "llm", "agent", "template", "compose"},
-					"artifact_types":    []string{"markdown", "markdown_directory", "text", "directory"},
+					"transform_types":   envList("FBT_FAKE_RUNNER_TRANSFORM_TYPES", []string{"command", "llm", "agent", "template", "compose"}),
+					"artifact_types":    envList("FBT_FAKE_RUNNER_ARTIFACT_TYPES", []string{"markdown", "markdown_directory", "text", "directory"}),
 					"stream_events":     true,
-					"output_candidates": true,
+					"output_candidates": envBool("FBT_FAKE_RUNNER_OUTPUT_CANDIDATES", true),
 					"supports_cancel":   true,
 				},
 			})
@@ -69,6 +69,33 @@ func main() {
 		default:
 			writeError(req.ID, -32601, "method not found")
 		}
+	}
+}
+
+func envList(name string, fallback []string) []string {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback
+	}
+	var out []string
+	for _, item := range strings.Split(value, ",") {
+		item = strings.TrimSpace(item)
+		if item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
+}
+
+func envBool(name string, fallback bool) bool {
+	value := strings.ToLower(strings.TrimSpace(os.Getenv(name)))
+	switch value {
+	case "":
+		return fallback
+	case "1", "true", "yes":
+		return true
+	default:
+		return false
 	}
 }
 
