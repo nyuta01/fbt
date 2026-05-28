@@ -18,8 +18,13 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-All tracked tasks in `docs/exec-plans/feature-list.json` are complete for this
-execution pass.
+The practical local MVP tasks are complete. Remaining tracked work is release
+readiness, user-facing workflow hardening, and post-MVP depth: version stamping,
+repository/release publication, MVP-ready docs, actionable blocked/skipped
+guidance, artifact explain/path/show/history, safer review inspection,
+project-level doctor checks, stronger YAML diagnostics, opt-in real LLM smoke,
+command-surface cleanup, expanded conformance, full policy-decision records,
+and semantic descriptors.
 
 ## Verification
 
@@ -44,9 +49,11 @@ This runs:
 ## Next Steps
 
 1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+2. Start `FBT-UX-001` if prioritizing day-to-day user workflow polish, or
+   `FBT-REL-001` if prioritizing release publication readiness.
+3. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-3. Keep `make verify` green after each bounded task.
+4. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 

@@ -523,6 +523,396 @@
       "notes": "Adds executable conformance scenarios, local release binary dist check, and wires conformance/dist checks into make verify alongside init -> parse -> plan -> build -> eval -> review -> docs smoke coverage."
     },
     {
+      "id": "FBT-REL-001",
+      "title": "Stamp MVP version and release metadata",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "cmd/fbt",
+        "Makefile",
+        "scripts/dist-check.sh",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "dist_check": false
+      },
+      "notes": "Replace 0.0.0-dev with the first MVP versioning flow, support build-time version injection, update dist version checks, and document the release version contract."
+    },
+    {
+      "id": "FBT-REL-002",
+      "title": "Prepare public repository remote and signed release baseline",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "maintainer",
+      "depends": [
+        "FBT-REL-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        ".github/workflows/verify.yml"
+      ],
+      "verification": {
+        "manual_remote_check": false,
+        "signed_commit_check": false,
+        "make_verify": false
+      },
+      "notes": "Configure the GitHub remote, decide whether to rewrite unsigned local history or sign from this point forward, verify maintainer GPG/signing setup, push main, and create the first release tag."
+    },
+    {
+      "id": "FBT-REL-003",
+      "title": "Publish MVP release artifacts and checksums",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-001",
+        "FBT-REL-002"
+      ],
+      "plan_url": null,
+      "paths": [
+        ".github/workflows",
+        "scripts",
+        "dist",
+        "README.md"
+      ],
+      "verification": {
+        "release_workflow": false,
+        "dist_check": false,
+        "checksum_check": false
+      },
+      "notes": "Add or document the release workflow for darwin/linux binaries, produce checksums, smoke the released binary, and attach artifacts to the MVP release."
+    },
+    {
+      "id": "FBT-DOCS-001",
+      "title": "Update documentation from draft to MVP-ready status",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-016",
+        "FBT-REL-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "README.md",
+        "docs/usage-guide.md",
+        "docs/cli-reference.md",
+        "docs/examples/knowledge-loop-example.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "validate_docs": false,
+        "e2e_smoke": false
+      },
+      "notes": "Replace draft/scaffold language with MVP-ready status, make the quick start reflect implemented commands, document local knowledge-loop usage, and keep non-goals/limitations explicit."
+    },
+    {
+      "id": "FBT-UX-000",
+      "title": "Capture user-facing UX hardening backlog",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-016"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UX-000-plan.md",
+      "paths": [
+        "docs/exec-plans/feature-list.json",
+        "docs/exec-plans/active/FBT-UX-000-plan.md",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "drift_check": true,
+        "validate_docs": true
+      },
+      "notes": "Converted user-perspective research against DVC, dbt, Dagster, Bazel, MLflow, Terraform, Pulumi, and kubectl into prioritized post-MVP UX backlog tasks."
+    },
+    {
+      "id": "FBT-UX-001",
+      "title": "Show actionable next steps for blocked and skipped work",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-005",
+        "FBT-MVP-010",
+        "FBT-MVP-012",
+        "FBT-MVP-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/planner",
+        "internal/build",
+        "internal/cli",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "e2e_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "When plan/build reports blocked or skipped artifacts, include the concrete unblock command or next inspection command. User research analogs: DVC status/repro, dbt build skip behavior, and Terraform/Pulumi preview/apply flows make the next safe action explicit."
+    },
+    {
+      "id": "FBT-UX-002",
+      "title": "Add artifact explanation command for plan decisions",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-005",
+        "FBT-MVP-006",
+        "FBT-MVP-012"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/planner",
+        "internal/state",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Add a user-facing explanation surface such as `fbt explain <artifact>` or `fbt plan --why` that reports why an artifact will run, skip, or block, including upstream dependencies, dirty reasons, approval/confidence constraints, and previous run evidence. User research analogs: Bazel query somepath/allpaths and Dagster asset selection/lineage."
+    },
+    {
+      "id": "FBT-UX-003",
+      "title": "Add artifact path, show, and history commands",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-004",
+        "FBT-MVP-006",
+        "FBT-MVP-015"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/state",
+        "internal/artifact",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "e2e_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Make generated output easy to find and inspect with commands such as `fbt artifact path <id>`, `fbt artifact show <id>`, and `fbt artifact history <id>`. Include artifact version, logical path, immutable storage path, runner/model, approval state, and generating run. User research analogs: DVC list/get/artifacts get --show-url, MLflow artifacts list/download, and Dagster asset catalog metadata."
+    },
+    {
+      "id": "FBT-UX-004",
+      "title": "Add review show and safer approval guidance",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-012",
+        "FBT-MVP-015",
+        "FBT-UX-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/state",
+        "internal/diff",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "e2e_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Before users approve LLM/agent-generated artifacts, provide a direct review surface such as `fbt review show <artifact>` and guide users toward show/diff/status before `review approve`. User research analogs: Terraform plan, Pulumi preview, and MLflow model version details all support inspection before promotion."
+    },
+    {
+      "id": "FBT-UX-005",
+      "title": "Add top-level project doctor command",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-006",
+        "FBT-MVP-007",
+        "FBT-MVP-008",
+        "FBT-MVP-011"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/runner",
+        "internal/project",
+        "internal/security",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Add `fbt doctor` as a single readiness check for project config, runner discovery, runner protocol initialization, target/state writability, and policy-relevant path constraints. User research analog: dbt debug checks project setup, local configuration, system environment, dependencies, and connection readiness."
+    },
+    {
+      "id": "FBT-UX-006",
+      "title": "Improve project validation and YAML authoring diagnostics",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-001",
+        "FBT-MVP-006",
+        "FBT-MVP-014"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/config",
+        "internal/parser",
+        "docs/project-config-spec.md",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Strengthen `fbt parse`/validation output with line-oriented, actionable YAML diagnostics and consider narrow scaffolding for new transforms. User research analogs: Terraform validate, kubectl explain, and dbt parse/debug reduce config-authoring ambiguity before execution."
+    },
+    {
+      "id": "FBT-AI-001",
+      "title": "Add opt-in real LLM runner smoke",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-013",
+        "FBT-REL-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "runners/llm",
+        "scripts",
+        "docs/runner-protocol-spec.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "manual_opt_in_smoke": false,
+        "go_test": false
+      },
+      "notes": "Add an environment-gated smoke for a real LLM provider without adding provider SDKs to the base runtime or making network access part of make verify."
+    },
+    {
+      "id": "FBT-CLI-001",
+      "title": "Decide and close run/debug command surface",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "docs/cli-reference.md",
+        "README.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Either implement run/debug or remove them from planned-command help and docs so the MVP command surface has no ambiguous placeholders."
+    },
+    {
+      "id": "FBT-CONF-001",
+      "title": "Expand conformance beyond compact shell smoke",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "tests/conformance",
+        "scripts",
+        "docs/security-and-conformance-spec.md"
+      ],
+      "verification": {
+        "conformance": false,
+        "go_test": false
+      },
+      "notes": "Convert compact shell scenarios into a richer scenario matrix covering schema errors, digest stability, runner capability mismatch, redaction, dirty-state propagation, policy decisions, and docs secret absence."
+    },
+    {
+      "id": "FBT-STATE-001",
+      "title": "Emit full policy decision records during lifecycle",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-010",
+        "FBT-MVP-011"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/build",
+        "internal/policy",
+        "internal/state",
+        "docs/state-and-run-results-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Record policy_decisions consistently for allowed, denied, warning, and error outcomes so state, docs, and audit output match the state spec."
+    },
+    {
+      "id": "FBT-ARTIFACT-001",
+      "title": "Implement semantic descriptors for common document types",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-003",
+        "FBT-MVP-015"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/artifact",
+        "internal/diff",
+        "docs/schema-and-versioning-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Add first-pass semantic descriptors for text_normalized_v1 and markdown_ast_v1, wire them into diff/docs where useful, and keep raw digest as the artifact version identity."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
