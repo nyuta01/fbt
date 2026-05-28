@@ -44,33 +44,72 @@ as it is exposed through a compatible runner.
 
 ## Concrete Example
 
-The repository includes a production-shaped support manual example:
+Suppose a support team wants to turn resolved tickets and agent response logs
+into an official support resolution manual.
+
+The example project is `examples/support_resolution_manual/`:
 
 ```text
-examples/support_resolution_manual/
-├── data/support/tickets/          # customer inquiries
-├── data/support/response_logs/    # support replies and decisions
-├── data/reference/product_docs/   # product facts
-├── data/reference/macros/         # existing approved language
-├── assets/                        # prompt, style guide, required format
-├── policies/                      # read/write/network/review limits
-├── evals/                         # deterministic section checks
-└── transforms/                    # support_resolution_manual transform
+data/support/tickets/*.jsonl          customer inquiries
+data/support/response_logs/*.md       agent handling notes
+data/reference/product_docs/*.md      product facts
+data/reference/macros/*.md            approved customer language
+assets/*.md                           prompt, format, style guide, rubric
+transforms/support/manual.yml         output and runner definition
 ```
 
-The intended output is:
+One source record looks like this:
 
-```text
-target/artifacts/support/support_resolution_manual.md
+```json
+{"ticket_id":"SUP-10437","topic":"billing","summary":"Customer asks why seat count increased after SSO group sync","customer_impact":"unexpected invoice estimate","resolution_status":"resolved"}
 ```
 
-The workflow is:
+One response log says what worked:
+
+```md
+## Agent Steps That Worked
+
+1. Confirm the workspace has SSO group sync enabled.
+2. Ask the admin to compare the identity provider billing group with the workspace member list.
+3. Explain that removing users from the billing group takes effect after the next sync.
+4. Escalate billing disputes when the customer reports a mismatch after sync.
+```
+
+The transform declares the conversion:
+
+```yaml
+name: support_resolution_manual
+runner: openai.responses
+inputs:
+  - source: support.inquiry_tickets
+  - source: support.response_logs
+  - source: reference.product_docs
+  - source: reference.approved_macros
+outputs:
+  - path: target/artifacts/support/support_resolution_manual.md
+assets:
+  - ref: support_resolution_prompt
+  - ref: support_resolution_manual_format
+  - ref: support_manual_style_guide
+policy: support_manual_generation_scope
+evals:
+  - required_support_manual_sections
+review:
+  required: true
+  group: support_leads
+```
+
+The format asset requires the generated manual to contain sections such as
+`Audience`, `When to Use`, `Intake Checklist`, `Triage`,
+`Resolution Procedure`, `Escalation`, `Customer Response Templates`, and
+`Source Evidence`.
+
+Run the workflow:
 
 ```bash
 fbt parse --project-dir examples/support_resolution_manual
 fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
-
 fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
 fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
 fbt review approve support_resolution_manual \
@@ -81,7 +120,16 @@ fbt docs generate --project-dir examples/support_resolution_manual
 fbt artifact history support_resolution_manual --project-dir examples/support_resolution_manual
 ```
 
-In that flow, fbt is responsible for:
+In this example, the runner writes:
+
+```text
+target/artifacts/support/support_resolution_manual.md
+```
+
+fbt records which source files, assets, policy, eval, runner, model, artifact
+version, and approval produced that file.
+
+In this flow, fbt is responsible for:
 
 | Step | What fbt does |
 |---|---|
@@ -108,73 +156,32 @@ In that flow, fbt is responsible for:
 - Export OpenLineage NDJSON and OTLP/JSON traces for existing lineage and
   observability tools.
 
-## Try the Control-Plane Demo
+## Try It Locally
 
-The quickstart is a small fixture, not the main business use case. It proves
-that fbt can parse, plan, build, review, inspect, and export local artifact
-state without external services.
+The quickstart is a small offline fixture. It is useful for checking that the
+control plane works before wiring a real runner.
 
 ```bash
 fbt init knowledge_ops --template support
 fbt parse --project-dir knowledge_ops
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
-
 fbt build --project-dir knowledge_ops --select case_summaries
-fbt review approve case_summaries \
-  --project-dir knowledge_ops \
-  --comment "Reviewed locally"
+fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
 fbt build --project-dir knowledge_ops --select weekly_support_insights
-
-fbt docs generate --project-dir knowledge_ops
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
 
-The run creates:
-
-```text
-knowledge_ops/target/artifacts/support/case_summaries/index.md
-knowledge_ops/target/artifacts/support/weekly_insights.md
-knowledge_ops/target/docs/index.md
-knowledge_ops/.fbt/state/run_results.jsonl
-knowledge_ops/.fbt/state/artifact_versions.json
-```
-
-Export standard records from the same local state:
-
-```bash
-mkdir -p knowledge_ops/target/lineage knowledge_ops/target/telemetry
-fbt export openlineage --project-dir knowledge_ops --output knowledge_ops/target/lineage/openlineage.ndjson
-fbt export otel --project-dir knowledge_ops --output knowledge_ops/target/telemetry/otel.json
-```
-
-Expected result:
-
-```text
-OpenLineage events written to knowledge_ops/target/lineage/openlineage.ndjson
-Events: 2
-OTel traces written to knowledge_ops/target/telemetry/otel.json
-Spans: 4
-```
-
-## Project Shape
-
-A project is a directory with `fs_project.yml`, source declarations,
-transform declarations, assets, policies, evals, `target/` outputs, and local
-`.fbt/state` records.
+The full command transcript and generated files are in the
+[quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).
 
 ## Boundaries
 
-fbt core intentionally does not implement:
-
-- LLM providers
-- agent runtimes
-- OCR or document conversion
-- a scheduler, daemon, metadata database, or hosted UI
-- a CMS, knowledge base, ticket system, or document editor
-
-Those capabilities stay outside core. fbt coordinates them through external
-runners and records what happened locally.
+fbt core does not implement LLM providers, agent runtimes, OCR, document
+conversion, a scheduler, daemon, metadata database, hosted UI, CMS, knowledge
+base, ticket system, or document editor. Those capabilities stay outside core;
+fbt coordinates them through external runners and records what happened
+locally.
 
 ## Install
 
@@ -197,22 +204,16 @@ make build
 
 ## Documentation
 
-Start with:
-
-- [Usage guide](docs/usage-guide.md)
-- [Manual generation guide](apps/docs/src/content/docs/get-started/manual-generation.mdx)
-- [CLI reference](docs/cli-reference.md)
-- [Project config spec](docs/project-config-spec.md)
-- [Runner protocol spec](docs/runner-protocol-spec.md)
-
-Core design and contracts:
-
-- [Design doc](docs/design-doc.md)
-- [Core spec](docs/spec.md)
-- [Schema and versioning spec](docs/schema-and-versioning-spec.md)
-- [Runner discovery spec](docs/runner-discovery-spec.md)
-- [Security and conformance spec](docs/security-and-conformance-spec.md)
-- [Standard export spec](docs/standard-export-spec.md)
+Start with the [usage guide](docs/usage-guide.md),
+[manual generation guide](apps/docs/src/content/docs/get-started/manual-generation.mdx),
+and [CLI reference](docs/cli-reference.md). Core contracts are the
+[design doc](docs/design-doc.md), [core spec](docs/spec.md),
+[project config spec](docs/project-config-spec.md),
+[schema/versioning spec](docs/schema-and-versioning-spec.md),
+[runner discovery spec](docs/runner-discovery-spec.md),
+[runner protocol spec](docs/runner-protocol-spec.md),
+[security/conformance spec](docs/security-and-conformance-spec.md), and
+[standard export spec](docs/standard-export-spec.md).
 
 The published docs site is
 [nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).

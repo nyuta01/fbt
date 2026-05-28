@@ -88,6 +88,25 @@ use cases, explains the trust problem around generated operational artifacts,
 uses the support resolution manual as the concrete example, and only then moves
 to commands, project structure, boundaries, install, and reference docs.
 
+## F-005 Concrete example lacked concrete content
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-005`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-005-plan.md`
+
+### Observation
+
+The README concrete example named a support manual workflow but showed mostly
+directory paths and commands. It did not show representative input records,
+response-log content, transform logic, required output sections, or what fbt
+records around the runner.
+
+### Permanent fix
+
+README now explains the example through actual source snippets, response-log
+steps, transform YAML, required manual sections, output path, and fbt's
+lineage/review responsibility before listing commands.
+
 ## Entry Template
 
 ```markdown

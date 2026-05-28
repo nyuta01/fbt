@@ -31,6 +31,9 @@ The README is now purpose-first: it explains fbt as a local-first file build
 tool for turning operational evidence into reviewed, traceable knowledge
 artifacts, then grounds the workflow in the support resolution manual example
 before linking to reference docs.
+The README concrete example now shows representative input content, response
+log content, transform declaration, required manual sections, output path, and
+what fbt records around the external runner.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -145,6 +148,8 @@ it does not represent, and what each step proves in the fbt lifecycle.
 `FBT-DOCS-UX-004` is complete: README now tells the product story first,
 including why fbt exists, what it can be used for, what fbt owns in a concrete
 workflow, and how a first-time user should try it.
+`FBT-DOCS-UX-005` is complete: README's support manual example now explains
+the files and transform logic before listing the commands.
 
 ## Verification
 

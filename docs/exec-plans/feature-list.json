@@ -1573,6 +1573,31 @@
       "notes": "Rewrites README as a product entry point: purpose, problem, concrete support-manual example, what fbt owns in the workflow, current capabilities, quickstart fixture, project structure, boundaries, install, and docs."
     },
     {
+      "id": "FBT-DOCS-UX-005",
+      "title": "Expand README concrete example",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-004",
+        "FBT-EXAMPLE-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-005-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-005-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Adds representative source record content, response-log content, transform YAML, required output sections, output path, and fbt lineage responsibility to the README's concrete support manual example before showing commands."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
