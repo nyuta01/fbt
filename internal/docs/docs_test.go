@@ -34,8 +34,7 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 				ArtifactID:       version.ArtifactID,
 				CurrentVersionID: version.VersionID,
 				LogicalPath:      "target/artifacts/report.md",
-				Confidence:       "reviewed",
-				ApprovalStatus:   "approved",
+				Confidence:       "structural",
 			},
 		},
 		LatestRuns: map[string]state.LatestRun{},
@@ -47,15 +46,6 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 		EvalID:            "eval.knowledge_ops.required",
 		ArtifactVersionID: version.VersionID,
 		Status:            "pass",
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := store.PutApproval(state.Approval{
-		ArtifactVersionID: version.VersionID,
-		ArtifactID:        version.ArtifactID,
-		Digest:            version.Descriptor.Digest,
-		Status:            "approved",
-		ReviewGroup:       "leads",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +89,7 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 		t.Fatal(err)
 	}
 	content := string(data)
-	for _, want := range []string{"# knowledge_ops", "approval_status", "eval.knowledge_ops.required", "approved", "Policy Decisions", "write_scope", "text_normalized_v1"} {
+	for _, want := range []string{"# knowledge_ops", "confidence", "structural", "eval.knowledge_ops.required", "Policy Decisions", "write_scope", "text_normalized_v1"} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("expected %q in docs:\n%s", want, content)
 		}

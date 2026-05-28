@@ -8,9 +8,7 @@ transforms:
     inputs:
       - ref: case_summaries
         require:
-          confidence: reviewed
-          review:
-            status: approved
+          confidence: structural
     outputs:
       - name: weekly_support_insights
         type: markdown

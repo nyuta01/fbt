@@ -5,7 +5,7 @@ template: splash
 tableOfContents: false
 hero:
   title: fbt
-  tagline: Local-first control plane for transforming filesystem artifacts with external runners, lineage, evals, and review gates.
+  tagline: Local-first file build tool for turning source files into versioned artifacts with external runners, evals, and lineage.
   actions:
     - text: What can it do?
       link: /fbt/get-started/what-you-can-do/
@@ -22,7 +22,7 @@ import FeatureGrid from "../../components/FeatureGrid.astro";
 `fbt` is a file build tool for operational knowledge work. It turns logs,
 tickets, Markdown, spreadsheets, PDFs, prompts, rubrics, and generated manuals
 into an inspectable local project with a manifest, build plan, immutable
-artifact versions, review gates, and lineage.
+artifact versions, eval results, and lineage.
 
 The core stays small. It does not contain OCR, document conversion, LLM
 providers, or agent runtimes. Those live behind external runners.
@@ -43,8 +43,8 @@ providers, or agent runtimes. Those live behind external runners.
     },
     {
       tag: "Trust",
-      title: "Lineage and review",
-      body: "Every build records inputs, output candidates, artifact versions, evals, approvals, and policy decisions.",
+      title: "Lineage and explainability",
+      body: "Every build records inputs, output candidates, artifact versions, eval results, and policy decisions.",
       href: "/fbt/standards/lineage-model/",
     },
     {
@@ -67,9 +67,8 @@ fbt parse --project-dir knowledge_ops
 fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 
-# 3. Build, review, rebuild downstream artifacts, and generate docs.
+# 3. Build artifacts and generate docs.
 fbt build --project-dir knowledge_ops --select case_summaries
-fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
 fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt docs generate --project-dir knowledge_ops
 ```
@@ -87,10 +86,10 @@ project/
 ├── transforms/           Outputs, refs, runner, assets, policy, evals
 ├── prompts/              Prompt assets used by LLM/agent runners
 ├── assets/               Style guides, schemas, rubrics, examples
-├── policies/             Read/write/network/review constraints
-├── evals/                Deterministic checks and review gates
+├── policies/             Read/write/network/tool constraints
+├── evals/                Deterministic checks
 ├── target/               Materialized artifact files
-└── .fbt/state/           Manifest, run results, versions, approvals
+└── .fbt/state/           Manifest, run results, versions, evals
 ```
 
 ## Where to next

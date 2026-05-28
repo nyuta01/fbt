@@ -10,7 +10,7 @@ visualization integrations
 `fbt` keeps fbt-native manifest and state files as the local source of truth.
 Standard integrations are explicit exports, not replacements for
 `manifest.json`, `state.json`, `artifact_versions.json`, `run_results.jsonl`,
-`evaluation_results.json`, `approvals.json`, or `policy_decisions.json`.
+`evaluation_results.json` or `policy_decisions.json`.
 
 The export contract covers:
 
@@ -103,7 +103,6 @@ Mapping:
 | input `artifact` / `artifact_version` | input dataset with version facet |
 | output `artifact` / `artifact_version` | output dataset with version and descriptor facets |
 | `eval` / `evaluation_result` | custom fbt run or output facets |
-| `approval` | custom fbt output facet |
 | `policy` / `policy_decision` | custom fbt run facet |
 | runner/model metadata | job/run facets |
 
@@ -211,7 +210,7 @@ Default exports include:
 - logical paths
 - content digests and descriptor metadata
 - runner and model names
-- eval/approval/policy status
+- eval and policy status
 - usage and cost summaries
 
 Default exports exclude:

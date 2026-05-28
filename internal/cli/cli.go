@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyuta01/fbt/internal/approval"
 	"github.com/nyuta01/fbt/internal/artifact"
 	buildmgr "github.com/nyuta01/fbt/internal/build"
 	"github.com/nyuta01/fbt/internal/config"
@@ -38,7 +37,6 @@ var implementedCommands = []string{
 	"plan",
 	"build",
 	"eval",
-	"review",
 	"diff",
 	"docs",
 	"state",
@@ -96,8 +94,6 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runBuild(opts, stdout, stderr)
 	case "eval":
 		return runEval(opts, commandArgs[1:], stdout, stderr)
-	case "review":
-		return runReview(opts, commandArgs[1:], stdout, stderr)
 	case "diff":
 		return runDiff(opts, commandArgs[1:], stdout, stderr)
 	case "docs":
@@ -299,17 +295,11 @@ func runExportOpenLineage(opts options, exportOpts exportOptions, stdout io.Writ
 		printError("export openlineage", err, stderr, opts.JSON)
 		return 5
 	}
-	approvals, err := ctx.Store.ReadApprovals()
-	if err != nil {
-		printError("export openlineage", err, stderr, opts.JSON)
-		return 5
-	}
 	events := lineage.OpenLineageEvents(lineage.OpenLineageInput{
 		Manifest:          ctx.Manifest,
 		Snapshot:          snapshot,
 		ArtifactVersions:  versions,
 		EvaluationResults: evaluations,
-		Approvals:         approvals,
 	})
 	if exportOpts.OutputPath != "" {
 		if err := writeOpenLineageOutput(exportOpts.OutputPath, events); err != nil {
@@ -606,170 +596,6 @@ func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		fmt.Fprintf(stderr, "Error: %v\n", evalErr)
 	}
 	return code
-}
-
-func runReview(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	ctx, err := loadProject(opts)
-	if err != nil {
-		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
-		return 2
-	}
-	subcommand := "status"
-	if len(args) > 0 {
-		subcommand = args[0]
-	}
-	switch subcommand {
-	case "status":
-		if len(args) < 2 {
-			return printAllReviewStatus(ctx.Store, opts.JSON, stdout, stderr)
-		}
-		status, err := approval.GetStatus(ctx.Store, args[1], "")
-		if err != nil {
-			printError("review status", err, stderr, opts.JSON)
-			return 2
-		}
-		printReviewStatus(status, opts.JSON, stdout)
-		return 0
-	case "show":
-		target, versionID, _, err := parseReviewArgs(args[1:])
-		if err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		return runReviewShow(ctx, target, versionID, opts.JSON, stdout, stderr)
-	case "approve", "reject":
-		target, versionID, comment, err := parseReviewArgs(args[1:])
-		if err != nil {
-			fmt.Fprintf(stderr, "Error: %v\n", err)
-			return 2
-		}
-		reviewer := os.Getenv("USER")
-		if reviewer == "" {
-			reviewer = "local"
-		}
-		var status approval.Status
-		if subcommand == "approve" {
-			status, err = approval.Approve(ctx.Store, target, versionID, reviewer, comment)
-		} else {
-			status, err = approval.Reject(ctx.Store, target, versionID, reviewer, comment)
-		}
-		if err != nil {
-			printError("review "+subcommand, err, stderr, opts.JSON)
-			return 2
-		}
-		printReviewStatus(status, opts.JSON, stdout)
-		return 0
-	default:
-		fmt.Fprintf(stderr, "unknown review command: %s\n", subcommand)
-		return 2
-	}
-}
-
-type reviewDetails struct {
-	Review        approval.Status `json:"review"`
-	Artifact      artifactRecord  `json:"artifact"`
-	DiffAvailable bool            `json:"diff_available"`
-	Commands      []string        `json:"commands"`
-}
-
-func runReviewShow(ctx projectContext, target, versionID string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	status, err := approval.GetStatus(ctx.Store, target, versionID)
-	if err != nil {
-		printError("review show", err, stderr, jsonOutput)
-		return 2
-	}
-	versions, err := ctx.Store.ReadArtifactVersions()
-	if err != nil {
-		printError("review show", err, stderr, jsonOutput)
-		return 5
-	}
-	snapshot, approvals, err := readArtifactState(ctx.Store)
-	if err != nil {
-		printError("review show", err, stderr, jsonOutput)
-		return 5
-	}
-	version, ok := versions.ArtifactVersions[status.ArtifactVersionID]
-	if !ok {
-		fmt.Fprintf(stderr, "Error: artifact version not found: %s\n", status.ArtifactVersionID)
-		return 2
-	}
-	record := buildArtifactRecord(ctx, snapshot, approvals, version)
-	commandTarget := target
-	if commandTarget == "" {
-		commandTarget = status.ArtifactVersionID
-	}
-	_, diffAvailable := lastApprovedVersion(ctx.Store, versions, version)
-	details := reviewDetails{
-		Review:        status,
-		Artifact:      record,
-		DiffAvailable: diffAvailable,
-		Commands:      reviewCommands(commandTarget, diffAvailable),
-	}
-	if jsonOutput {
-		writeJSON(stdout, map[string]any{"command": "review show", "status": "success", "review": details})
-		return 0
-	}
-	printReviewDetails(stdout, details)
-	return 0
-}
-
-func reviewCommands(target string, diffAvailable bool) []string {
-	commands := []string{
-		fmt.Sprintf("fbt artifact show %s", target),
-		fmt.Sprintf("fbt artifact path %s", target),
-	}
-	if diffAvailable {
-		commands = append(commands, fmt.Sprintf("fbt diff %s --against last-approved", target))
-	}
-	commands = append(commands,
-		fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
-		fmt.Sprintf("fbt review reject %s --comment \"reason\"", target),
-	)
-	return commands
-}
-
-func printReviewDetails(stdout io.Writer, details reviewDetails) {
-	fmt.Fprintf(stdout, "%s\n", details.Review.ArtifactID)
-	fmt.Fprintf(stdout, "  version: %s\n", details.Review.ArtifactVersionID)
-	fmt.Fprintf(stdout, "  status: %s\n", details.Review.Status)
-	if details.Review.Confidence != "" {
-		fmt.Fprintf(stdout, "  confidence: %s\n", details.Review.Confidence)
-	}
-	if details.Review.ReviewGroup != "" {
-		fmt.Fprintf(stdout, "  group: %s\n", details.Review.ReviewGroup)
-	}
-	if details.Artifact.LogicalPath != "" {
-		fmt.Fprintf(stdout, "  logical_path: %s\n", details.Artifact.LogicalPath)
-	}
-	if details.Artifact.StoragePath != "" {
-		fmt.Fprintf(stdout, "  storage_path: %s\n", details.Artifact.StoragePath)
-	}
-	if details.Artifact.Digest != "" {
-		fmt.Fprintf(stdout, "  digest: %s\n", details.Artifact.Digest)
-	}
-	if details.Artifact.Runner != "" {
-		fmt.Fprintf(stdout, "  runner: %s\n", details.Artifact.Runner)
-	}
-	if len(details.Artifact.Model) > 0 {
-		fmt.Fprintf(stdout, "  model: %s\n", compactJSON(details.Artifact.Model))
-	}
-	if details.Artifact.GeneratedBy != "" {
-		fmt.Fprintf(stdout, "  generated_by: %s\n", details.Artifact.GeneratedBy)
-	}
-	for _, command := range details.Commands {
-		fmt.Fprintf(stdout, "  %s: %s\n", reviewCommandLabel(command), command)
-	}
-}
-
-func reviewCommandLabel(command string) string {
-	switch {
-	case strings.Contains(command, " review approve "):
-		return "approve_after_review"
-	case strings.Contains(command, " review reject "):
-		return "reject_after_review"
-	default:
-		return "inspect"
-	}
 }
 
 func runBuild(opts options, stdout io.Writer, stderr io.Writer) int {
@@ -1379,7 +1205,6 @@ type artifactRecord struct {
 	Runner              string              `json:"runner,omitempty"`
 	Model               map[string]any      `json:"model,omitempty"`
 	Confidence          string              `json:"confidence,omitempty"`
-	ApprovalStatus      string              `json:"approval_status,omitempty"`
 	Current             bool                `json:"current"`
 	CreatedAt           string              `json:"created_at,omitempty"`
 	CommittedAt         string              `json:"committed_at,omitempty"`
@@ -1389,13 +1214,13 @@ type artifactRecord struct {
 }
 
 func runArtifactPath(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	snapshot, approvals, err := readArtifactState(ctx.Store)
+	snapshot, err := ctx.Store.ReadState()
 	if err != nil {
 		printError("artifact path", err, stderr, jsonOutput)
 		return 5
 	}
 	if version, ok := findVersion(snapshot, versions, target); ok {
-		record := buildArtifactRecord(ctx, snapshot, approvals, version)
+		record := buildArtifactRecord(ctx, snapshot, version)
 		if jsonOutput {
 			writeJSON(stdout, map[string]any{"command": "artifact path", "status": "success", "artifact": record})
 			return 0
@@ -1417,7 +1242,7 @@ func runArtifactPath(ctx projectContext, versions state.ArtifactVersionsIndex, t
 }
 
 func runArtifactShow(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	snapshot, approvals, err := readArtifactState(ctx.Store)
+	snapshot, err := ctx.Store.ReadState()
 	if err != nil {
 		printError("artifact show", err, stderr, jsonOutput)
 		return 5
@@ -1427,7 +1252,7 @@ func runArtifactShow(ctx projectContext, versions state.ArtifactVersionsIndex, t
 		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
 		return 2
 	}
-	record := buildArtifactRecord(ctx, snapshot, approvals, version)
+	record := buildArtifactRecord(ctx, snapshot, version)
 	if jsonOutput {
 		writeJSON(stdout, map[string]any{"command": "artifact show", "status": "success", "artifact": record})
 		return 0
@@ -1437,7 +1262,7 @@ func runArtifactShow(ctx projectContext, versions state.ArtifactVersionsIndex, t
 }
 
 func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	snapshot, approvals, err := readArtifactState(ctx.Store)
+	snapshot, err := ctx.Store.ReadState()
 	if err != nil {
 		printError("artifact history", err, stderr, jsonOutput)
 		return 5
@@ -1450,7 +1275,7 @@ func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex
 	sortArtifactVersions(matches)
 	records := make([]artifactRecord, 0, len(matches))
 	for _, version := range matches {
-		records = append(records, buildArtifactRecord(ctx, snapshot, approvals, version))
+		records = append(records, buildArtifactRecord(ctx, snapshot, version))
 	}
 	if jsonOutput {
 		writeJSON(stdout, map[string]any{"command": "artifact history", "status": "success", "artifacts": records})
@@ -1460,18 +1285,6 @@ func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex
 		printArtifactRecord(stdout, record)
 	}
 	return 0
-}
-
-func readArtifactState(store state.Store) (state.Snapshot, state.ApprovalIndex, error) {
-	snapshot, err := store.ReadState()
-	if err != nil {
-		return state.Snapshot{}, state.ApprovalIndex{}, err
-	}
-	approvals, err := store.ReadApprovals()
-	if err != nil {
-		return state.Snapshot{}, state.ApprovalIndex{}, err
-	}
-	return snapshot, approvals, nil
 }
 
 type artifactExplanation struct {
@@ -1582,7 +1395,7 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 	return selected, nil
 }
 
-func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, approvals state.ApprovalIndex, version state.ArtifactVersion) artifactRecord {
+func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, version state.ArtifactVersion) artifactRecord {
 	record := artifactRecord{
 		VersionID:           version.VersionID,
 		ArtifactID:          version.ArtifactID,
@@ -1592,7 +1405,6 @@ func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, approvals 
 		ArtifactType:        version.Descriptor.ArtifactType,
 		GeneratedBy:         version.GeneratedBy,
 		Confidence:          version.Confidence,
-		ApprovalStatus:      version.ApprovalStatus,
 		CreatedAt:           version.CreatedAt,
 		CommittedAt:         version.CommittedAt,
 		Materials:           version.Materials,
@@ -1606,12 +1418,6 @@ func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, approvals 
 		if pointer.Confidence != "" {
 			record.Confidence = pointer.Confidence
 		}
-		if pointer.ApprovalStatus != "" {
-			record.ApprovalStatus = pointer.ApprovalStatus
-		}
-	}
-	if approvalRecord, ok := approvals.Approvals[version.VersionID]; ok && approvalRecord.Status != "" {
-		record.ApprovalStatus = approvalRecord.Status
 	}
 	if transform, ok := producerTransform(ctx.Manifest, version.ArtifactID); ok {
 		record.Runner = transform.Runner
@@ -1703,9 +1509,6 @@ func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 	if record.Confidence != "" {
 		fmt.Fprintf(stdout, "  confidence: %s\n", record.Confidence)
 	}
-	if record.ApprovalStatus != "" {
-		fmt.Fprintf(stdout, "  approval_status: %s\n", record.ApprovalStatus)
-	}
 	if record.CommittedAt != "" {
 		fmt.Fprintf(stdout, "  committed_at: %s\n", record.CommittedAt)
 	}
@@ -1742,7 +1545,6 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 	if explanation.Current != nil {
 		fmt.Fprintf(stdout, "  current_version: %s\n", explanation.Current.CurrentVersionID)
 		fmt.Fprintf(stdout, "  confidence: %s\n", explanation.Current.Confidence)
-		fmt.Fprintf(stdout, "  approval_status: %s\n", explanation.Current.ApprovalStatus)
 	} else {
 		fmt.Fprintln(stdout, "  current_version: none")
 	}
@@ -1857,12 +1659,6 @@ func resolveAgainst(store state.Store, snapshot state.Snapshot, index state.Arti
 			return state.ArtifactVersion{}, fmt.Errorf("previous artifact version not found for %s", current.ArtifactID)
 		}
 		return version, nil
-	case "last-approved":
-		version, ok := lastApprovedVersion(store, index, current)
-		if !ok {
-			return state.ArtifactVersion{}, fmt.Errorf("last approved artifact version not found for %s", current.ArtifactID)
-		}
-		return version, nil
 	default:
 		version, ok := findVersion(snapshot, index, against)
 		if !ok {
@@ -1884,30 +1680,6 @@ func previousVersion(index state.ArtifactVersionsIndex, current state.ArtifactVe
 		return state.ArtifactVersion{}, false
 	}
 	return previous[len(previous)-1], true
-}
-
-func lastApprovedVersion(store state.Store, index state.ArtifactVersionsIndex, current state.ArtifactVersion) (state.ArtifactVersion, bool) {
-	approvals, err := store.ReadApprovals()
-	if err != nil {
-		return state.ArtifactVersion{}, false
-	}
-	var approved []state.ArtifactVersion
-	for versionID, approval := range approvals.Approvals {
-		if approval.ArtifactID != current.ArtifactID || approval.Status != "approved" || versionID == current.VersionID {
-			continue
-		}
-		version, ok := index.ArtifactVersions[versionID]
-		if ok {
-			approved = append(approved, version)
-		}
-	}
-	sort.Slice(approved, func(i, j int) bool {
-		return approved[i].VersionID < approved[j].VersionID
-	})
-	if len(approved) == 0 {
-		return state.ArtifactVersion{}, false
-	}
-	return approved[len(approved)-1], true
 }
 
 func producerTransform(m manifest.Manifest, artifactID string) (manifest.TransformResource, bool) {
@@ -1936,90 +1708,6 @@ func selectedEvalIDs(m manifest.Manifest, evalIDs []string, expr string) ([]stri
 		return nil, fmt.Errorf("unknown eval selection: %s", expr)
 	}
 	return selected, nil
-}
-
-func parseReviewArgs(args []string) (target string, versionID string, comment string, err error) {
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
-		switch {
-		case arg == "--version":
-			i++
-			if i >= len(args) {
-				return "", "", "", fmt.Errorf("--version requires a value")
-			}
-			versionID = args[i]
-		case strings.HasPrefix(arg, "--version="):
-			versionID = strings.TrimPrefix(arg, "--version=")
-		case arg == "--comment":
-			i++
-			if i >= len(args) {
-				return "", "", "", fmt.Errorf("--comment requires a value")
-			}
-			comment = args[i]
-		case strings.HasPrefix(arg, "--comment="):
-			comment = strings.TrimPrefix(arg, "--comment=")
-		case strings.HasPrefix(arg, "--"):
-			return "", "", "", fmt.Errorf("unknown review flag: %s", arg)
-		default:
-			if target != "" {
-				return "", "", "", fmt.Errorf("review command accepts one target")
-			}
-			target = arg
-		}
-	}
-	if target == "" && versionID == "" {
-		return "", "", "", fmt.Errorf("review command requires a target")
-	}
-	return target, versionID, comment, nil
-}
-
-func printAllReviewStatus(store state.Store, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
-	index, err := store.ReadApprovals()
-	if err != nil {
-		printError("review status", err, stderr, jsonOutput)
-		return 5
-	}
-	ids := make([]string, 0, len(index.Approvals))
-	for id := range index.Approvals {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-	if jsonOutput {
-		approvals := make([]state.Approval, 0, len(ids))
-		for _, id := range ids {
-			approvals = append(approvals, index.Approvals[id])
-		}
-		writeJSON(stdout, map[string]any{"command": "review status", "status": "success", "approvals": approvals})
-		return 0
-	}
-	for _, id := range ids {
-		approval := index.Approvals[id]
-		fmt.Fprintf(stdout, "%s\n", id)
-		fmt.Fprintf(stdout, "  status: %s\n", approval.Status)
-		if approval.ReviewGroup != "" {
-			fmt.Fprintf(stdout, "  group: %s\n", approval.ReviewGroup)
-		}
-	}
-	return 0
-}
-
-func printReviewStatus(status approval.Status, jsonOutput bool, stdout io.Writer) {
-	if jsonOutput {
-		writeJSON(stdout, map[string]any{"command": "review status", "status": "success", "review": status})
-		return
-	}
-	fmt.Fprintf(stdout, "%s\n", status.ArtifactID)
-	fmt.Fprintf(stdout, "  version: %s\n", status.ArtifactVersionID)
-	fmt.Fprintf(stdout, "  status: %s\n", status.Status)
-	if status.Confidence != "" {
-		fmt.Fprintf(stdout, "  confidence: %s\n", status.Confidence)
-	}
-	if status.ReviewGroup != "" {
-		fmt.Fprintf(stdout, "  group: %s\n", status.ReviewGroup)
-	}
-	if status.Status == "pending" {
-		fmt.Fprintf(stdout, "  next: fbt review show %s\n", shortResourceName(status.ArtifactID))
-	}
 }
 
 func shortResourceName(id string) string {

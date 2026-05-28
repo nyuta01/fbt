@@ -27,7 +27,7 @@ Use OpenLineage when you want to inspect:
 
 - which transform produced an artifact
 - which input sources or artifacts fed that transform
-- run IDs, job names, dataset names, approvals, confidence, evals, and fbt
+- run IDs, job names, dataset names, confidence, evals, policy decisions, and fbt
   descriptor facets
 
 Generate the export:

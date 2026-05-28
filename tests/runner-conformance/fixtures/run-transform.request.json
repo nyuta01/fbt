@@ -78,9 +78,6 @@
         "dirty_reasons": [
           "runner conformance"
         ]
-      },
-      "review": {
-        "required": false
       }
     },
     "work": {

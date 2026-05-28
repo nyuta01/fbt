@@ -3,6 +3,3 @@ policies:
     read: ["data/support/", "target/artifacts/support/"]
     write: [".fbt/work/", "target/artifacts/support/"]
     network: false
-    review:
-      required: true
-      group: support_leads

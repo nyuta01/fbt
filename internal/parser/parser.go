@@ -23,14 +23,12 @@ var transformTypes = map[string]struct{}{
 	"llm":      {},
 	"agent":    {},
 	"compose":  {},
-	"review":   {},
 }
 
 var evalTypes = map[string]struct{}{
 	"deterministic": {},
 	"semantic":      {},
 	"llm_judge":     {},
-	"human_review":  {},
 }
 
 type resourceFile struct {
@@ -90,12 +88,15 @@ func ParseProject(options Options) (Result, error) {
 	}
 
 	for _, file := range files {
-		loaded, lines, err := loadResourceFile(file)
+		loaded, lines, unsupported, err := loadResourceFile(file)
 		if err != nil {
 			result.addError("RESOURCE_PARSE_FAILED", err.Error(), file, "")
 			continue
 		}
 		result.appendResources(file, loaded, lines)
+		for _, field := range unsupported {
+			result.addUnsupportedField(file, field)
+		}
 	}
 
 	result.validateResources()
@@ -168,16 +169,23 @@ func resourceFiles(root string, dirs []string) ([]string, error) {
 	return files, nil
 }
 
-func loadResourceFile(path string) (resourceFile, map[string]int, error) {
+type unsupportedField struct {
+	code     string
+	message  string
+	resource string
+	line     int
+}
+
+func loadResourceFile(path string) (resourceFile, map[string]int, []unsupportedField, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return resourceFile{}, nil, err
+		return resourceFile{}, nil, nil, err
 	}
 	var loaded resourceFile
 	if err := yaml.Unmarshal(data, &loaded); err != nil {
-		return resourceFile{}, nil, err
+		return resourceFile{}, nil, nil, err
 	}
-	return loaded, resourceLineIndex(data), nil
+	return loaded, resourceLineIndex(data), unsupportedReviewFields(data), nil
 }
 
 func (r *Result) appendResources(file string, loaded resourceFile, lines map[string]int) {
@@ -261,6 +269,64 @@ func indexSourceArtifacts(lines map[string]int, sourceName string, sourceNode *y
 			line = artifactNode.Line
 		}
 		lines[sourceName+"."+name] = line
+	}
+}
+
+func unsupportedReviewFields(data []byte) []unsupportedField {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return nil
+	}
+	root := doc.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil
+	}
+	var fields []unsupportedField
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		key := root.Content[i]
+		value := root.Content[i+1]
+		if value.Kind != yaml.SequenceNode {
+			continue
+		}
+		switch key.Value {
+		case "transforms":
+			for _, item := range value.Content {
+				resource, _ := mappingScalar(item, "name")
+				if review := mappingNode(item, "review"); review != nil {
+					fields = append(fields, unsupportedReviewField(resource, review.Line))
+				}
+				inputs := mappingNode(item, "inputs")
+				if inputs == nil || inputs.Kind != yaml.SequenceNode {
+					continue
+				}
+				for _, input := range inputs.Content {
+					require := mappingNode(input, "require")
+					if require == nil {
+						continue
+					}
+					if review := mappingNode(require, "review"); review != nil {
+						fields = append(fields, unsupportedReviewField(resource, review.Line))
+					}
+				}
+			}
+		case "policies":
+			for _, item := range value.Content {
+				resource, _ := mappingScalar(item, "name")
+				if review := mappingNode(item, "review"); review != nil {
+					fields = append(fields, unsupportedReviewField(resource, review.Line))
+				}
+			}
+		}
+	}
+	return fields
+}
+
+func unsupportedReviewField(resource string, line int) unsupportedField {
+	return unsupportedField{
+		code:     "REVIEW_UNSUPPORTED",
+		message:  "`review` is no longer part of fbt core",
+		resource: resource,
+		line:     line,
 	}
 }
 
@@ -588,6 +654,18 @@ func (r *Result) addWarning(code, message, file, resource string) {
 	r.Diagnostics = append(r.Diagnostics, r.newDiagnostic(SeverityWarning, code, message, file, resource))
 }
 
+func (r *Result) addUnsupportedField(file string, field unsupportedField) {
+	r.Diagnostics = append(r.Diagnostics, Diagnostic{
+		Severity: SeverityError,
+		Code:     field.code,
+		Message:  field.message,
+		File:     file,
+		Line:     field.line,
+		Resource: field.resource,
+		Hint:     diagnosticHint(field.code),
+	})
+}
+
 func (r *Result) newDiagnostic(severity Severity, code, message, file, resource string) Diagnostic {
 	return Diagnostic{
 		Severity: severity,
@@ -618,6 +696,8 @@ func diagnosticHint(code string) string {
 	switch code {
 	case "CONFIG_VERSION_MISSING":
 		return "Add `config_version: 1` to fs_project.yml."
+	case "REVIEW_UNSUPPORTED":
+		return "Remove the review field. Use Git, PRs, CI, release tooling, or your publishing workflow for human approval."
 	case "PROJECT_NAME_REQUIRED":
 		return "Add a non-empty `name` to fs_project.yml."
 	case "PROJECT_NAME_INVALID", "SOURCE_NAME_INVALID", "SOURCE_ARTIFACT_NAME_INVALID", "ARTIFACT_NAME_INVALID", "ASSET_NAME_INVALID", "POLICY_NAME_INVALID", "EVAL_NAME_INVALID", "TRANSFORM_NAME_INVALID":

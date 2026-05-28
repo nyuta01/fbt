@@ -44,7 +44,6 @@ MVP core must enforce:
 - logical artifact paths must live under `artifact_path`
 - failed, cancelled, interrupted, or denied runs do not update official pointers
 - `artifact_version` records are immutable
-- approval is bound to `artifact_version`
 - state files are written with temp-file plus atomic rename
 - one local build lock is held per project target
 - secrets and raw model responses are not stored by default
@@ -121,18 +120,11 @@ Core path validation must:
 
 Path validation must run before descriptor computation and before any commit.
 
-## 8. Approval and Downstream Blocking
+## 8. Confidence and Downstream Blocking
 
-Review-required transforms may use one of two commit modes:
-
-- `commit_pending`: commit the artifact version and mark it pending review
-- `quarantine_until_approved`: keep output out of the logical artifact path until approved
-
-MVP default is `commit_pending`.
-
-Downstream transforms that require `confidence: reviewed` or
-`review.status: approved` must block until the referenced artifact version is
-approved.
+Downstream transforms may require a current upstream artifact and a minimum fbt
+confidence class such as `structural` or `semantic`. Human approval and release
+state are intentionally outside core.
 
 ## 9. Conformance Scenarios
 
@@ -152,12 +144,10 @@ scenario classes.
 | `CONF-SEC-002` | policy | transform requires network but policy denies it | transform is blocked with exit code `3` |
 | `CONF-STATE-001` | state | runner fails after writing partial output | official pointer remains unchanged |
 | `CONF-STATE-002` | state | same digest is committed twice | commit is idempotent |
-| `CONF-REVIEW-001` | approval | review-required artifact is produced | artifact version is pending review |
-| `CONF-REVIEW-002` | approval | downstream requires reviewed artifact | downstream blocks until approval |
 | `CONF-REDACT-001` | redaction | runner reports env var names and values | values are not persisted |
 | `CONF-DIRTY-001` | planning | prompt, policy, or runner config changes | dependent transform is dirty |
 | `CONF-DOCS-001` | docs | docs are generated | lineage is shown; secret values are absent |
-| `CONF-STD-001` | standard export | OpenLineage export is generated from a reviewed support loop | events contain jobs, runs, datasets, fbt facets, schema URL, and UUID-shaped run IDs |
+| `CONF-STD-001` | standard export | OpenLineage export is generated from a support loop | events contain jobs, runs, datasets, fbt facets, schema URL, and UUID-shaped run IDs |
 | `CONF-STD-002` | standard export | OTel export is generated from run results | OTLP/JSON contains resource spans, invocation/transform spans, GenAI usage attributes, and runner span events |
 | `CONF-STD-003` | redaction | standard exports run on inputs/assets containing a marker secret | exported OpenLineage and OTel payloads do not contain raw source content or the marker secret |
 
@@ -169,15 +159,13 @@ conformance target that runs these scenarios without external services.
 Current executable coverage:
 
 - schema errors for missing and unsupported `config_version`
-- local support template build and pending-review commit
+- local support template build and artifact commit
 - clean rerun skips unchanged artifact work
-- downstream build blocked before approval
 - incompatible runner capability validation fails before output commit
 - runner-declared output candidates outside `work.outputs` fail before output
   commit
-- approval promotes the current artifact for downstream reuse
-- downstream build succeeds after approval
-- docs generation succeeds after the review/build loop
+- downstream build succeeds after the upstream artifact exists
+- docs generation succeeds after the build loop
 - docs output does not include the redaction marker
 - policy-denied output is not committed to the official artifact path
 - prompt/asset changes make dependent transforms dirty again

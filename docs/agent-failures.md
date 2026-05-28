@@ -221,10 +221,9 @@ boundary, not a mandatory transform feature.
 ### Permanent fix
 
 `examples/daily_qa_ops` now shows a daily workflow based on plain Markdown
-directory sources, multiple source artifacts, and multiple candidate outputs
-that do not require review. A separate promotion transform produces the formal
-manual update and requires review. The practical examples smoke runs this
-candidate-to-promotion path end to end so the distinction remains guarded.
+directory sources, multiple source artifacts, and multiple outputs. fbt now has
+no built-in review feature; approval and publishing belong in external
+workflows.
 
 ## F-012 Daily example encoded a fixed source date
 
@@ -245,6 +244,28 @@ The example now uses stable processing-window source paths under
 `data/qa/inbox/` and stable logical output paths under
 `target/artifacts/.../latest/`. Daily scheduling and input-window preparation
 remain outside fbt, while fbt records each run as artifact versions.
+
+## F-013 Review leaked into the core product boundary
+
+- **Status**: `fixed`
+- **Task**: `FBT-UNIX-011`
+- **Plan**: `docs/exec-plans/active/FBT-UNIX-011-plan.md`
+
+### Observation
+
+The Unix-style product boundary says fbt should build filesystem artifacts and
+record receipts. The implementation and docs had grown a built-in review
+command, approval state, review gates, review-related evals, and approval
+facets. That made fbt look like a workflow approval system instead of a small
+file build tool.
+
+### Permanent fix
+
+The review package, CLI command, approval state, review gates, `human_review`
+eval type, config fields, example YAML, docs, smoke checks, conformance checks,
+and standard-export approval facets were removed. The CLI smoke now asserts
+that `fbt review` is an unknown command, so the removed feature cannot
+accidentally reappear without changing tests.
 
 ## Entry Template
 

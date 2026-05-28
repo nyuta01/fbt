@@ -10,8 +10,8 @@ An fbt runner is an external process that speaks stdio JSON-RPC/JSONL. It can be
 written in Python, TypeScript, Go, Rust, shell, or any runtime that can read
 JSON lines from stdin and write JSON lines to stdout.
 
-Core owns project parsing, planning, state, descriptors, policy/eval/review
-checks, and official artifact commits. The runner owns transform execution and
+Core owns project parsing, planning, state, descriptors, policy/eval checks,
+and official artifact commits. The runner owns transform execution and
 candidate file generation.
 
 ## 2. Minimal Protocol Loop
@@ -67,7 +67,7 @@ produce in this invocation. fbt rejects incompatible runners before execution.
 - `outputs`: declared output names, artifact types, and logical target paths
 - `assets`: prompt/style/script asset paths and fingerprints
 - `model`, `tools`, `policy`: execution contract metadata
-- `state`: previous run, current outputs, plan reasons, and review context
+- `state`: previous run, current outputs, and plan reasons
 - `work`: scoped root, temp, and output directories
 
 Runners should treat inputs, assets, state, and official target paths as

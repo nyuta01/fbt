@@ -106,7 +106,6 @@ type Transform struct {
 	Tools    []string       `yaml:"tools"`
 	Policy   string         `yaml:"policy"`
 	Evals    []string       `yaml:"evals"`
-	Review   map[string]any `yaml:"review"`
 	Cache    map[string]any `yaml:"cache"`
 	Contract map[string]any `yaml:"contract"`
 	Tags     []string       `yaml:"tags"`
@@ -140,7 +139,6 @@ type Policy struct {
 	Network *bool          `yaml:"network"`
 	Tools   map[string]any `yaml:"tools"`
 	Limits  map[string]any `yaml:"limits"`
-	Review  map[string]any `yaml:"review"`
 	File    string         `yaml:"-"`
 }
 

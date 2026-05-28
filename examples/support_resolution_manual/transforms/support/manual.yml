@@ -24,9 +24,4 @@ transforms:
     policy: support_manual_generation_scope
     evals:
       - required_support_manual_sections
-    review:
-      required: true
-      group: support_leads
-    cache:
-      mode: require_approval_for_reuse
     tags: ["support", "manual", "resolution"]

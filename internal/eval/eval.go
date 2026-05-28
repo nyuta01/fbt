@@ -61,7 +61,7 @@ func RunForCandidate(root string, transform manifest.TransformResource, evals ma
 				result.GrantsConfidence = evalResource.GrantsConfidence
 				outcome.Confidence = maxConfidence(outcome.Confidence, evalResource.GrantsConfidence)
 			}
-		case "semantic", "llm_judge", "human_review":
+		case "semantic", "llm_judge":
 			result.Status = "skipped"
 		default:
 			result.Status = "error"
@@ -223,7 +223,6 @@ func maxConfidence(left, right string) string {
 		"structural":   1,
 		"semantic":     2,
 		"exact":        3,
-		"reviewed":     4,
 	}
 	if left == "" {
 		return right

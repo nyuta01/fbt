@@ -22,7 +22,7 @@ An adapter package is responsible for:
 - documenting its own provider-specific setup and limits
 
 fbt core is responsible only for discovery, invocation, capability validation,
-state, policy/eval/review checks, descriptors, and official commits.
+state, policy/eval checks, descriptors, and official commits.
 
 ## 2. Package Naming
 

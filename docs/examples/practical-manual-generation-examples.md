@@ -1,35 +1,35 @@
 # Practical Manual Generation Examples
 
-Status: MVP-ready with external runners  
-Created: 2026-05-28  
+Status: MVP-ready with external runners
+Created: 2026-05-28
+Updated: 2026-05-29
 Audience: teams applying fbt to operational manuals and runbooks
 
 ## 1. Purpose
 
 These examples show fbt projects shaped for real business workflows, not demo
-runner output. They use external runner configuration and, from a source
-checkout, include project-local wrappers that call the optional
-`runners/openai` implementation. `fbt doctor` and `fbt build` require
-`OPENAI_API_KEY`.
-
-The examples are:
+runner output. They use external runner configuration and project-local wrappers
+that call the optional `runners/openai` implementation. `fbt doctor` and
+`fbt build` require `OPENAI_API_KEY`.
 
 | Example | Inputs | Generated Artifact |
 |---|---|---|
-| `examples/incident_response_runbook` | incident event logs, response notes, postmortems, existing runbooks | approved incident response runbook |
-| `examples/support_resolution_manual` | user inquiry tickets, support response logs, product docs, approved macros | approved support resolution manual |
+| `examples/incident_response_runbook` | incident event logs, response notes, postmortems, existing runbooks | incident response runbook |
+| `examples/support_resolution_manual` | user inquiry tickets, support response logs, product docs, macros | support resolution manual |
 
 Both examples use the same production loop:
 
 ```text
 primary records
-  -> fbt parse / plan
+  -> fbt parse / doctor / plan
   -> external LLM runner
   -> deterministic section eval
-  -> human review
-  -> approved official manual artifact
-  -> docs and standard lineage exports
+  -> committed manual artifact
+  -> artifact inspection, docs, and standard lineage exports
 ```
+
+fbt does not own human approval or publishing. After the artifact is generated,
+route it through Git, PRs, CI, release tooling, or your knowledge-base workflow.
 
 ## 2. External Runner Boundary
 
@@ -55,9 +55,8 @@ OPENAI_API_KEY=... fbt doctor --project-dir examples/incident_response_runbook
 ```
 
 The runner owns the provider API call and credentials. fbt core owns state,
-policy/eval/review checks, lineage, and official artifact commits. If you
-install a separately packaged runner, replace the project-local `command` with
-the installed command.
+policy/eval checks, lineage, and artifact commits. If you install a separately
+packaged runner, replace the project-local `command` with the installed command.
 
 ## 3. Incident Response Runbook
 
@@ -74,10 +73,10 @@ Build flow:
 
 ```sh
 fbt parse --project-dir examples/incident_response_runbook
+fbt doctor --project-dir examples/incident_response_runbook
 fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
 fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
-fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
-fbt review approve incident_response_runbook --project-dir examples/incident_response_runbook --comment "SRE lead approved"
+fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
 ```
 
 The output contract lives in
@@ -101,10 +100,10 @@ Build flow:
 
 ```sh
 fbt parse --project-dir examples/support_resolution_manual
+fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
 fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
-fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
-fbt review approve support_resolution_manual --project-dir examples/support_resolution_manual --comment "Support lead approved"
+fbt artifact explain support_resolution_manual --project-dir examples/support_resolution_manual
 ```
 
 The output contract lives in
@@ -115,11 +114,11 @@ source evidence.
 
 ## 5. Operating Notes
 
-- Add new source records; do not edit generated official artifacts by hand.
+- Add new source records; do not edit generated artifacts by hand.
 - Update prompt, format, style guide, and evidence checklist assets when the
   manual contract changes.
 - Use `fbt plan` before building to see whether source, policy, runner, model,
   or asset changes make the manual dirty.
-- Keep review required for official procedures.
-- Use `fbt artifact history`, `fbt docs generate`, `fbt export openlineage`,
-  and `fbt export otel` to inspect what produced a manual version.
+- Use `fbt artifact history`, `fbt artifact explain`, `fbt docs generate`,
+  `fbt export openlineage`, and `fbt export otel` to inspect what produced a
+  manual version.

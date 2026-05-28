@@ -6,7 +6,9 @@ Audience: implementers of `fbt-core` and external runners
 
 ## 1. Overview
 
-`fbt` core does not implement transform logic. It parses projects, plans work, invokes runners, evaluates outputs, manages review gates, and records state. Runners execute transforms.
+`fbt` core does not implement transform logic. It parses projects, plans work,
+invokes runners, evaluates outputs, commits artifact versions, and records
+state. Runners execute transforms.
 
 The initial runner protocol is **JSON-RPC 2.0 compatible messages over stdio**. Runners may be implemented in Go, Python, TypeScript, Rust, shell, or internal binaries.
 
@@ -320,10 +322,6 @@ Skeleton:
       "plan": {
         "action": "run",
         "dirty_reasons": ["source descriptor changed"]
-      },
-      "review": {
-        "required": true,
-        "group": "legal_ops"
       }
     },
     "work": {
@@ -351,8 +349,8 @@ Context payload rules:
   variable names, config, static capabilities, and fingerprint. Environment
   variable values are not included.
 - `state` includes prior run state, current output pointers, plan dirty reasons,
-  blocked reasons when relevant, and review requirements. Runners must treat
-  this as read-only context.
+  and blocked reasons when relevant. Runners must treat this as read-only
+  context.
 
 ## 8. Event Notification
 
@@ -593,8 +591,8 @@ Adapter requirements:
 - collect final files from the staging workspace, copy or write them under
   `work.outputs`, and declare only those paths as output candidates
 - never declare output candidates outside `work.outputs`
-- never update logical artifact paths, immutable artifact storage, approvals,
-  or state files directly
+- never update logical artifact paths, immutable artifact storage, or state
+  files directly
 - redact prompts, tool arguments, tool results, credentials, and raw model
   responses before emitting `fbt/event` or tool-call events
 - report provider usage and model metadata when available, but do not put
@@ -620,7 +618,7 @@ rules.
 runner output candidate
   -> fbt-core descriptor / digest
   -> fbt-core eval orchestration
-  -> fbt-core policy / approval check
+  -> fbt-core policy check
   -> fbt-core immutable artifact_version record
   -> fbt-core logical pointer update
 ```
@@ -708,4 +706,4 @@ descriptors. Remaining decisions:
 3. Which optional runner events should become OpenTelemetry span events beyond
    the baseline export contract in [Standard Export Spec](standard-export-spec.md).
 4. When to introduce remote runner transport and how it stays compatible with stdio.
-5. Whether approval, eval, and storage providers use the same JSON-RPC protocol family or separate provider protocols.
+5. Whether delegated eval and storage providers use the same JSON-RPC protocol family or separate provider protocols.

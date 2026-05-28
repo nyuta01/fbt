@@ -112,22 +112,7 @@ func blockedNextSteps(transform manifest.TransformResource, snapshot state.Snaps
 			continue
 		}
 		if required, ok := stringFromMap(input.Require, "confidence"); ok && !confidenceSatisfies(pointer.Confidence, required) {
-			if required == "reviewed" {
-				steps = append(steps,
-					fmt.Sprintf("fbt review status %s", target),
-					fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
-				)
-			} else {
-				steps = append(steps, fmt.Sprintf("fbt eval %s", target))
-			}
-		}
-		if review, ok := mapFromMap(input.Require, "review"); ok {
-			if requiredStatus, ok := stringFromMap(review, "status"); ok && pointer.ApprovalStatus != requiredStatus {
-				steps = append(steps,
-					fmt.Sprintf("fbt review status %s", target),
-					fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
-				)
-			}
+			steps = append(steps, fmt.Sprintf("fbt eval %s", target))
 		}
 	}
 	return uniqueStrings(steps)
@@ -158,11 +143,6 @@ func blockedReasons(transform manifest.TransformResource, snapshot state.Snapsho
 		}
 		if required, ok := stringFromMap(input.Require, "confidence"); ok && !confidenceSatisfies(pointer.Confidence, required) {
 			reasons = append(reasons, fmt.Sprintf("requires %s confidence %s, current is %s", input.UniqueID, required, emptyAsUnknown(pointer.Confidence)))
-		}
-		if review, ok := mapFromMap(input.Require, "review"); ok {
-			if requiredStatus, ok := stringFromMap(review, "status"); ok && pointer.ApprovalStatus != requiredStatus {
-				reasons = append(reasons, fmt.Sprintf("requires %s review status %s, current is %s", input.UniqueID, requiredStatus, emptyAsUnknown(pointer.ApprovalStatus)))
-			}
 		}
 	}
 	sort.Strings(reasons)
@@ -274,7 +254,6 @@ func confidenceSatisfies(current, required string) bool {
 		"structural":   1,
 		"semantic":     2,
 		"exact":        3,
-		"reviewed":     4,
 	}
 	currentRank, currentOK := order[current]
 	requiredRank, requiredOK := order[required]
@@ -287,15 +266,6 @@ func stringFromMap(values map[string]any, key string) (string, bool) {
 		return "", false
 	}
 	typed, ok := value.(string)
-	return typed, ok
-}
-
-func mapFromMap(values map[string]any, key string) (map[string]any, bool) {
-	value, ok := values[key]
-	if !ok {
-		return nil, false
-	}
-	typed, ok := value.(map[string]any)
 	return typed, ok
 }
 

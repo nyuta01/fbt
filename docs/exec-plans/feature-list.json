@@ -381,7 +381,7 @@
     },
     {
       "id": "FBT-MVP-012",
-      "title": "Implement evals, review gates, approvals, and confidence",
+      "title": "Implement evals and confidence",
       "priority": "P0",
       "status": "done",
       "owner": "agent",
@@ -392,7 +392,6 @@
       "plan_url": "docs/exec-plans/active/FBT-MVP-012-plan.md",
       "paths": [
         "internal/eval",
-        "internal/approval",
         "internal/cli",
         "docs/state-and-run-results-spec.md",
         "docs/cli-reference.md"
@@ -402,8 +401,8 @@
         "cli_smoke": true,
         "conformance": false
       },
-      "verification_override_reason": "No conformance target exists yet; eval/review behavior is covered by Go tests and CLI smoke until the suite is added in FBT-MVP-016.",
-      "notes": "Runs deterministic evals before commit, records evaluation results, commits review-required outputs as pending, implements review status/approve/reject, promotes approved current pointers to reviewed confidence, and keeps downstream reviewed/approved requirements blocked until approval."
+      "verification_override_reason": "No conformance target existed when this task landed; current behavior is covered by Go tests, CLI smoke, and conformance.",
+      "notes": "Runs deterministic evals before commit, records evaluation results, and grants confidence for downstream requirements. Earlier review/approval behavior from this task was removed by FBT-UNIX-011."
     },
     {
       "id": "FBT-MVP-013",
@@ -478,7 +477,7 @@
         "cli_smoke": true,
         "e2e_smoke": true
       },
-      "notes": "Adds raw text and Markdown heading-aware diff, fbt diff with previous/last-approved resolution, fbt docs generate, static Markdown lineage/review docs, unit tests, CLI tests, and e2e docs smoke."
+      "notes": "Adds raw text and Markdown heading-aware diff, fbt diff with previous/current-version resolution, fbt docs generate, static Markdown lineage docs, unit tests, CLI tests, and e2e docs smoke."
     },
     {
       "id": "FBT-MVP-016",
@@ -721,11 +720,11 @@
         "e2e_smoke": true,
         "validate_docs": true
       },
-      "notes": "Make generated output easy to find and inspect with commands such as `fbt artifact path <id>`, `fbt artifact show <id>`, and `fbt artifact history <id>`. Include artifact version, logical path, immutable storage path, runner/model, approval state, and generating run. User research analogs: DVC list/get/artifacts get --show-url, MLflow artifacts list/download, and Dagster asset catalog metadata."
+      "notes": "Make generated output easy to find and inspect with commands such as `fbt artifact path <id>`, `fbt artifact show <id>`, and `fbt artifact history <id>`. Include artifact version, logical path, immutable storage path, runner/model, confidence, and generating run. User research analogs: DVC list/get/artifacts get --show-url, MLflow artifacts list/download, and Dagster asset catalog metadata."
     },
     {
       "id": "FBT-UX-004",
-      "title": "Add review show and safer approval guidance",
+      "title": "Superseded review inspection with artifact inspection",
       "priority": "P0",
       "status": "done",
       "owner": "agent",
@@ -749,7 +748,7 @@
         "e2e_smoke": true,
         "validate_docs": true
       },
-      "notes": "Before users approve LLM/agent-generated artifacts, provide a direct review surface such as `fbt review show <artifact>` and guide users toward show/diff/status before `review approve`. User research analogs: Terraform plan, Pulumi preview, and MLflow model version details all support inspection before promotion."
+      "notes": "Original review command work was removed by FBT-UNIX-011. The supported inspection surface is now `fbt artifact show`, `fbt artifact history`, `fbt artifact explain`, and `fbt diff`."
     },
     {
       "id": "FBT-UX-005",
@@ -1366,7 +1365,7 @@
         "practical_examples_smoke": true,
         "validate_docs": true
       },
-      "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, review gates, and a parse/plan smoke that runs without provider calls."
+      "notes": "Adds external-runner, production-shaped examples for incident logs to incident response runbook and support inquiry/response logs to support resolution manual. The examples include realistic source records, output format assets, policies, deterministic section evals, and a parse/plan smoke that runs without provider calls."
     },
     {
       "id": "FBT-EXAMPLES-UX-001",
@@ -1431,7 +1430,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Adds an offline daily QA operations example that uses stable Markdown directory sources under data/qa/inbox, multiple source artifacts, multiple candidate outputs under latest logical paths without review, and a reviewed promotion artifact. The practical examples smoke now builds the daily candidate artifacts, checks approval_status: not_required, builds the promoted manual update, and approves it."
+      "notes": "Adds an offline daily QA operations example that uses stable Markdown directory sources under data/qa/inbox, multiple source artifacts, and multiple outputs under latest logical paths. The practical examples smoke now builds the daily candidate artifacts and promoted manual update without fbt-native review."
     },
     {
       "id": "FBT-RUNNER-008",
@@ -1999,6 +1998,39 @@
         "make_verify": true
       },
       "notes": "Replace invented product diagrams with reproducible recipes and screenshots from standard backends such as Marquez, Jaeger, Tempo, Grafana, or OpenMetadata ingestion paths when visualization is needed."
+    },
+    {
+      "id": "FBT-UNIX-011",
+      "title": "Remove built-in review from core",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-000"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-011-plan.md",
+      "paths": [
+        "internal/cli",
+        "internal/build",
+        "internal/state",
+        "internal/planner",
+        "internal/eval",
+        "internal/lineage",
+        "internal/docs",
+        "docs",
+        "apps/docs",
+        "examples",
+        "scripts",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "docs_site_build": true,
+        "make_verify": true
+      },
+      "notes": "Removed fbt-native review/approval behavior so core stays a file build tool. Human approval and publishing are documented as external workflows; smoke coverage asserts `fbt review` is not a command."
     },
     {
       "id": "FBT-PDCA-001",

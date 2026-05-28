@@ -23,8 +23,7 @@ history` and `fbt artifact show`.
 ## Transform
 
 A `transform` turns source artifacts or upstream artifacts into output
-artifacts. It declares its runner, assets, policies, evals, and review
-requirements.
+artifacts. It declares its runner, assets, policies, and evals.
 
 ## Runner
 
@@ -35,11 +34,10 @@ policy context, and work directories. The runner returns output candidates.
 ## Eval
 
 An `eval` checks generated artifacts. MVP evals are deterministic checks such
-as required sections, file existence, and content requirements. Human review is
-modeled as a gate.
+as required sections, file existence, and content requirements.
 
 ## Lineage
 
 Lineage connects sources, assets, transforms, runs, output candidates, artifact
-versions, evals, and approvals. fbt can export lineage as OpenLineage events and
-OpenTelemetry traces.
+versions, evals, and policy decisions. fbt can export lineage as OpenLineage
+events and OpenTelemetry traces.

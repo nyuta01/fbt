@@ -4,11 +4,11 @@ description: Concrete workflows implemented by fbt v0.1.0.
 ---
 
 Use fbt when the important work already lives in files and you need a
-repeatable way to turn those files into reviewed artifacts.
+repeatable way to turn those files into versioned artifacts.
 
 fbt v0.1.0 does not try to be the model, OCR tool, document converter, or
 agent runtime. It gives those tools a project graph, a runner protocol, local
-state, artifact versions, approvals, lineage, and standard exports.
+state, artifact versions, eval results, lineage, and standard exports.
 
 The proof in these docs is the command transcript and the generated files. fbt
 does not publish a custom quickstart graph UI; when you need graph
@@ -21,9 +21,8 @@ visualization, export OpenLineage or OTel records into standard tools.
 | Prove the local control-plane loop | `fbt init knowledge_ops --template support` | A runnable support project with demo LLM and agent runners. |
 | See what will happen before running it | `fbt parse`, `fbt doctor`, `fbt plan` | Manifest, readiness checks, and run or blocked reasons. |
 | Build a first artifact from source files | `fbt build --select case_summaries` | Markdown output in `target/artifacts` and an immutable copy in `.fbt/artifacts`. |
-| Require human approval before downstream work | `fbt review show`, `fbt review approve` | Approval bound to the exact `artifact_version`, then downstream transforms can run. |
-| Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and review state. |
-| Generate local project documentation | `fbt docs generate` | `target/docs/index.md` summarizing transforms, artifacts, evals, approvals, and policy decisions. |
+| Explain where a file came from | `fbt artifact history`, `fbt artifact explain` | Source refs, transform, runner, model, digest, eval, confidence, and policy state. |
+| Generate local project documentation | `fbt docs generate` | `target/docs/index.md` summarizing transforms, artifacts, evals, and policy decisions. |
 | Send lineage to existing tools | `fbt export openlineage` | OpenLineage RunEvent NDJSON for Marquez and OpenMetadata ingestion paths. |
 | Send execution telemetry to trace tools | `fbt export otel` | OTLP/JSON spans for OpenTelemetry-compatible trace backends. |
 | Use a real model or CLI agent | Replace the configured runner command | The same build graph calls OpenAI, Claude Code, Codex, Gemini, or another compatible adapter. |
@@ -35,8 +34,9 @@ visualization, export OpenLineage or OTel records into standard tools.
 | Call every model provider from core | External runners that speak the fbt stdio JSON-RPC protocol. |
 | Convert PDFs, Word files, or images by itself | A document conversion or OCR runner. |
 | Host a lineage graph UI | OpenLineage, OpenMetadata, Jaeger, Tempo, Grafana, or generated local docs. |
-| Replace your knowledge base or ticket system | Export or copy the reviewed artifact into that system after approval. |
-| Make stochastic model output fully reproducible | Keep immutable artifact versions, descriptors, evals, reviews, and lineage for audit. |
+| Replace your knowledge base or ticket system | Export or copy the generated artifact into that system through your existing publishing process. |
+| Own human approvals | Use Git, PRs, CI, release tooling, or your knowledge-base workflow. |
+| Make stochastic model output fully reproducible | Keep immutable artifact versions, descriptors, evals, and lineage for audit. |
 
 ## The Fastest Real Check
 
@@ -46,14 +46,14 @@ machine. It is a fixture, not a realistic support-manual workflow.
 The quickstart answers this question:
 
 > Can fbt parse a local project, run configured runners, version artifacts,
-> enforce review before downstream work, and export local lineage/telemetry?
+> connect upstream artifacts to downstream transforms, and export local
+> lineage/telemetry?
 
 Run it and inspect these files:
 
 ```sh
 fbt init knowledge_ops --template support
 fbt build --project-dir knowledge_ops --select case_summaries
-fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
 fbt build --project-dir knowledge_ops --select weekly_support_insights
 ```
 

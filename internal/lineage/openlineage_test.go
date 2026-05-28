@@ -13,14 +13,13 @@ import (
 
 func TestOpenLineageEvents(t *testing.T) {
 	version := state.ArtifactVersion{
-		VersionID:      "artifact_version.knowledge_ops.case_summaries.sha256_abc",
-		ArtifactID:     "artifact.knowledge_ops.case_summaries",
-		LogicalPath:    "target/artifacts/support/case_summaries/",
-		StoragePath:    ".fbt/artifacts/sha256/abc",
-		GeneratedBy:    "transform_run.run_1",
-		Confidence:     "reviewed",
-		ApprovalStatus: "approved",
-		CommittedAt:    "2026-05-28T00:00:00Z",
+		VersionID:   "artifact_version.knowledge_ops.case_summaries.sha256_abc",
+		ArtifactID:  "artifact.knowledge_ops.case_summaries",
+		LogicalPath: "target/artifacts/support/case_summaries/",
+		StoragePath: ".fbt/artifacts/sha256/abc",
+		GeneratedBy: "transform_run.run_1",
+		Confidence:  "structural",
+		CommittedAt: "2026-05-28T00:00:00Z",
 		Descriptor: artifact.Descriptor{
 			MediaType:    "inode/directory",
 			Digest:       "sha256:abc",
@@ -70,16 +69,6 @@ func TestOpenLineageEvents(t *testing.T) {
 				},
 			},
 		},
-		Approvals: state.ApprovalIndex{
-			Approvals: map[string]state.Approval{
-				version.VersionID: {
-					ArtifactVersionID: version.VersionID,
-					ArtifactID:        version.ArtifactID,
-					Digest:            version.Descriptor.Digest,
-					Status:            "approved",
-				},
-			},
-		},
 	})
 
 	if len(events) != 1 {
@@ -103,9 +92,6 @@ func TestOpenLineageEvents(t *testing.T) {
 	}
 	if _, ok := event.Outputs[0].Facets["fbt_artifact"]; !ok {
 		t.Fatalf("missing fbt_artifact facet: %+v", event.Outputs[0].Facets)
-	}
-	if _, ok := event.Outputs[0].Facets["fbt_approval"]; !ok {
-		t.Fatalf("missing fbt_approval facet: %+v", event.Outputs[0].Facets)
 	}
 	if _, ok := event.Outputs[0].Facets["fbt_evaluations"]; !ok {
 		t.Fatalf("missing fbt_evaluations facet: %+v", event.Outputs[0].Facets)

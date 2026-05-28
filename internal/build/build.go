@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nyuta01/fbt/internal/approval"
 	"github.com/nyuta01/fbt/internal/artifact"
 	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/manifest"
@@ -218,7 +217,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		Policy:  protocolPolicy(policyResource),
 		Outputs: protocolOutputs(transform),
 		Assets:  protocolAssets(parseResult.ProjectDir, transform, m),
-		State:   protocolState(transformID, transform, *snapshot, artifactVersions, node, reviewForTransform(transform, policyResource)),
+		State:   protocolState(transformID, transform, *snapshot, artifactVersions, node),
 		Work: map[string]any{
 			"root":    workRoot,
 			"temp":    workTemp,
@@ -294,17 +293,9 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		if err := commitPath(candidate.Path, logicalAbs); err != nil {
 			return Run{}, err
 		}
-		review := reviewForTransform(transform, policyResource)
-		approvalStatus := "not_required"
 		confidence := "structural"
 		if evalOutcome.Confidence != "" {
 			confidence = maxConfidence(confidence, evalOutcome.Confidence)
-		}
-		if review.Required {
-			approvalStatus = "pending"
-			if evalOutcome.Confidence == "" {
-				confidence = "experimental"
-			}
 		}
 		version := state.ArtifactVersion{
 			VersionID:          versionID,
@@ -315,17 +306,11 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			SemanticDescriptor: semanticDescriptor,
 			GeneratedBy:        transformRunID,
 			Confidence:         confidence,
-			ApprovalStatus:     approvalStatus,
 			CreatedAt:          time.Now().UTC().Format(time.RFC3339),
 			CommittedAt:        time.Now().UTC().Format(time.RFC3339),
 		}
 		if err := store.PutArtifactVersion(version); err != nil {
 			return Run{}, err
-		}
-		if review.Required {
-			if err := approval.PutPending(store, version, review.Group); err != nil {
-				return Run{}, err
-			}
 		}
 		snapshot.CurrentArtifacts[output.UniqueID] = state.ArtifactPointer{
 			ArtifactID:       output.UniqueID,
@@ -333,7 +318,6 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			CurrentDigest:    descriptor.Digest,
 			LogicalPath:      output.DeclaredPath,
 			Confidence:       confidence,
-			ApprovalStatus:   approvalStatus,
 			CommittedAt:      version.CommittedAt,
 			GeneratedBy:      transformRunID,
 		}
@@ -502,7 +486,6 @@ func protocolInputs(root string, transform manifest.TransformResource, m manifes
 						"descriptor":          version.Descriptor,
 						"semantic_descriptor": version.SemanticDescriptor,
 						"confidence":          version.Confidence,
-						"approval_status":     version.ApprovalStatus,
 						"generated_by":        version.GeneratedBy,
 					}
 				}
@@ -590,7 +573,7 @@ func protocolTools(transform manifest.TransformResource) []any {
 	return tools
 }
 
-func protocolState(transformID string, transform manifest.TransformResource, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, node planner.Node, review reviewRequirement) map[string]any {
+func protocolState(transformID string, transform manifest.TransformResource, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, node planner.Node) map[string]any {
 	currentOutputs := map[string]any{}
 	for _, output := range transform.Outputs {
 		pointer, ok := snapshot.CurrentArtifacts[output.UniqueID]
@@ -605,7 +588,6 @@ func protocolState(transformID string, transform manifest.TransformResource, sna
 				"descriptor":          version.Descriptor,
 				"semantic_descriptor": version.SemanticDescriptor,
 				"confidence":          version.Confidence,
-				"approval_status":     version.ApprovalStatus,
 				"generated_by":        version.GeneratedBy,
 			}
 		}
@@ -615,7 +597,6 @@ func protocolState(transformID string, transform manifest.TransformResource, sna
 		"transform_id":    transformID,
 		"plan":            map[string]any{"action": node.Action, "dirty_reasons": node.DirtyReasons, "blocked_reasons": node.BlockedReasons},
 		"current_outputs": currentOutputs,
-		"review":          map[string]any{"required": review.Required, "group": review.Group},
 	}
 	if latest, ok := snapshot.LatestRuns[transformID]; ok {
 		statePayload["previous_run"] = latest
@@ -635,7 +616,6 @@ func protocolPolicy(policyResource *manifest.PolicyResource) map[string]any {
 		"network":       policyResource.Network,
 		"tools":         policyResource.Tools,
 		"limits":        policyResource.Limits,
-		"review":        policyResource.Review,
 		"fingerprint":   policyResource.Fingerprint,
 		"resource_type": policyResource.ResourceType,
 	}
@@ -693,47 +673,12 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 	return selected, nil
 }
 
-type reviewRequirement struct {
-	Required bool
-	Group    string
-}
-
-func reviewForTransform(transform manifest.TransformResource, policyResource *manifest.PolicyResource) reviewRequirement {
-	var review reviewRequirement
-	mergeReview(&review, transform.Review)
-	if policyResource != nil {
-		mergeReview(&review, policyResource.Review)
-	}
-	required, _ := transform.Cache["review_required"].(bool)
-	if required {
-		review.Required = true
-	}
-	value, ok := transform.Fingerprint["review_required"]
-	if ok && value == "true" {
-		review.Required = true
-	}
-	return review
-}
-
-func mergeReview(target *reviewRequirement, values map[string]any) {
-	if len(values) == 0 {
-		return
-	}
-	if required, ok := values["required"].(bool); ok && required {
-		target.Required = true
-	}
-	if group, ok := values["group"].(string); ok && group != "" {
-		target.Group = group
-	}
-}
-
 func maxConfidence(left, right string) string {
 	order := map[string]int{
 		"experimental": 0,
 		"structural":   1,
 		"semantic":     2,
 		"exact":        3,
-		"reviewed":     4,
 	}
 	if left == "" {
 		return right

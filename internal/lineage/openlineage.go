@@ -21,7 +21,6 @@ const (
 	fbtArtifactFacetSchema    = "https://schemas.fbt.dev/openlineage/fbt-artifact-facet/v1.json"
 	fbtResourceFacetSchema    = "https://schemas.fbt.dev/openlineage/fbt-resource-facet/v1.json"
 	fbtMaterialFacetSchema    = "https://schemas.fbt.dev/openlineage/fbt-material-facet/v1.json"
-	fbtApprovalFacetSchema    = "https://schemas.fbt.dev/openlineage/fbt-approval-facet/v1.json"
 	fbtEvaluationsFacetSchema = "https://schemas.fbt.dev/openlineage/fbt-evaluations-facet/v1.json"
 )
 
@@ -30,7 +29,6 @@ type OpenLineageInput struct {
 	Snapshot          state.Snapshot
 	ArtifactVersions  state.ArtifactVersionsIndex
 	EvaluationResults state.EvaluationResultsIndex
-	Approvals         state.ApprovalIndex
 }
 
 type RunEvent struct {
@@ -288,20 +286,6 @@ func outputDataset(input OpenLineageInput, namespace string, version state.Artif
 	facets := map[string]any{
 		"fbt_artifact": artifactFacet(version),
 	}
-	if approval, ok := input.Approvals.Approvals[version.VersionID]; ok {
-		facets["fbt_approval"] = compactFacet(fbtApprovalFacetSchema, map[string]any{
-			"artifact_version_id": approval.ArtifactVersionID,
-			"artifact_id":         approval.ArtifactID,
-			"digest":              approval.Digest,
-			"status":              approval.Status,
-			"review_group":        approval.ReviewGroup,
-			"reviewer":            approval.Reviewer,
-			"approved_at":         approval.ApprovedAt,
-			"expires_at":          approval.ExpiresAt,
-			"comment":             approval.Comment,
-			"superseded_by":       approval.SupersededBy,
-		})
-	}
 	evaluations := evaluationResults(input.EvaluationResults, version)
 	if len(evaluations) > 0 {
 		facets["fbt_evaluations"] = compactFacet(fbtEvaluationsFacetSchema, map[string]any{
@@ -325,7 +309,6 @@ func artifactFacet(version state.ArtifactVersion) map[string]any {
 		"semantic_descriptor": version.SemanticDescriptor,
 		"generated_by":        version.GeneratedBy,
 		"confidence":          version.Confidence,
-		"approval_status":     version.ApprovalStatus,
 		"created_at":          version.CreatedAt,
 		"committed_at":        version.CommittedAt,
 		"materials":           version.Materials,

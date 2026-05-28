@@ -10,15 +10,12 @@ transforms:
       - ref: unresolved_questions
       - source: reference.current_manual
     outputs:
-      - name: approved_manual_update
+      - name: manual_update
         type: markdown
-        path: target/artifacts/manual/latest/approved_update.md
+        path: target/artifacts/manual/latest/manual_update.md
     assets:
       - ref: manual_promotion_prompt
       - ref: qa_style_guide
     tools: ["read_artifact", "write_artifact"]
     policy: manual_promotion_scope
-    review:
-      required: true
-      group: docs_leads
     tags: ["daily_qa", "promotion"]

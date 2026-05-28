@@ -20,31 +20,33 @@ sources + instructions + runner -> artifact + build receipt
 ```
 
 - `sources` are files your team already has: logs, tickets, notes, product
-  docs, approved replies.
+  docs, reference manuals.
 - `instructions` say what to create: prompt, required format, style guide,
-  checks, review rule.
+  checks, and write policy.
 - `runner` is the external worker: OpenAI, Claude Code, Codex, Gemini, a script,
   or an internal command.
 - `artifact` is the generated file under `target/artifacts`.
 - `build receipt` is fbt's local record of the exact inputs, runner, output
-  version, checks, approval, and lineage.
+  version, checks, and lineage.
 
-Use fbt when the generated file must be reproducible, reviewable, and
-explainable. Do not use it as a chat UI, CMS, ticket system, hosted knowledge
-base, scheduler, or LLM provider.
+Use fbt when a generated file must be reproducible and explainable. Do not use
+it as a chat UI, CMS, ticket system, hosted knowledge base, scheduler, approval
+workflow, or LLM provider.
 
 ## What It Solves
 
-Without fbt, an LLM-generated manual or runbook is usually just a file. A
-reviewer cannot easily answer:
+Without fbt, an LLM-generated manual or runbook is usually just a file. A user
+cannot easily answer:
 
 - What source files was this based on?
 - Which prompt and format rules were used?
 - Which runner and model produced this version?
-- Was this exact version reviewed?
+- Which checks passed before the file was committed?
+- What changed from the previous generated version?
 - What should be rebuilt if an input changes?
 
 fbt answers those questions by treating generated files like build outputs.
+Human approval, pull requests, releases, and publishing remain outside fbt.
 
 ## Example: Incident Notes To Runbook
 
@@ -67,7 +69,7 @@ postmortem
 ```
 
 What the team actually wants is not another summary. They want a runbook the
-next on-call engineer can use:
+next on-call engineer can inspect and use:
 
 ```text
 target/artifacts/runbooks/incident_response_runbook.md
@@ -91,7 +93,7 @@ already contains a recipe that says:
 | Ask | the `openai.responses` runner to draft the runbook |
 | Write | `target/artifacts/runbooks/incident_response_runbook.md` |
 | Check | required runbook sections are present |
-| Review | SRE lead must approve the exact generated version |
+| Record | input fingerprints, runner metadata, artifact version, checks, and lineage |
 
 The commands are checkpoints, not a script to memorize:
 
@@ -123,37 +125,33 @@ The commands are checkpoints, not a script to memorize:
    `target/artifacts/runbooks/incident_response_runbook.md` and a local receipt
    under `.fbt/state` and `.fbt/artifacts`.
 
-3. Inspect the generated version before trusting it.
+3. Inspect the generated version.
 
    ```bash
-   fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
+   fbt artifact show incident_response_runbook --project-dir examples/incident_response_runbook
    ```
 
-   You get the exact artifact version, path, status, and evidence needed for a
-   reviewer to decide whether it should be approved.
+   You get the exact artifact version, digest, path, runner, model metadata,
+   semantic descriptor, and generating run.
 
-4. Approve that exact version.
+4. Compare with the previous generated version when one exists.
 
    ```bash
-   fbt review approve incident_response_runbook \
+   fbt diff incident_response_runbook \
      --project-dir examples/incident_response_runbook \
-     --comment "SRE lead approved"
+     --against previous
    ```
-
-   fbt records a human approval against the artifact version, not just the
-   filename. Downstream work can now depend on the approved runbook version.
 
 5. Explain where the current runbook came from.
 
    ```bash
    fbt artifact history incident_response_runbook --project-dir examples/incident_response_runbook
+   fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
    ```
 
-   You get the runbook's previous and current versions, with the run and runner
-   evidence that produced them.
-
-The short version: `plan` is for deciding, `build` is for generating, `review`
-is for trusting, and `artifact history` is for explaining later.
+The short version: `plan` is for deciding, `build` is for generating, `artifact`
+is for inspection, `diff` is for comparison, and `export` is for standard
+lineage/telemetry handoff.
 
 This example uses a real runner, so `build` requires the configured runner and
 credentials. The quickstart below uses demo runners and works offline.
@@ -166,7 +164,8 @@ The same shape applies to:
 |---|---|
 | incident logs plus response notes | incident response runbook |
 | investigation notes | standard operating procedure |
-| raw case records | reviewed summaries and weekly insights |
+| raw case records | summaries and weekly insights |
+| daily user questions and answers | FAQ candidates and manual update |
 
 ## Try It Locally
 
@@ -177,25 +176,24 @@ credentials:
 fbt init knowledge_ops --template support
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
-fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
+fbt artifact show case_summaries --project-dir knowledge_ops
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
 
 The output includes the same lifecycle signals, shortened here:
 
 ```text
-Plan: 1 selected, 1 run, 0 skipped, 0 blocked
+Plan: 2 selected, 1 run, 0 skipped, 1 blocked
 Build: 1 selected, 1 run, 0 skipped, 0 blocked
 success transform.knowledge_ops.case_summaries
   committed: artifact_version...sha256_a5b4...
 
-artifact.knowledge_ops.case_summaries
-  status: approved
-  confidence: reviewed
-
 artifact_version...sha256_a5b4...
+  artifact: artifact.knowledge_ops.case_summaries
   current: true
-  approval_status: approved
+  runner: runner.knowledge_ops.demo.llm
+  generated_by: transform_run.run_...
+  confidence: structural
 ```
 
 The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).

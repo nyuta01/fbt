@@ -138,9 +138,6 @@ func supportFiles(projectName, runnerRoot string) []fileSpec {
     read: ["data/support/", "target/artifacts/support/"]
     write: [".fbt/work/", "target/artifacts/support/"]
     network: false
-    review:
-      required: true
-      group: support_leads
 `},
 		fileSpec{Path: "evals/support.yml", Content: `evals:
   - name: required_case_sections
@@ -173,9 +170,6 @@ func supportFiles(projectName, runnerRoot string) []fileSpec {
     policy: support_agent_scope
     evals:
       - required_case_sections
-    review:
-      required: true
-      group: support_leads
     tags: ["support", "knowledge"]
 `},
 		fileSpec{Path: "transforms/support/weekly_insights.yml", Content: `transforms:
@@ -188,9 +182,7 @@ func supportFiles(projectName, runnerRoot string) []fileSpec {
     inputs:
       - ref: case_summaries
         require:
-          confidence: reviewed
-          review:
-            status: approved
+          confidence: structural
     outputs:
       - name: weekly_support_insights
         type: markdown
@@ -203,7 +195,7 @@ func supportFiles(projectName, runnerRoot string) []fileSpec {
       - required_agent_sections
     tags: ["support", "weekly"]
 `},
-		fileSpec{Path: "README.md", Content: "# " + projectName + "\n\nThis template uses deterministic demo runners (`demo.llm` and `demo.agent`) so the local control-plane loop works without provider credentials.\n\nRun `fbt plan`, `fbt build --select case_summaries`, `fbt review approve case_summaries`, then `fbt build --select weekly_support_insights`.\n\nReplace the demo runner entries in `fs_project.yml` with external runner commands before using real provider or agent execution.\n"},
+		fileSpec{Path: "README.md", Content: "# " + projectName + "\n\nThis template uses deterministic demo runners (`demo.llm` and `demo.agent`) so the local control-plane loop works without provider credentials.\n\nRun `fbt plan`, `fbt build --select case_summaries`, inspect it with `fbt artifact show case_summaries`, then run `fbt build --select weekly_support_insights`.\n\nReplace the demo runner entries in `fs_project.yml` with external runner commands before using real provider or agent execution.\n"},
 	)
 	return files
 }

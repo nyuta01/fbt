@@ -269,15 +269,6 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 func TestRunExportOpenLineage(t *testing.T) {
 	root := writeCLIProject(t)
 	store, version := writeCLICurrentArtifact(t, root)
-	if err := store.PutApproval(state.Approval{
-		ArtifactVersionID: version.VersionID,
-		ArtifactID:        version.ArtifactID,
-		Digest:            version.Descriptor.Digest,
-		Status:            "approved",
-		ReviewGroup:       "support_leads",
-	}); err != nil {
-		t.Fatal(err)
-	}
 	if err := store.PutEvaluationResult(state.EvaluationResult{
 		ResultID:          "eval_result.knowledge_ops.case_summaries.required_case_sections",
 		EvalID:            "eval.knowledge_ops.required_case_sections",
@@ -309,7 +300,6 @@ func TestRunExportOpenLineage(t *testing.T) {
 		`"namespace":"fbt:knowledge_ops"`,
 		`"name":"transform.knowledge_ops.case_summaries"`,
 		`"fbt_artifact"`,
-		`"fbt_approval"`,
 		`"fbt_evaluations"`,
 		version.VersionID,
 	} {
@@ -392,18 +382,9 @@ func TestRunExportOTel(t *testing.T) {
 	}
 }
 
-func TestRunEvalAndReviewCommands(t *testing.T) {
+func TestRunEvalCommand(t *testing.T) {
 	root := writeCLIProject(t)
-	store, version := writeCLICurrentArtifact(t, root)
-	if err := store.PutApproval(state.Approval{
-		ArtifactVersionID: version.VersionID,
-		ArtifactID:        version.ArtifactID,
-		Digest:            version.Descriptor.Digest,
-		Status:            "pending",
-		ReviewGroup:       "support_leads",
-	}); err != nil {
-		t.Fatal(err)
-	}
+	writeCLICurrentArtifact(t, root)
 
 	var evalOut bytes.Buffer
 	var evalErr bytes.Buffer
@@ -414,52 +395,20 @@ func TestRunEvalAndReviewCommands(t *testing.T) {
 		t.Fatalf("unexpected eval output: %q", evalOut.String())
 	}
 
-	var statusOut bytes.Buffer
-	var statusErr bytes.Buffer
-	if code := Run([]string{"review", "status", "case_summaries", "--project-dir", root}, &statusOut, &statusErr); code != 0 {
-		t.Fatalf("review status failed: code=%d stdout=%q stderr=%q", code, statusOut.String(), statusErr.String())
+	var reviewOut bytes.Buffer
+	var reviewErr bytes.Buffer
+	if code := Run([]string{"review", "status", "case_summaries", "--project-dir", root}, &reviewOut, &reviewErr); code == 0 {
+		t.Fatalf("review should not be a command: stdout=%q stderr=%q", reviewOut.String(), reviewErr.String())
 	}
-	if !strings.Contains(statusOut.String(), "status: pending") {
-		t.Fatalf("unexpected review status: %q", statusOut.String())
-	}
-	if !strings.Contains(statusOut.String(), "next: fbt review show case_summaries") {
-		t.Fatalf("expected review show guidance, got %q", statusOut.String())
-	}
-
-	var showOut bytes.Buffer
-	var showErr bytes.Buffer
-	if code := Run([]string{"review", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
-		t.Fatalf("review show failed: code=%d stdout=%q stderr=%q", code, showOut.String(), showErr.String())
-	}
-	if !strings.Contains(showOut.String(), "inspect: fbt artifact show case_summaries") {
-		t.Fatalf("expected artifact inspection guidance, got %q", showOut.String())
-	}
-	if !strings.Contains(showOut.String(), "approve_after_review: fbt review approve case_summaries") {
-		t.Fatalf("expected approval guidance, got %q", showOut.String())
-	}
-
-	var approveOut bytes.Buffer
-	var approveErr bytes.Buffer
-	if code := Run([]string{"review", "approve", "case_summaries", "--comment", "reviewed", "--project-dir", root}, &approveOut, &approveErr); code != 0 {
-		t.Fatalf("review approve failed: code=%d stdout=%q stderr=%q", code, approveOut.String(), approveErr.String())
-	}
-	if !strings.Contains(approveOut.String(), "status: approved") || !strings.Contains(approveOut.String(), "confidence: reviewed") {
-		t.Fatalf("unexpected approve output: %q", approveOut.String())
-	}
-	snapshot, err := store.ReadState()
-	if err != nil {
-		t.Fatal(err)
-	}
-	pointer := snapshot.CurrentArtifacts[version.ArtifactID]
-	if pointer.ApprovalStatus != "approved" || pointer.Confidence != "reviewed" {
-		t.Fatalf("approval did not update pointer: %+v", pointer)
+	if !strings.Contains(reviewErr.String(), "unknown command: review") {
+		t.Fatalf("expected unknown review command, got %q", reviewErr.String())
 	}
 }
 
 func TestRunDiffAndDocsGenerate(t *testing.T) {
 	root := writeCLIProject(t)
 	store := state.Open(filepath.Join(root, ".fbt", "state"))
-	oldVersion := writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_1111111111111111111111111111111111111111111111111111111111111111", "target/artifacts/support/case_summaries_old", "old")
+	writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_1111111111111111111111111111111111111111111111111111111111111111", "target/artifacts/support/case_summaries_old", "old")
 	newVersion := writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_2222222222222222222222222222222222222222222222222222222222222222", "target/artifacts/support/case_summaries_new", "new")
 	if err := store.WriteState(state.Snapshot{
 		CurrentArtifacts: map[string]state.ArtifactPointer{
@@ -468,26 +417,16 @@ func TestRunDiffAndDocsGenerate(t *testing.T) {
 				CurrentVersionID: newVersion.VersionID,
 				LogicalPath:      newVersion.LogicalPath,
 				Confidence:       "structural",
-				ApprovalStatus:   "pending",
 			},
 		},
 		LatestRuns: map[string]state.LatestRun{},
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := store.PutApproval(state.Approval{
-		ArtifactVersionID: oldVersion.VersionID,
-		ArtifactID:        oldVersion.ArtifactID,
-		Digest:            oldVersion.Descriptor.Digest,
-		Status:            "approved",
-		ReviewGroup:       "support_leads",
-	}); err != nil {
-		t.Fatal(err)
-	}
 
 	var diffOut bytes.Buffer
 	var diffErr bytes.Buffer
-	if code := Run([]string{"diff", "case_summaries", "--against", "last-approved", "--project-dir", root}, &diffOut, &diffErr); code != 0 {
+	if code := Run([]string{"diff", "case_summaries", "--against", "previous", "--project-dir", root}, &diffOut, &diffErr); code != 0 {
 		t.Fatalf("diff failed: code=%d stdout=%q stderr=%q", code, diffOut.String(), diffErr.String())
 	}
 	if !strings.Contains(diffOut.String(), "+new") || !strings.Contains(diffOut.String(), "changed: Summary") {
@@ -613,13 +552,12 @@ func writeCLICurrentArtifact(t *testing.T, root string) (state.Store, state.Arti
 	writeFile(t, root, "target/artifacts/support/case_summaries/index.md", "# Summary\n\nBody\n")
 	store := state.Open(filepath.Join(root, ".fbt", "state"))
 	version := state.ArtifactVersion{
-		VersionID:      "artifact_version.knowledge_ops.case_summaries.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-		ArtifactID:     "artifact.knowledge_ops.case_summaries",
-		LogicalPath:    "target/artifacts/support/case_summaries/",
-		StoragePath:    "target/artifacts/support/case_summaries/",
-		GeneratedBy:    "transform_run.run_1",
-		Confidence:     "structural",
-		ApprovalStatus: "pending",
+		VersionID:   "artifact_version.knowledge_ops.case_summaries.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		ArtifactID:  "artifact.knowledge_ops.case_summaries",
+		LogicalPath: "target/artifacts/support/case_summaries/",
+		StoragePath: "target/artifacts/support/case_summaries/",
+		GeneratedBy: "transform_run.run_1",
+		Confidence:  "structural",
 		Descriptor: artifact.Descriptor{
 			MediaType:    "inode/directory",
 			Digest:       "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -638,7 +576,6 @@ func writeCLICurrentArtifact(t *testing.T, root string) (state.Store, state.Arti
 				CurrentDigest:    version.Descriptor.Digest,
 				LogicalPath:      version.LogicalPath,
 				Confidence:       "structural",
-				ApprovalStatus:   "pending",
 				GeneratedBy:      version.GeneratedBy,
 			},
 		},

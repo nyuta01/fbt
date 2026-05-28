@@ -211,7 +211,6 @@ def build_run_params(tmp: Path, args: argparse.Namespace) -> dict:
             "previous_run": {},
             "current_outputs": {},
             "plan": {"action": "run", "dirty_reasons": ["runner conformance"]},
-            "review": {"required": False},
         },
         "work": {
             "root": str(work),

@@ -40,14 +40,8 @@ type ExecutionConfig struct {
 }
 
 type Defaults struct {
-	Review     ReviewDefault     `yaml:"review"`
 	Cache      CacheDefault      `yaml:"cache"`
 	Confidence ConfidenceDefault `yaml:"confidence"`
-}
-
-type ReviewDefault struct {
-	Required bool   `yaml:"required"`
-	Group    string `yaml:"group"`
 }
 
 type CacheDefault struct {

@@ -126,6 +126,45 @@ func TestParseProjectRejectsUnresolvedRefs(t *testing.T) {
 	}
 }
 
+func TestParseProjectRejectsReviewFields(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "policies/support.yml", `policies:
+  - name: support_agent_scope
+    read:
+      - data/support/
+    write:
+      - target/artifacts/support/
+    review:
+      required: true
+`)
+	writeFile(t, root, "transforms/case.yml", `transforms:
+  - name: case_summaries
+    type: llm
+    runner: openai.responses
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+    review:
+      required: true
+    policy: support_agent_scope
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	diagnostic := findDiagnostic(t, result.Diagnostics, "REVIEW_UNSUPPORTED")
+	if diagnostic.Line == 0 {
+		t.Fatalf("expected line-oriented diagnostic, got %+v", diagnostic)
+	}
+	if diagnostic.Hint == "" {
+		t.Fatalf("expected actionable hint, got %+v", diagnostic)
+	}
+}
+
 func writeValidProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

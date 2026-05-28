@@ -85,9 +85,6 @@ transforms:
     policy: support_agent_scope
     evals:
       - required_case_sections
-    review:
-      required: true
-      group: support_leads
     tags: ["support"]
 YAML
 printf '{}\n' >"$project/data/support/tickets/2026-05-28.jsonl"
@@ -133,11 +130,11 @@ grep -q '"resourceSpans"' "$tmpdir/otel.json"
 grep -q '"fbt.transform.id"' "$tmpdir/otel.json"
 grep -q '"progress"' "$tmpdir/otel.json"
 
-go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
-grep -q "status: pending" "$tmpdir/review-status.txt"
-
-go run ./cmd/fbt review approve case_summaries --comment "smoke" --project-dir "$project" >"$tmpdir/review-approve.txt"
-grep -q "status: approved" "$tmpdir/review-approve.txt"
+if go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review.out" 2>"$tmpdir/review.err"; then
+  echo "review should not be part of the fbt command surface" >&2
+  exit 1
+fi
+grep -q "unknown command: review" "$tmpdir/review.err"
 
 if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
   echo "expected fbt run to be outside the MVP command surface" >&2

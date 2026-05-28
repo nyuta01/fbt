@@ -20,6 +20,3 @@ policies:
       timeout_seconds: 900
       max_cost_usd: 5.00
       max_tool_calls: 20
-    review:
-      required: true
-      group: sre_leads

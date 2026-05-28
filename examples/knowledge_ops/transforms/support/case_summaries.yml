@@ -16,7 +16,4 @@ transforms:
     policy: support_agent_scope
     evals:
       - required_case_sections
-    review:
-      required: true
-      group: support_leads
     tags: ["support", "knowledge"]

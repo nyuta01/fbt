@@ -6,14 +6,14 @@ The runner protocol allowed inputs, assets, runner metadata, and state, but the
 build lifecycle only sent transform identity, model, tools, policy, outputs,
 and work directories. External provider or agent runners would have had to
 reparse fbt project files or state to find input paths, current artifact
-versions, prompt assets, and dirty/review context.
+versions, prompt assets, and dirty context.
 
 ## Decision
 
 Populate `fbt/runTransform` with execution context owned by core: resolved
 source inputs, current artifact-version inputs, descriptors, semantic
 descriptors, transform assets, runner config metadata, prior state, current
-output pointers, plan dirty reasons, and review requirements.
+output pointers, and plan dirty reasons.
 
 ## Permanent Fix
 

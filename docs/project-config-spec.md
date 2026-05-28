@@ -1,38 +1,21 @@
 # fbt Project Config Spec
 
-Status: Draft  
-Created: 2026-05-28  
+Status: MVP-ready
+Created: 2026-05-28
 Audience: authors of `fbt` project YAML files
 
 ## 1. Overview
 
-An `fbt` project is defined by `fs_project.yml` and resource YAML files. Users declare filesystem artifacts, dependencies, runners, transform assets, policies, evals, and review requirements. `fbt` core parses these files into a manifest and delegates execution to external runners.
+An `fbt` project is defined by `fs_project.yml` and resource YAML files. Users
+declare filesystem sources, output artifacts, transform contracts, runners,
+transform assets, policies, and evals. `fbt` core parses these files into a
+manifest and delegates execution to external runners.
 
-`fbt parse` diagnostics are intended for authoring. They include a stable
-diagnostic code, file, line when fbt can locate the resource in YAML, resource
-name, and an actionable hint for common fixes.
+`fbt parse` diagnostics include a stable diagnostic code, file, line when fbt
+can locate the resource in YAML, resource name, and an actionable hint for
+common fixes.
 
-## 2. Naming Policy
-
-Canonical field names use `snake_case`.
-
-Recommended:
-
-```yaml
-source_paths: ["sources"]
-transform_paths: ["transforms"]
-asset_paths: ["prompts", "assets"]
-target_path: "target"
-artifact_path: "target/artifacts"
-```
-
-During the draft period, dbt-style kebab-case aliases may be accepted for compatibility, but generated output should use `snake_case`.
-
-`config_version` is not optional. See
-[Schema and Versioning Spec](schema-and-versioning-spec.md) for compatibility
-rules.
-
-## 3. Standard Layout
+## 2. Standard Layout
 
 ```text
 fs_project.yml
@@ -46,9 +29,10 @@ target/
 .fbt/
 ```
 
-`prompts/` is a conventional directory. In the manifest, prompts are `transform_asset` resources with `asset_type: prompt`.
+`prompts/` is a conventional directory. In the manifest, prompts are
+`transform_asset` resources with `asset_type: prompt`.
 
-## 4. fs_project.yml
+## 3. fs_project.yml
 
 Minimal example:
 
@@ -74,15 +58,6 @@ name: knowledge_ops
 config_version: 1
 version: 0.1.0
 
-source_paths: ["sources"]
-transform_paths: ["transforms"]
-asset_paths: ["prompts", "assets"]
-policy_paths: ["policies"]
-eval_paths: ["evals"]
-
-target_path: "target"
-artifact_path: "target/artifacts"
-
 state:
   backend: local
   path: .fbt/state
@@ -93,8 +68,6 @@ execution:
   fail_fast: false
 
 defaults:
-  review:
-    required: false
   cache:
     mode: reuse_if_same_inputs
   confidence:
@@ -112,17 +85,10 @@ runners:
     config:
       provider: openai
       default_model: gpt-5
-
-selectors:
-  - name: support_daily
-    definition:
-      method: tag
-      value: support
 ```
 
 Provider and agent integrations are optional external runner packages, not fbt
-core dependencies. See [Runner Adapter Packaging](runner-adapters.md) for
-package naming, plugin manifests, credential handling, and conformance checks.
+core dependencies. See [Runner Adapter Packaging](runner-adapters.md).
 
 Top-level fields:
 
@@ -145,9 +111,10 @@ Top-level fields:
 | `selectors` | no | Named selections |
 | `vars` | no | Project variables |
 
-## 5. Sources
+## 4. Sources
 
-Sources point to input files or directories outside the project’s managed outputs.
+Sources point to input files or directories outside the project's managed
+outputs.
 
 ```yaml
 sources:
@@ -158,43 +125,21 @@ sources:
         type: jsonl_directory
         path: data/support/tickets/*.jsonl
         tags: ["support", "raw"]
-        tests:
-          - exists
-          - min_file_count: 1
 
       - name: raw_chats
         type: markdown_directory
         path: data/support/chats/
         tags: ["support", "raw"]
-        tests:
-          - exists
 ```
-
-Source artifact fields:
-
-| Field | Required | Meaning |
-|---|---:|---|
-| `name` | yes | Source artifact name |
-| `type` | yes | Input artifact type |
-| `path` | yes | File path, glob, directory, or remote URI |
-| `description` | no | Docs text |
-| `tags` | no | Selection and docs metadata |
-| `tests` | no | Source checks |
-| `meta` | no | Arbitrary metadata |
 
 For local file, directory, and glob paths, fbt fingerprints the resolved file
 set and file contents. Adding a new file under a declared glob or directory
 source changes the source fingerprint and makes dependent transforms dirty.
 
-Source ID format:
+## 5. Artifacts
 
-```text
-source.<project>.<source_name>.<artifact_name>
-```
-
-## 6. Artifacts
-
-Artifacts are logical outputs managed by the project. They are often created implicitly from transform outputs, but may also be declared explicitly.
+Artifacts are logical outputs managed by the project. They are often created
+implicitly from transform outputs, but may also be declared explicitly.
 
 ```yaml
 artifacts:
@@ -205,53 +150,30 @@ artifacts:
       required_sections:
         - Summary
         - Customer Impact
-        - Cause
-        - Response
-        - Next Improvement
-      citations:
-        required: true
     owner: support_ops
     tags: ["support", "knowledge"]
 ```
 
-## 7. Transform Assets
-
-Transform assets affect transform behavior. Prompt is an asset type, not a top-level resource type.
+## 6. Transform Assets
 
 ```yaml
 assets:
   - name: case_summary_prompt
     type: prompt
     path: prompts/case_summary.md
-    variables:
-      - input_documents
-      - target_format
 
   - name: support_style_guide
     type: style_guide
     path: assets/support_style_guide.md
-
-  - name: postmortem_rubric
-    type: rubric
-    path: assets/postmortem_rubric.md
 ```
 
-Asset types include:
+Asset types include `prompt`, `template`, `script`, `style_guide`, `rubric`,
+`examples`, `glossary`, `schema`, `config`, and `tool_manifest`.
 
-- `prompt`
-- `template`
-- `script`
-- `style_guide`
-- `rubric`
-- `examples`
-- `glossary`
-- `schema`
-- `config`
-- `tool_manifest`
+## 7. Transforms
 
-## 8. Transforms
-
-A transform is a contract for producing output artifacts from inputs. It is not the implementation itself.
+A transform is a contract for producing output artifacts from inputs. It is not
+the implementation itself.
 
 ```yaml
 transforms:
@@ -276,13 +198,6 @@ transforms:
     policy: support_summary_scope
     evals:
       - required_sections
-      - citation_coverage
-      - no_unsupported_claims
-    review:
-      required: true
-      group: support_leads
-    cache:
-      mode: require_approval_for_reuse
     tags: ["support", "llm"]
 ```
 
@@ -291,7 +206,7 @@ Transform fields:
 | Field | Required | Meaning |
 |---|---:|---|
 | `name` | yes | Transform name |
-| `type` | yes | `command`, `extract`, `template`, `llm`, `agent`, `compose`, `review` |
+| `type` | yes | `command`, `extract`, `template`, `llm`, `agent`, or `compose` |
 | `runner` | yes | Runner reference |
 | `inputs` | yes | `source` or `ref` dependencies |
 | `outputs` | yes | Output artifact declarations |
@@ -300,7 +215,6 @@ Transform fields:
 | `tools` | no | Agent tools |
 | `policy` | no | Policy reference |
 | `evals` | no | Eval references |
-| `review` | no | Review requirement |
 | `cache` | no | Reuse policy |
 | `contract` | no | Output contract |
 | `tags` | no | Selection and docs metadata |
@@ -320,96 +234,18 @@ Project artifact input:
 ```yaml
 inputs:
   - ref: case_summaries
-```
-
-`ref` can require confidence, eval results, or review state:
-
-```yaml
-inputs:
-  - ref: case_summaries
     require:
-      confidence: reviewed
+      confidence: structural
       evals:
-        citation_coverage: pass
-      review:
-        status: approved
+        required_sections: pass
 ```
 
-### Outputs
+`ref` can require confidence and eval results. Human approval state is not part
+of the fbt project config.
 
-```yaml
-outputs:
-  - name: weekly_support_report
-    type: markdown
-    path: target/artifacts/support/weekly_report.md
-    contract:
-      required_sections:
-        - Executive Summary
-        - Top Issues
-        - Proposed Improvements
-```
+## 8. Policies
 
-### LLM Transform
-
-```yaml
-transforms:
-  - name: faq_candidates
-    type: llm
-    runner: openai.responses
-    model:
-      provider: openai
-      name: gpt-5
-      parameters:
-        temperature: 0.1
-    inputs:
-      - ref: case_summaries
-        require:
-          confidence: reviewed
-    outputs:
-      - name: faq_candidates
-        type: markdown
-        path: target/artifacts/support/faq_candidates.md
-    assets:
-      - type: prompt
-        path: prompts/faq_candidates.md
-      - ref: support_style_guide
-    evals:
-      - no_unsupported_claims
-      - citation_coverage
-```
-
-### Agent Transform
-
-```yaml
-transforms:
-  - name: weekly_support_insights
-    type: agent
-    runner: langgraph.agent
-    agent: support_insight_writer
-    inputs:
-      - ref: case_summaries
-        require:
-          confidence: reviewed
-    tools:
-      - read_artifact
-      - search_project
-      - write_markdown
-    outputs:
-      - name: weekly_support_insights
-        type: markdown
-        path: target/artifacts/support/weekly_insights.md
-    policy: support_agent_scope
-    evals:
-      - required_sections
-      - no_unsupported_claims
-    review:
-      required: true
-      group: support_leads
-```
-
-## 9. Policies
-
-Policies define security, tool, network, cost, write-scope, and review constraints.
+Policies define security, tool, network, cost, and write-scope constraints.
 
 ```yaml
 policies:
@@ -425,7 +261,6 @@ policies:
       allow:
         - read_artifact
         - search_project
-        - write_markdown
       deny:
         - write_source_files
         - shell
@@ -434,14 +269,9 @@ policies:
       max_cost_usd: 3.00
       max_tool_calls: 40
       max_output_bytes: 10485760
-    review:
-      required: true
-      group: support_leads
 ```
 
-## 10. Evals
-
-Evals judge artifact quality.
+## 9. Evals
 
 ```yaml
 evals:
@@ -451,18 +281,7 @@ evals:
       sections:
         - Summary
         - Customer Impact
-        - Cause
-        - Response
-        - Next Improvement
     grants_confidence: structural
-
-  - name: citation_coverage
-    type: semantic
-    runner: openai.responses
-    config:
-      min: 0.9
-      require_source_links: true
-    grants_confidence: semantic
 
   - name: no_unsupported_claims
     type: llm_judge
@@ -478,17 +297,14 @@ Eval types:
 - `deterministic`
 - `semantic`
 - `llm_judge`
-- `human_review`
 
-## 11. Runners
+MVP core executes deterministic evals. Other eval types are recorded as skipped
+until delegated eval runners are implemented.
+
+## 10. Runners
 
 ```yaml
 runners:
-  - name: command.local
-    type: command
-    protocol: stdio_jsonrpc
-    command: fbt-command-runner
-
   - name: openai.responses
     type: llm
     protocol: stdio_jsonrpc
@@ -499,12 +315,6 @@ runners:
     config:
       provider: openai
       default_model: gpt-5
-
-  - name: langgraph.agent
-    type: agent
-    protocol: stdio_jsonrpc
-    command: fbt-langgraph-runner
-    cwd: .
 ```
 
 Runner resolution is defined in
@@ -512,33 +322,7 @@ Runner resolution is defined in
 with explicit `command` take precedence over plugin manifests and `PATH`
 conventions.
 
-Runner fields:
-
-| Field | Required | Meaning |
-|---|---:|---|
-| `name` | yes | Logical runner name referenced by transforms |
-| `type` | yes | Runner class such as `command`, `llm`, `agent`, `eval`, or `converter` |
-| `protocol` | yes | `stdio_jsonrpc` for MVP |
-| `command` | no | Executable name or path; required unless discovery finds a plugin or `PATH` command |
-| `args` | no | Static process arguments passed after the runner command |
-| `cwd` | no | Working directory for the runner process; relative paths resolve from the project directory |
-| `env` | no | Environment variable names passed through to the runner; values are never written to manifest or diagnostics |
-| `config` | no | Runner-specific configuration passed to protocol runners and included in fingerprints |
-| `capabilities` | no | Static expected capabilities checked against `initialize` in runner validation |
-
-Runner fields:
-
-| Field | Required | Meaning |
-|---|---:|---|
-| `name` | yes | Logical runner name used by transforms |
-| `type` | yes | Runner category, such as `command`, `llm`, `agent`, `eval`, or `converter` |
-| `protocol` | yes | `stdio_jsonrpc` for MVP |
-| `command` | no | Executable name or path; required unless a plugin manifest provides it |
-| `env` | no | Environment variable names that core may pass through |
-| `config` | no | Runner-specific settings included in effective fingerprints |
-| `capabilities` | no | Expected capabilities, verified during runner initialization |
-
-## 12. Selectors
+## 11. Selectors
 
 ```yaml
 selectors:
@@ -549,11 +333,6 @@ selectors:
           value: support
         - method: path
           value: transforms/support/
-
-  - name: needs_review
-    definition:
-      method: state
-      value: pending_review
 ```
 
 Initial selector methods:
@@ -566,25 +345,18 @@ Initial selector methods:
 - `parent`
 - `child`
 
-Use with:
-
-```sh
-fbt build --select selector:support_daily
-```
-
-## 13. Validation Rules
+## 12. Validation Rules
 
 `fbt parse` validates at least:
 
 - Unique resource names
-- Resolvable `source()` and `ref()` references
+- Resolvable `source` and `ref` references
 - Output paths under the configured artifact path
 - Resolvable runner, policy, and eval references
 - No duplicate declared outputs
 - Existing transform asset paths
 - Source path existence according to source policy
 - Write-scope policy for agent transforms
-- Review handling for review-required transforms
 - Supported `config_version`
 - Supported artifact type aliases
 - Resolvable runner command or plugin manifest

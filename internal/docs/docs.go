@@ -41,10 +41,6 @@ func Generate(projectDir string, m manifest.Manifest, store state.Store, options
 	if err != nil {
 		return Result{}, err
 	}
-	approvals, err := store.ReadApprovals()
-	if err != nil {
-		return Result{}, err
-	}
 	policies, err := store.ReadPolicyDecisions()
 	if err != nil {
 		return Result{}, err
@@ -54,14 +50,14 @@ func Generate(projectDir string, m manifest.Manifest, store state.Store, options
 		return Result{}, err
 	}
 	indexPath := filepath.Join(outputDir, "index.md")
-	content := render(m, snapshot, versions, evals, approvals, policies)
+	content := render(m, snapshot, versions, evals, policies)
 	if err := os.WriteFile(indexPath, []byte(content), 0o644); err != nil {
 		return Result{}, err
 	}
 	return Result{OutputDir: outputDir, IndexPath: indexPath}, nil
 }
 
-func render(m manifest.Manifest, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, evals state.EvaluationResultsIndex, approvals state.ApprovalIndex, policies state.PolicyDecisionsIndex) string {
+func render(m manifest.Manifest, snapshot state.Snapshot, versions state.ArtifactVersionsIndex, evals state.EvaluationResultsIndex, policies state.PolicyDecisionsIndex) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", m.Metadata.ProjectName)
 	fmt.Fprintf(&b, "- generated_manifest: `%s`\n", m.Metadata.GeneratedAt)
@@ -92,7 +88,6 @@ func render(m manifest.Manifest, snapshot state.Snapshot, versions state.Artifac
 		fmt.Fprintf(&b, "  - version: `%s`\n", pointer.CurrentVersionID)
 		fmt.Fprintf(&b, "  - path: `%s`\n", pointer.LogicalPath)
 		fmt.Fprintf(&b, "  - confidence: `%s`\n", pointer.Confidence)
-		fmt.Fprintf(&b, "  - approval_status: `%s`\n", pointer.ApprovalStatus)
 	}
 	b.WriteString("\n## Artifact Versions\n\n")
 	for _, id := range sortedVersionIDs(versions.ArtifactVersions) {
@@ -109,15 +104,6 @@ func render(m manifest.Manifest, snapshot state.Snapshot, versions state.Artifac
 	for _, id := range sortedEvalResultIDs(evals.EvaluationResults) {
 		result := evals.EvaluationResults[id]
 		fmt.Fprintf(&b, "- `%s`: `%s` for `%s`\n", result.EvalID, result.Status, result.ArtifactVersionID)
-	}
-	b.WriteString("\n## Review Approvals\n\n")
-	for _, id := range sortedApprovalIDs(approvals.Approvals) {
-		approval := approvals.Approvals[id]
-		fmt.Fprintf(&b, "- `%s`: `%s`", id, approval.Status)
-		if approval.ReviewGroup != "" {
-			fmt.Fprintf(&b, " by `%s`", approval.ReviewGroup)
-		}
-		b.WriteString("\n")
 	}
 	b.WriteString("\n## Policy Decisions\n\n")
 	for _, id := range sortedPolicyDecisionIDs(policies.PolicyDecisions) {
@@ -179,15 +165,6 @@ func sortedVersionIDs(values map[string]state.ArtifactVersion) []string {
 }
 
 func sortedEvalResultIDs(values map[string]state.EvaluationResult) []string {
-	ids := make([]string, 0, len(values))
-	for id := range values {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
-	return ids
-}
-
-func sortedApprovalIDs(values map[string]state.Approval) []string {
 	ids := make([]string, 0, len(values))
 	for id := range values {
 		ids = append(ids, id)

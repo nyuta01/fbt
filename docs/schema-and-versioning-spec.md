@@ -61,7 +61,6 @@ Initial schema URIs:
 | `artifact_versions.json` | `https://schemas.fbt.dev/fbt/artifact-versions/v1.json` |
 | `evaluation_results.json` | `https://schemas.fbt.dev/fbt/evaluation-results/v1.json` |
 | `policy_decisions.json` | `https://schemas.fbt.dev/fbt/policy-decisions/v1.json` |
-| `approvals.json` | `https://schemas.fbt.dev/fbt/approvals/v1.json` |
 | JSON CLI output | `https://schemas.fbt.dev/fbt/cli-output/v1.json` |
 
 Compatibility rules:
@@ -180,8 +179,8 @@ Initial methods:
 | `xlsx_cells_v1` | Excel workbooks | Normalized workbook cell digest |
 | `pdf_text_v1` | PDF | Extracted text digest |
 
-Semantic descriptors are used for diffing, confidence, and optional approval
-carryover. They must not be used as the immutable artifact version identity.
+Semantic descriptors are used for diffing and confidence context. They must not
+be used as the immutable artifact version identity.
 
 Implemented MVP semantic descriptors:
 

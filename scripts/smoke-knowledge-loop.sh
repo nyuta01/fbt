@@ -44,15 +44,8 @@ grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
 grep -q '"name":"transform.knowledge_ops.case_summaries"' "$tmpdir/openlineage.ndjson"
 grep -q '"fbt_artifact"' "$tmpdir/openlineage.ndjson"
 
-"$fbt_bin" review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
-grep -q "status: pending" "$tmpdir/review-status.txt"
-grep -q "next: fbt review show case_summaries" "$tmpdir/review-status.txt"
-"$fbt_bin" review show case_summaries --project-dir "$project" >"$tmpdir/review-show.txt"
-grep -q "inspect: fbt artifact show case_summaries" "$tmpdir/review-show.txt"
-grep -q "approve_after_review: fbt review approve case_summaries" "$tmpdir/review-show.txt"
-
-"$fbt_bin" review approve case_summaries --project-dir "$project" --comment "smoke" >"$tmpdir/review-approve.txt"
-grep -q "status: approved" "$tmpdir/review-approve.txt"
+"$fbt_bin" artifact explain case_summaries --project-dir "$project" >"$tmpdir/artifact-explain.txt"
+grep -q "current_version: artifact_version.knowledge_ops.case_summaries" "$tmpdir/artifact-explain.txt"
 
 "$fbt_bin" build --project-dir "$project" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
 grep -q "committed:" "$tmpdir/build-weekly.txt"

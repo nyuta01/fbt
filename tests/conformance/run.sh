@@ -59,17 +59,8 @@ grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case-again.txt"
 grep -q "Build: 1 selected, 0 run, 1 skipped, 0 blocked" "$tmpdir/build-case-again.txt"
 
-set +e
-"$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly-blocked.txt" 2>"$tmpdir/build-weekly-blocked.err"
-blocked_code=$?
-set -e
-if [[ "$blocked_code" -ne 3 ]]; then
-  echo "expected downstream build to be blocked before approval, got $blocked_code" >&2
-  cat "$tmpdir/build-weekly-blocked.txt" >&2
-  cat "$tmpdir/build-weekly-blocked.err" >&2
-  exit 1
-fi
-grep -q "next: fbt review approve case_summaries" "$tmpdir/build-weekly-blocked.txt"
+"$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
+test -f "$happy/target/artifacts/support/weekly_insights.md"
 
 capability_mismatch="$tmpdir/capability-mismatch"
 "$FBT_BIN" init "$capability_mismatch" --template support >"$tmpdir/init-capability-mismatch.txt"
@@ -113,10 +104,6 @@ if [[ -e "$candidate_escape/target/artifacts/support/case_summaries/index.md" ]]
   exit 1
 fi
 
-"$FBT_BIN" review approve case_summaries --project-dir "$happy" --comment "conformance" >"$tmpdir/review-approve.txt"
-grep -q "status: approved" "$tmpdir/review-approve.txt"
-"$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly.txt"
-test -f "$happy/target/artifacts/support/weekly_insights.md"
 "$FBT_BIN" docs generate --project-dir "$happy" >"$tmpdir/docs.txt"
 test -f "$happy/target/docs/index.md"
 if grep -R "$redaction_marker" "$happy/target/docs" >/dev/null; then
@@ -168,9 +155,6 @@ for event in events:
                 raise SystemExit(f"custom OpenLineage facet lacks fbt_ prefix: {key}")
             if not str(facet.get("_schemaURL", "")).startswith("https://schemas.fbt.dev/openlineage/"):
                 raise SystemExit(f"custom OpenLineage facet lacks immutable fbt schema URL: {key}")
-if not any("fbt_approval" in output.get("facets", {}) for event in events for output in event.get("outputs", [])):
-    raise SystemExit("OpenLineage export missing approval facet")
-
 otel = json.loads(otel_text)
 resource_spans = otel.get("resourceSpans", [])
 if not resource_spans:

@@ -120,14 +120,8 @@ func TestRunBuildRejectsOutputCandidateOutsideWorkOutputs(t *testing.T) {
 	}
 }
 
-func TestRunBuildRecordsEvalAndPendingReview(t *testing.T) {
+func TestRunBuildRecordsEvalAndConfidence(t *testing.T) {
 	root := writeBuildProject(t)
-	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "transforms", "case.yml")), `    tags: ["support"]
-`, `    review:
-      required: true
-      group: support_leads
-    tags: ["support"]
-`))
 
 	result, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
 	if err != nil {
@@ -149,24 +143,12 @@ func TestRunBuildRecordsEvalAndPendingReview(t *testing.T) {
 			t.Fatalf("unexpected eval result: %+v", result)
 		}
 	}
-	approvals, err := store.ReadApprovals()
-	if err != nil {
-		t.Fatalf("read approvals: %v", err)
-	}
-	if len(approvals.Approvals) != 1 {
-		t.Fatalf("expected one pending approval, got %+v", approvals.Approvals)
-	}
-	for _, approval := range approvals.Approvals {
-		if approval.Status != "pending" || approval.ReviewGroup != "support_leads" {
-			t.Fatalf("unexpected approval: %+v", approval)
-		}
-	}
 	snapshot, err := store.ReadState()
 	if err != nil {
 		t.Fatalf("read state: %v", err)
 	}
 	pointer := snapshot.CurrentArtifacts["artifact.knowledge_ops.case_summaries"]
-	if pointer.ApprovalStatus != "pending" || pointer.Confidence != "structural" {
+	if pointer.Confidence != "structural" {
 		t.Fatalf("unexpected current pointer: %+v", pointer)
 	}
 }

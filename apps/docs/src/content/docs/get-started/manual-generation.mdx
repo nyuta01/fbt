@@ -10,8 +10,10 @@ existing operational evidence:
 - customer inquiries and support replies to a support resolution manual
 - investigation notes and remediation notes to repeatable procedures
 
-In these examples, fbt owns the workflow and audit trail. The model call is
-performed by the configured external runner.
+In these examples, fbt owns the build graph, artifact versions, evals, and
+lineage. The model call is performed by the configured external runner. Human
+approval and publishing happen outside fbt in Git, PRs, CI, release tooling, or
+your knowledge-base workflow.
 
 ## Incident response runbook
 
@@ -37,10 +39,7 @@ With credentials, the same project calls the optional OpenAI runner:
 ```sh
 export OPENAI_API_KEY=...
 fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
-fbt review show incident_response_runbook --project-dir examples/incident_response_runbook
-fbt review approve incident_response_runbook \
-  --project-dir examples/incident_response_runbook \
-  --comment "SRE lead approved"
+fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
 ```
 
 The artifact path is:
@@ -51,7 +50,8 @@ examples/incident_response_runbook/target/artifacts/runbooks/incident_response_r
 
 The runbook format is not implicit. It is declared in
 `examples/incident_response_runbook/assets/incident_runbook_format.md`, and
-the deterministic eval checks that the required sections exist before review.
+the deterministic eval checks that the required sections exist before the
+artifact is committed.
 
 ## Support resolution manual
 
@@ -71,14 +71,11 @@ run transform.support_resolution_manual.support_resolution_manual
   reason: output missing
 ```
 
-Build and approve:
+Build and inspect:
 
 ```sh
 fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
-fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
-fbt review approve support_resolution_manual \
-  --project-dir examples/support_resolution_manual \
-  --comment "Support lead approved"
+fbt artifact explain support_resolution_manual --project-dir examples/support_resolution_manual
 ```
 
 The artifact path is:
@@ -93,7 +90,7 @@ The required format is declared in
 ## What Makes These Usable
 
 The examples include realistic source records, format assets, scoped policies,
-deterministic section evals, review gates, and external-runner wiring. The
+deterministic section evals, and external-runner wiring. The
 provider call is outside the default smoke tests because it requires a secret,
 but the workflow is shaped for real operational use.
 
@@ -102,8 +99,8 @@ The most important files to inspect are:
 | File | Purpose |
 |---|---|
 | `sources/*.yml` | Declares the evidence files fbt may read. |
-| `transforms/*.yml` | Declares the output, model, runner, assets, evals, and review requirements. |
+| `transforms/*.yml` | Declares the output, model, runner, assets, and evals. |
 | `assets/*_format.md` | Defines the required manual or runbook structure. |
-| `policies/*.yml` | Limits reads, writes, network, tools, cost, timeout, and review group. |
-| `evals/*.yml` | Checks required sections before approval. |
+| `policies/*.yml` | Limits reads, writes, network, tools, cost, and timeout. |
+| `evals/*.yml` | Checks required sections before commit. |
 | `target/artifacts/...` | Holds the generated official artifact. |

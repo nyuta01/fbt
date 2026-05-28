@@ -48,17 +48,14 @@ check_daily_qa_ops() {
   test -f "$project/target/artifacts/qa/latest/unresolved_questions.md"
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact history faq_candidates --project-dir "$project" >"$tmpdir/$name-history-faq.txt"
-  grep -q "approval_status: not_required" "$tmpdir/$name-history-faq.txt"
+  grep -q "confidence: structural" "$tmpdir/$name-history-faq.txt"
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select promote_manual_update >"$tmpdir/$name-build-promotion.txt"
   grep -q "success transform.daily_qa_ops.promote_manual_update" "$tmpdir/$name-build-promotion.txt"
-  test -f "$project/target/artifacts/manual/latest/approved_update.md"
+  test -f "$project/target/artifacts/manual/latest/manual_update.md"
 
-  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt review show approved_manual_update --project-dir "$project" >"$tmpdir/$name-review-pending.txt"
-  grep -q "status: pending" "$tmpdir/$name-review-pending.txt"
-
-  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt review approve approved_manual_update --project-dir "$project" --comment "Docs lead approved" >"$tmpdir/$name-review-approved.txt"
-  grep -q "status: approved" "$tmpdir/$name-review-approved.txt"
+  FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact show manual_update --project-dir "$project" >"$tmpdir/$name-manual-update.txt"
+  grep -q "artifact.daily_qa_ops.manual_update" "$tmpdir/$name-manual-update.txt"
 }
 
 check_daily_qa_ops

@@ -18,7 +18,6 @@ const (
 	ArtifactVersionsSchemaVersion  = "https://schemas.fbt.dev/fbt/artifact-versions/v1.json"
 	EvaluationResultsSchemaVersion = "https://schemas.fbt.dev/fbt/evaluation-results/v1.json"
 	PolicyDecisionsSchemaVersion   = "https://schemas.fbt.dev/fbt/policy-decisions/v1.json"
-	ApprovalsSchemaVersion         = "https://schemas.fbt.dev/fbt/approvals/v1.json"
 )
 
 type Store struct {
@@ -47,7 +46,6 @@ type ArtifactPointer struct {
 	CurrentDigest    string `json:"current_digest"`
 	LogicalPath      string `json:"logical_path"`
 	Confidence       string `json:"confidence,omitempty"`
-	ApprovalStatus   string `json:"approval_status,omitempty"`
 	CommittedAt      string `json:"committed_at,omitempty"`
 	GeneratedBy      string `json:"generated_by,omitempty"`
 }
@@ -73,7 +71,6 @@ type ArtifactVersion struct {
 	SemanticDescriptor map[string]any      `json:"semantic_descriptor,omitempty"`
 	GeneratedBy        string              `json:"generated_by,omitempty"`
 	Confidence         string              `json:"confidence,omitempty"`
-	ApprovalStatus     string              `json:"approval_status,omitempty"`
 	CreatedAt          string              `json:"created_at,omitempty"`
 	CommittedAt        string              `json:"committed_at,omitempty"`
 	Materials          []Material          `json:"materials,omitempty"`
@@ -83,24 +80,6 @@ type Material struct {
 	ResourceID      string `json:"resource_id"`
 	ArtifactVersion string `json:"artifact_version,omitempty"`
 	Digest          string `json:"digest,omitempty"`
-}
-
-type ApprovalIndex struct {
-	Metadata  Metadata            `json:"metadata"`
-	Approvals map[string]Approval `json:"approvals"`
-}
-
-type Approval struct {
-	ArtifactVersionID string  `json:"artifact_version_id"`
-	ArtifactID        string  `json:"artifact_id"`
-	Digest            string  `json:"digest"`
-	Status            string  `json:"status"`
-	ReviewGroup       string  `json:"review_group,omitempty"`
-	Reviewer          string  `json:"reviewer,omitempty"`
-	ApprovedAt        string  `json:"approved_at,omitempty"`
-	ExpiresAt         *string `json:"expires_at"`
-	Comment           string  `json:"comment,omitempty"`
-	SupersededBy      *string `json:"superseded_by"`
 }
 
 type EvaluationResultsIndex struct {
@@ -247,40 +226,6 @@ func (s Store) ReadArtifactVersions() (ArtifactVersionsIndex, error) {
 		index.ArtifactVersions = map[string]ArtifactVersion{}
 	}
 	return index, nil
-}
-
-func (s Store) WriteApprovals(index ApprovalIndex) error {
-	if index.Approvals == nil {
-		index.Approvals = map[string]Approval{}
-	}
-	return s.atomicWriteJSON("approvals.json", index)
-}
-
-func (s Store) ReadApprovals() (ApprovalIndex, error) {
-	var index ApprovalIndex
-	err := s.readJSON("approvals.json", &index)
-	if errors.Is(err, os.ErrNotExist) {
-		return ApprovalIndex{
-			Metadata:  Metadata{FBTSchemaVersion: ApprovalsSchemaVersion},
-			Approvals: map[string]Approval{},
-		}, nil
-	}
-	if err != nil {
-		return ApprovalIndex{}, err
-	}
-	if index.Approvals == nil {
-		index.Approvals = map[string]Approval{}
-	}
-	return index, nil
-}
-
-func (s Store) PutApproval(approval Approval) error {
-	index, err := s.ReadApprovals()
-	if err != nil {
-		return err
-	}
-	index.Approvals[approval.ArtifactVersionID] = approval
-	return s.WriteApprovals(index)
 }
 
 func (s Store) WriteEvaluationResults(index EvaluationResultsIndex) error {

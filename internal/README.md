@@ -8,14 +8,14 @@ descriptor computation, reusable path-safety helpers, and a local filesystem
 state store. The templates package scaffolds local project examples. The
 planner baseline can compare manifests and state snapshots to classify
 transforms as run, skip, or blocked. The CLI now exposes init, parse, plan,
-build, eval, review, state, artifact, and runner diagnostics. The protocol
+build, eval, state, artifact, and runner diagnostics. The protocol
 package can start JSON-RPC stdio runners and collect events/output candidates.
 Local fake and command runners live outside `internal/` under `runners/`,
 alongside deterministic demo LLM/agent examples and the optional OpenAI
 Responses external runner. The build package wires the current
 parse-plan-run-commit-state lifecycle for local protocol runners, with baseline
-policy checks, deterministic evals, pending-review approval state, and runner
-usage/provenance records before official commit.
+policy checks, deterministic evals, and runner usage/provenance records before
+official commit.
 
 Package boundaries:
 
@@ -26,14 +26,13 @@ Package boundaries:
 | `manifest` | Parsed graph resources and manifest serialization |
 | `graph` | Dependency graph, selectors, parent and child maps |
 | `planner` | Dirty-state comparison and build plan generation |
-| `state` | Local state store, locks, run results, approvals |
+| `state` | Local state store, locks, run results, artifact versions |
 | `templates` | Local project scaffolds for `fbt init` |
 | `artifact` | Descriptor computation, artifact versions, commit boundary |
 | `runner` | Runner discovery, process lifecycle, protocol client |
 | `eval` | Deterministic and delegated eval orchestration |
-| `approval` | Review gates and artifact-version approval state |
 | `diff` | Raw text and Markdown heading-aware artifact diffs |
-| `docs` | Static lineage and review documentation generation |
+| `docs` | Static lineage documentation generation |
 | `plugin` | Runner/plugin manifest handling, not in-process execution |
 | `protocol` | JSON-RPC message types and compatibility checks |
 

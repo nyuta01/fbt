@@ -24,9 +24,4 @@ transforms:
     policy: incident_manual_generation_scope
     evals:
       - required_incident_runbook_sections
-    review:
-      required: true
-      group: sre_leads
-    cache:
-      mode: require_approval_for_reuse
     tags: ["incident", "manual", "runbook"]

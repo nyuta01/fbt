@@ -96,7 +96,7 @@ func TestBuildDetectsSourceDirtyReason(t *testing.T) {
 	assertContains(t, node.DirtyReasons, "source descriptor changed")
 }
 
-func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
+func TestBuildBlocksOnConfidenceRequirement(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
 	caseID := manifest.ArtifactID("knowledge_ops", "case_summaries")
@@ -111,10 +111,7 @@ func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 				UniqueID: caseID,
 				Name:     "case_summaries",
 				Require: map[string]any{
-					"confidence": "reviewed",
-					"review": map[string]any{
-						"status": "approved",
-					},
+					"confidence": "semantic",
 				},
 			},
 		},
@@ -127,9 +124,8 @@ func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 
 	snapshot := emptyState()
 	snapshot.CurrentArtifacts[caseID] = state.ArtifactPointer{
-		ArtifactID:     caseID,
-		Confidence:     "semantic",
-		ApprovalStatus: "pending",
+		ArtifactID: caseID,
+		Confidence: "structural",
 	}
 
 	plan := Build(Inputs{Manifest: m, State: snapshot, Selected: map[string]struct{}{weeklyID: {}}})
@@ -137,13 +133,11 @@ func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 	if node.Action != ActionBlocked {
 		t.Fatalf("expected blocked, got %+v", node)
 	}
-	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries confidence reviewed, current is semantic")
-	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries review status approved, current is pending")
-	assertContains(t, node.NextSteps, "fbt review status case_summaries")
-	assertContains(t, node.NextSteps, "fbt review approve case_summaries --comment \"reviewed\"")
+	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries confidence semantic, current is structural")
+	assertContains(t, node.NextSteps, "fbt eval case_summaries")
 }
 
-func TestBuildAllowsApprovedReviewedInput(t *testing.T) {
+func TestBuildAllowsSatisfiedConfidenceInput(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
 	caseID := manifest.ArtifactID("knowledge_ops", "case_summaries")
@@ -158,10 +152,7 @@ func TestBuildAllowsApprovedReviewedInput(t *testing.T) {
 				UniqueID: caseID,
 				Name:     "case_summaries",
 				Require: map[string]any{
-					"confidence": "reviewed",
-					"review": map[string]any{
-						"status": "approved",
-					},
+					"confidence": "structural",
 				},
 			},
 		},
@@ -174,15 +165,14 @@ func TestBuildAllowsApprovedReviewedInput(t *testing.T) {
 
 	snapshot := emptyState()
 	snapshot.CurrentArtifacts[caseID] = state.ArtifactPointer{
-		ArtifactID:     caseID,
-		Confidence:     "reviewed",
-		ApprovalStatus: "approved",
+		ArtifactID: caseID,
+		Confidence: "structural",
 	}
 
 	plan := Build(Inputs{Manifest: m, State: snapshot, Selected: map[string]struct{}{weeklyID: {}}})
 	node := plan.Nodes[0]
 	if node.Action == ActionBlocked {
-		t.Fatalf("expected approved input not to block, got %+v", node)
+		t.Fatalf("expected satisfied input not to block, got %+v", node)
 	}
 }
 

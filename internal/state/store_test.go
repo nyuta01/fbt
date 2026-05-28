@@ -153,29 +153,14 @@ func TestPutArtifactVersionIsIdempotentAndImmutable(t *testing.T) {
 	}
 }
 
-func TestPutApprovalAndEvaluationResult(t *testing.T) {
+func TestPutEvaluationResult(t *testing.T) {
 	store := Open(filepath.Join(t.TempDir(), ".fbt", "state"))
-	approval := Approval{
-		ArtifactVersionID: "artifact_version.knowledge_ops.report.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-		ArtifactID:        "artifact.knowledge_ops.report",
-		Digest:            "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
-		Status:            "pending",
-	}
-	if err := store.PutApproval(approval); err != nil {
-		t.Fatalf("put approval: %v", err)
-	}
-	approvals, err := store.ReadApprovals()
-	if err != nil {
-		t.Fatalf("read approvals: %v", err)
-	}
-	if approvals.Approvals[approval.ArtifactVersionID].Status != "pending" {
-		t.Fatalf("approval not stored: %+v", approvals.Approvals)
-	}
+	artifactVersionID := "artifact_version.knowledge_ops.report.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 	result := EvaluationResult{
 		ResultID:          "evaluation_result.knowledge_ops.required_sections.1",
 		EvalID:            "eval.knowledge_ops.required_sections",
-		ArtifactVersionID: approval.ArtifactVersionID,
+		ArtifactVersionID: artifactVersionID,
 		TransformRunID:    "transform_run.run_1",
 		Status:            "pass",
 	}

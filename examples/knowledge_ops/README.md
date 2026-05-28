@@ -6,8 +6,7 @@ works before wiring a real provider or agent.
 It demonstrates:
 
 - source files becoming versioned artifacts
-- review approval attached to an exact artifact version
-- downstream work waiting for an approved input
+- downstream work waiting for a current upstream artifact
 - generated project docs
 - OpenLineage and OTel export files
 
@@ -39,12 +38,12 @@ blocked transform.knowledge_ops.weekly_support_insights
   next: fbt build --select case_summaries
 ```
 
-Build and approve the first artifact:
+Build and inspect the first artifact:
 
 ```sh
 fbt build --select case_summaries
-fbt review show case_summaries
-fbt review approve case_summaries --comment "Reviewed locally"
+fbt artifact show case_summaries
+fbt artifact explain case_summaries
 ```
 
 You get:
@@ -53,19 +52,12 @@ You get:
 target/artifacts/support/case_summaries/index.md
 .fbt/artifacts/<artifact_version>/content
 .fbt/state/artifact_versions.json
-.fbt/state/approvals.json
 ```
 
 Now the downstream transform can run:
 
 ```sh
 fbt build --select weekly_support_insights
-```
-
-You get:
-
-```text
-target/artifacts/support/weekly_insights.md
 ```
 
 Inspect and export what happened:
@@ -77,33 +69,11 @@ fbt export openlineage --output target/lineage/openlineage.ndjson
 fbt export otel --output target/telemetry/otel.json
 ```
 
-You get:
-
-```text
-target/docs/index.md
-target/lineage/openlineage.ndjson
-target/telemetry/otel.json
-```
-
 ## What To Look At
 
 - `transforms/support/case_summaries.yml`: a first LLM-style transform from
-  source tickets to a reviewed artifact.
+  source tickets to an artifact.
 - `transforms/support/weekly_insights.yml`: a downstream agent-style transform
-  that requires the reviewed `case_summaries` artifact.
+  that requires the structural `case_summaries` artifact.
 - `.fbt/state/`: the local build receipt.
 - `target/artifacts/`: the files users would consume.
-
-## Replacing The Demo Runner
-
-The project uses `demo.llm` and `demo.agent` runners:
-
-```yaml
-runners:
-  - name: demo.llm
-  - name: demo.agent
-```
-
-Replace those runner entries in `fs_project.yml` when you are ready to call a
-real provider, Claude Code, Codex, Gemini, or an internal runner that speaks the
-fbt runner protocol.
