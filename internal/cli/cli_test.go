@@ -280,6 +280,21 @@ func TestRunEvalAndReviewCommands(t *testing.T) {
 	if !strings.Contains(statusOut.String(), "status: pending") {
 		t.Fatalf("unexpected review status: %q", statusOut.String())
 	}
+	if !strings.Contains(statusOut.String(), "next: fbt review show case_summaries") {
+		t.Fatalf("expected review show guidance, got %q", statusOut.String())
+	}
+
+	var showOut bytes.Buffer
+	var showErr bytes.Buffer
+	if code := Run([]string{"review", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
+		t.Fatalf("review show failed: code=%d stdout=%q stderr=%q", code, showOut.String(), showErr.String())
+	}
+	if !strings.Contains(showOut.String(), "inspect: fbt artifact show case_summaries") {
+		t.Fatalf("expected artifact inspection guidance, got %q", showOut.String())
+	}
+	if !strings.Contains(showOut.String(), "approve_after_review: fbt review approve case_summaries") {
+		t.Fatalf("expected approval guidance, got %q", showOut.String())
+	}
 
 	var approveOut bytes.Buffer
 	var approveErr bytes.Buffer

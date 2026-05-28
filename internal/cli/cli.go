@@ -413,6 +413,13 @@ func runReview(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		}
 		printReviewStatus(status, opts.JSON, stdout)
 		return 0
+	case "show":
+		target, versionID, _, err := parseReviewArgs(args[1:])
+		if err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
+		return runReviewShow(ctx, target, versionID, opts.JSON, stdout, stderr)
 	case "approve", "reject":
 		target, versionID, comment, err := parseReviewArgs(args[1:])
 		if err != nil {
@@ -438,6 +445,113 @@ func runReview(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 	default:
 		fmt.Fprintf(stderr, "unknown review command: %s\n", subcommand)
 		return 2
+	}
+}
+
+type reviewDetails struct {
+	Review        approval.Status `json:"review"`
+	Artifact      artifactRecord  `json:"artifact"`
+	DiffAvailable bool            `json:"diff_available"`
+	Commands      []string        `json:"commands"`
+}
+
+func runReviewShow(ctx projectContext, target, versionID string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	status, err := approval.GetStatus(ctx.Store, target, versionID)
+	if err != nil {
+		printError("review show", err, stderr, jsonOutput)
+		return 2
+	}
+	versions, err := ctx.Store.ReadArtifactVersions()
+	if err != nil {
+		printError("review show", err, stderr, jsonOutput)
+		return 5
+	}
+	snapshot, approvals, err := readArtifactState(ctx.Store)
+	if err != nil {
+		printError("review show", err, stderr, jsonOutput)
+		return 5
+	}
+	version, ok := versions.ArtifactVersions[status.ArtifactVersionID]
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact version not found: %s\n", status.ArtifactVersionID)
+		return 2
+	}
+	record := buildArtifactRecord(ctx, snapshot, approvals, version)
+	commandTarget := target
+	if commandTarget == "" {
+		commandTarget = status.ArtifactVersionID
+	}
+	_, diffAvailable := lastApprovedVersion(ctx.Store, versions, version)
+	details := reviewDetails{
+		Review:        status,
+		Artifact:      record,
+		DiffAvailable: diffAvailable,
+		Commands:      reviewCommands(commandTarget, diffAvailable),
+	}
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "review show", "status": "success", "review": details})
+		return 0
+	}
+	printReviewDetails(stdout, details)
+	return 0
+}
+
+func reviewCommands(target string, diffAvailable bool) []string {
+	commands := []string{
+		fmt.Sprintf("fbt artifact show %s", target),
+		fmt.Sprintf("fbt artifact path %s", target),
+	}
+	if diffAvailable {
+		commands = append(commands, fmt.Sprintf("fbt diff %s --against last-approved", target))
+	}
+	commands = append(commands,
+		fmt.Sprintf("fbt review approve %s --comment \"reviewed\"", target),
+		fmt.Sprintf("fbt review reject %s --comment \"reason\"", target),
+	)
+	return commands
+}
+
+func printReviewDetails(stdout io.Writer, details reviewDetails) {
+	fmt.Fprintf(stdout, "%s\n", details.Review.ArtifactID)
+	fmt.Fprintf(stdout, "  version: %s\n", details.Review.ArtifactVersionID)
+	fmt.Fprintf(stdout, "  status: %s\n", details.Review.Status)
+	if details.Review.Confidence != "" {
+		fmt.Fprintf(stdout, "  confidence: %s\n", details.Review.Confidence)
+	}
+	if details.Review.ReviewGroup != "" {
+		fmt.Fprintf(stdout, "  group: %s\n", details.Review.ReviewGroup)
+	}
+	if details.Artifact.LogicalPath != "" {
+		fmt.Fprintf(stdout, "  logical_path: %s\n", details.Artifact.LogicalPath)
+	}
+	if details.Artifact.StoragePath != "" {
+		fmt.Fprintf(stdout, "  storage_path: %s\n", details.Artifact.StoragePath)
+	}
+	if details.Artifact.Digest != "" {
+		fmt.Fprintf(stdout, "  digest: %s\n", details.Artifact.Digest)
+	}
+	if details.Artifact.Runner != "" {
+		fmt.Fprintf(stdout, "  runner: %s\n", details.Artifact.Runner)
+	}
+	if len(details.Artifact.Model) > 0 {
+		fmt.Fprintf(stdout, "  model: %s\n", compactJSON(details.Artifact.Model))
+	}
+	if details.Artifact.GeneratedBy != "" {
+		fmt.Fprintf(stdout, "  generated_by: %s\n", details.Artifact.GeneratedBy)
+	}
+	for _, command := range details.Commands {
+		fmt.Fprintf(stdout, "  %s: %s\n", reviewCommandLabel(command), command)
+	}
+}
+
+func reviewCommandLabel(command string) string {
+	switch {
+	case strings.Contains(command, " review approve "):
+		return "approve_after_review"
+	case strings.Contains(command, " review reject "):
+		return "reject_after_review"
+	default:
+		return "inspect"
 	}
 }
 
@@ -1505,6 +1619,16 @@ func printReviewStatus(status approval.Status, jsonOutput bool, stdout io.Writer
 	if status.ReviewGroup != "" {
 		fmt.Fprintf(stdout, "  group: %s\n", status.ReviewGroup)
 	}
+	if status.Status == "pending" {
+		fmt.Fprintf(stdout, "  next: fbt review show %s\n", shortResourceName(status.ArtifactID))
+	}
+}
+
+func shortResourceName(id string) string {
+	if index := strings.LastIndex(id, "."); index >= 0 && index+1 < len(id) {
+		return id[index+1:]
+	}
+	return id
 }
 
 func artifactIDs(index state.ArtifactVersionsIndex) []string {

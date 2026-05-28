@@ -249,6 +249,7 @@ Manage review and approval state.
 
 ```sh
 fbt review status [TARGET]
+fbt review show TARGET [--version VERSION_ID]
 fbt review approve TARGET [--version VERSION_ID] [--comment TEXT]
 fbt review reject TARGET [--version VERSION_ID] [--comment TEXT]
 ```
@@ -259,6 +260,12 @@ MVP behavior: approving the current version writes an approval record and
 promotes the current pointer to `approval_status: approved` and
 `confidence: reviewed`. Rejecting the current version writes `rejected` and
 keeps downstream reviewed/approved requirements blocked.
+
+Use `fbt review show TARGET` before approval. It prints the selected artifact
+version, logical and immutable storage paths, digest, runner/model metadata,
+generating run, and inspection commands such as `artifact show`, `artifact
+path`, `diff --against last-approved` when available, and approve/reject
+commands to run after review.
 
 ### 5.9 fbt docs generate
 

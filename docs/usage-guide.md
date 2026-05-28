@@ -385,6 +385,7 @@ State files updated:
 
 ```sh
 fbt review status case_summaries
+fbt review show case_summaries
 ```
 
 Example output:
@@ -395,7 +396,12 @@ artifact.knowledge_ops.case_summaries
   status: pending
   confidence: structural
   group: support_leads
+  next: fbt review show case_summaries
 ```
+
+`fbt review show case_summaries` displays the selected artifact version,
+logical and immutable storage paths, digest, runner/model metadata, generating
+run, and inspection commands to use before approval.
 
 Approve the current version:
 
