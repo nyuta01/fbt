@@ -28,7 +28,9 @@ External references:
 - Marquez project: <https://marquezproject.ai/>
 - OpenTelemetry specification overview: <https://opentelemetry.io/docs/specs/otel/overview/>
 - OTLP specification: <https://opentelemetry.io/docs/specs/otlp/>
-- OpenMetadata OpenLineage ingestion: <https://docs.open-metadata.org/v1.13.x-SNAPSHOT/connectors/pipeline/openlineage/yaml>
+- OpenMetadata OpenLineage ingestion: <https://docs.open-metadata.org/v1.12.x/connectors/pipeline/openlineage/yaml>
+- OpenMetadata catalog export evaluation:
+  [OpenMetadata Catalog Export Evaluation](research/openmetadata-catalog-export-evaluation.md)
 
 ## 2. Non-Goals
 
@@ -50,14 +52,10 @@ fbt export openlineage [--output PATH]
 fbt export otel [--output PATH]
 ```
 
-Reserved export commands:
-
-```sh
-fbt export openmetadata [--output PATH]
-```
-
-OpenLineage and OTel are implemented first. OpenMetadata is reserved by this
-contract and implemented by later tasks. OpenLineage default output is
+OpenLineage and OTel are implemented first. FBT-STD-004 decided not to add a
+base `fbt export openmetadata` command. OpenMetadata integration uses the
+OpenLineage export plus external OpenMetadata ingestion unless a future optional
+publisher proves necessary outside core. OpenLineage default output is
 newline-delimited JSON on stdout unless `--output` is set. OTel default output
 is the OTLP/JSON payload on stdout unless `--output` is set.
 `--json` returns an fbt command envelope with summary counts and the output
@@ -189,11 +187,20 @@ OpenMetadata is treated as a catalog and governance visualization target. The
 preferred path is:
 
 ```text
-fbt native state -> fbt export openlineage -> OpenMetadata OpenLineage ingestion
+fbt native state -> fbt export openlineage -> external broker or ingestion workflow -> OpenMetadata
 ```
 
-Direct OpenMetadata export is reserved until `FBT-STD-004` evaluates whether it
-adds value beyond OpenLineage ingestion. fbt must not adopt OpenMetadata as its
+The evaluated OpenMetadata OpenLineage connector consumes OpenLineage events
+from Kafka or AWS Kinesis through an OpenMetadata ingestion workflow. Users can
+bridge `fbt export openlineage` NDJSON into that broker path or run a separate
+ingestion workflow outside fbt.
+
+Direct OpenMetadata publishing is not part of the base CLI because it requires
+OpenMetadata server credentials, entity upsert lifecycle rules, and a stable
+mapping from file-oriented fbt artifacts to OpenMetadata entities. If needed, it
+belongs in an optional external integration that can create Pipeline Services,
+Pipelines, lineage edges, owners, tags, domains, glossary terms, or custom
+properties through OpenMetadata APIs. fbt must not adopt OpenMetadata as its
 internal state model.
 
 ## 7. Redaction Rules
@@ -225,8 +232,8 @@ fbt standard exports should be viewable with existing tools:
 - Marquez for OpenLineage graph visualization
 - OpenTelemetry-compatible trace backends such as Jaeger, Tempo, or Grafana for
   execution timelines
-- OpenMetadata for catalog and governance views if OpenLineage ingestion is
-  sufficient
+- OpenMetadata for catalog and governance views through OpenLineage ingestion
+  or an optional external publisher
 
 The static `fbt docs generate` output may link to exported files, but fbt core
 does not build or host an interactive lineage graph UI.

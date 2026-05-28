@@ -403,15 +403,15 @@ output path:
 }
 ```
 
-Reserved standard export commands:
-
-```sh
-fbt export openmetadata [--output PATH]
-```
+There is no base `fbt export openmetadata` command. OpenMetadata integration
+uses `fbt export openlineage` plus an external OpenMetadata ingestion workflow,
+or a future optional publisher outside fbt core.
 
 The contract keeps fbt-native state as the source of truth and delegates
 lineage, trace, and catalog visualization to standard-compatible tools. See
-[Standard Export Spec](standard-export-spec.md) and
+[Standard Export Spec](standard-export-spec.md),
+[OpenMetadata Catalog Export Evaluation](research/openmetadata-catalog-export-evaluation.md),
+and
 [Standard Visualization Guide](standard-visualization-guide.md).
 
 ## 6. JSON Output

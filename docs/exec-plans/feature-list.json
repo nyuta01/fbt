@@ -927,22 +927,27 @@
       "id": "FBT-STD-004",
       "title": "Evaluate OpenMetadata catalog export",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-001",
         "FBT-STD-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-004-plan.md",
       "paths": [
         "docs/research",
         "docs/usage-guide.md",
-        "docs/cli-reference.md"
+        "docs/cli-reference.md",
+        "docs/standard-export-spec.md",
+        "docs/standard-visualization-guide.md",
+        "README.md",
+        "docs/exec-plans/active/FBT-STD-004-plan.md"
       ],
       "verification": {
-        "validate_docs": false
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Research and decide whether fbt artifacts should map to OpenMetadata entities directly or via OpenLineage ingestion. Treat OpenMetadata as a catalog and governance visualization target, not as the internal lineage/state model or a reason to build a custom fbt catalog UI."
+      "notes": "Evaluated OpenMetadata catalog integration and decided against a base `fbt export openmetadata` command. The supported path is `fbt export openlineage` plus external OpenMetadata OpenLineage ingestion; direct OpenMetadata publishing remains an optional integration outside core."
     },
     {
       "id": "FBT-STD-005",

@@ -130,14 +130,72 @@ References:
 
 ## 5. OpenMetadata
 
-OpenMetadata is reserved for catalog and governance integration. Until the
-OpenMetadata evaluation task is complete, prefer the standard OpenLineage path:
+OpenMetadata is the catalog and governance target for teams that already run
+OpenMetadata. fbt does not provide a direct OpenMetadata export command in core.
+Use the standard OpenLineage path:
 
 ```text
-fbt export openlineage -> OpenLineage-compatible ingestion -> catalog UI
+fbt export openlineage -> Kafka or Kinesis bridge -> OpenMetadata OpenLineage ingestion -> catalog UI
 ```
 
-fbt does not use OpenMetadata as its internal state model.
+Generate the fbt export:
+
+```sh
+fbt export openlineage --output target/lineage/openlineage.ndjson
+```
+
+Then publish those NDJSON events to the Kafka topic or Kinesis stream configured
+for OpenMetadata's OpenLineage connector. Keep that bridge outside fbt; it is an
+environment-specific integration point.
+
+The OpenMetadata ingestion workflow runs with the OpenMetadata ingestion
+framework:
+
+```sh
+pip3 install "openmetadata-ingestion[openlineage]"
+metadata ingest -c openmetadata-openlineage.yml
+```
+
+The workflow YAML must point to the OpenMetadata server and an OpenLineage
+connection with Kafka or Kinesis `brokerConfig`. A minimal shape is:
+
+```yaml
+source:
+  type: openlineage
+  serviceName: fbt_openlineage
+  serviceConnection:
+    config:
+      type: OpenLineage
+      brokerConfig:
+        brokersUrl: localhost:9092
+        topicName: fbt.openlineage
+  sourceConfig:
+    config:
+      type: PipelineMetadata
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: http://localhost:8585/api
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: ${OPENMETADATA_JWT_TOKEN}
+```
+
+Direct OpenMetadata publishing is intentionally left to an optional external
+integration. That integration can map fbt transforms to OpenMetadata pipelines
+and add owners, tags, domains, glossary terms, or custom properties through
+OpenMetadata APIs when an organization needs catalog-specific enrichment.
+
+References:
+
+- OpenMetadata OpenLineage connector:
+  <https://docs.open-metadata.org/v1.12.x/connectors/pipeline/openlineage/yaml>
+- OpenMetadata external ingestion:
+  <https://docs.open-metadata.org/v1.12.x/deployment/ingestion/external>
+- OpenMetadata catalog export evaluation:
+  [OpenMetadata Catalog Export Evaluation](research/openmetadata-catalog-export-evaluation.md)
 
 ## 6. Troubleshooting
 

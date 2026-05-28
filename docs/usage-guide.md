@@ -470,8 +470,9 @@ fbt export openlineage --output target/lineage/openlineage.ndjson
 The OpenLineage export keeps fbt-native state as the source of truth. It emits
 transform runs, input and output datasets, and fbt-specific `fbt_` facets for
 artifact descriptors, confidence, approvals, evals, runner/model, and policy
-metadata without exporting raw artifact content or prompts. OpenMetadata export
-remains reserved by [Standard Export Spec](standard-export-spec.md).
+metadata without exporting raw artifact content or prompts. For OpenMetadata,
+feed this OpenLineage output through OpenMetadata's external ingestion path;
+fbt core does not provide a direct OpenMetadata export command.
 
 Export execution telemetry when you want traces in an OpenTelemetry-compatible
 backend:

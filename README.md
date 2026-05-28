@@ -73,6 +73,7 @@ Research:
 | [dbt Core Overview Report](docs/research/dbt-core-overview-report.md) | dbt-core architecture and sources of advantage |
 | [Related Landscape Report](docs/research/related-landscape-report.md) | Similar tools, adjacent categories, and differentiation |
 | [Naming and Standards Research](docs/research/fbt-naming-and-spec-standards-research.md) | Naming, standards, lineage/provenance, runner protocol research |
+| [OpenMetadata Catalog Export Evaluation](docs/research/openmetadata-catalog-export-evaluation.md) | Decision on OpenMetadata integration through OpenLineage ingestion |
 
 ## Core Concepts
 

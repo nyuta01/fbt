@@ -27,8 +27,11 @@ including invocation/transform spans, usage attributes, and safe runner events.
 The conformance suite now checks OpenLineage and OTel standard-export payload
 shape plus redaction of raw source content and marker secrets.
 `docs/standard-visualization-guide.md` now documents Marquez/OpenLineage,
-Jaeger/OTLP, and Tempo/Grafana visualization recipes without adding a custom fbt
-graph UI or backend service.
+Jaeger/OTLP, Tempo/Grafana, and OpenMetadata-through-OpenLineage ingestion
+recipes without adding a custom fbt graph UI or backend service.
+OpenMetadata catalog integration has been evaluated: fbt core should not add a
+direct `export openmetadata` command, and any OpenMetadata-specific publisher
+belongs outside core.
 `make real-llm-smoke` is available as an opt-in external runner smoke gated by
 `FBT_REAL_LLM_RUNNER_COMMAND`; it is intentionally outside `make verify`.
 The CLI command surface is now closed around implemented commands; `run` and
@@ -50,10 +53,8 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-The practical local MVP tasks are complete. Remaining tracked work is release
-readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication and OpenMetadata evaluation. `FBT-REL-002` is
-blocked on
+The practical local MVP and unblocked post-MVP hardening tasks are complete.
+Remaining tracked work is release publication. `FBT-REL-002` is blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
 or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
 release baseline exists.
@@ -84,8 +85,8 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Continue with the remaining P1 tasks, or `FBT-STD-004` when returning to
-   standard catalog/OpenMetadata evaluation.
+3. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
+   future optional publisher is explicitly requested outside core.
 4. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.
