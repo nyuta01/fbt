@@ -27,6 +27,10 @@ demo: it verifies parse, doctor, plan, build, artifact versioning, review
 gating, local inspection, and standard exports. It is not presented as a model
 quality benchmark, support-product demo, or realistic manual-generation
 workflow.
+The README is now purpose-first: it explains fbt as a local-first file build
+tool for turning operational evidence into reviewed, traceable knowledge
+artifacts, then grounds the workflow in the support resolution manual example
+before linking to reference docs.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -138,6 +142,9 @@ command output, generated file paths, artifact excerpts, and standard export
 commands instead of a custom invented diagram.
 `FBT-DOCS-UX-003` is complete: quickstart now states what it represents, what
 it does not represent, and what each step proves in the fbt lifecycle.
+`FBT-DOCS-UX-004` is complete: README now tells the product story first,
+including why fbt exists, what it can be used for, what fbt owns in a concrete
+workflow, and how a first-time user should try it.
 
 ## Verification
 

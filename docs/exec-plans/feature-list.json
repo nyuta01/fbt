@@ -1548,6 +1548,31 @@
       "notes": "Defines quickstart as a small control-plane acceptance demo rather than a support-product demo, model-quality benchmark, realistic manual-generation workflow, or architecture walkthrough. Adds lifecycle-stage explanation and per-step intent text."
     },
     {
+      "id": "FBT-DOCS-UX-004",
+      "title": "Clarify README product story",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-001",
+        "FBT-DOCS-UX-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-004-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-004-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Rewrites README as a product entry point: purpose, problem, concrete support-manual example, what fbt owns in the workflow, current capabilities, quickstart fixture, project structure, boundaries, install, and docs."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

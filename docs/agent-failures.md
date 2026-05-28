@@ -69,6 +69,25 @@ lists what each lifecycle stage proves. README, usage guide, and the
 "What you can do today" page now say it is not a realistic manual-generation
 workflow or model-quality benchmark.
 
+## F-004 README did not answer the product question first
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-004`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-004-plan.md`
+
+### Observation
+
+The README listed many accurate surfaces, commands, docs, examples, and
+implementation details, but it still did not quickly answer what fbt is for,
+what problem it solves, what it can be used for, and how a user should use it.
+
+### Permanent fix
+
+README was rewritten as a product entry point. It now starts with purpose and
+use cases, explains the trust problem around generated operational artifacts,
+uses the support resolution manual as the concrete example, and only then moves
+to commands, project structure, boundaries, install, and reference docs.
+
 ## Entry Template
 
 ```markdown
