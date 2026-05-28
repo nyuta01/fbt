@@ -67,6 +67,10 @@ treating dbt run artifacts and DataChain job outputs as fbt sources for a
 versioned Markdown brief. Warehouse transformations and dataset materialization
 remain outside core.
 
+`examples/runner_adapter_scaffold` provides a dependency-free Python stdio
+JSON-RPC runner skeleton plus `fbt_plugin.yml`. `make verify` now includes a
+strict conformance check for that scaffold.
+
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
 OpenLineage/OTel export language. Remaining review/approval command references
@@ -80,6 +84,8 @@ The checked-in examples cover:
   directories and multiple outputs.
 - `examples/data_tool_interop`: dbt/DataChain output files to a versioned
   operational brief through a command transform.
+- `examples/runner_adapter_scaffold`: minimal external runner adapter skeleton
+  with strict conformance coverage.
 - `examples/incident_response_runbook`: optional OpenAI runner flow for turning
   incident evidence into a runbook.
 - `examples/support_resolution_manual`: optional OpenAI runner flow for turning
@@ -105,7 +111,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-006` to provide a minimal runner adapter scaffold.
+1. Run `FBT-UNIX-007` to complete composable graph selection UX.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

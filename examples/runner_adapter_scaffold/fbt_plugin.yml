@@ -1,0 +1,10 @@
+name: fbt-runner-example
+version: 0.1.0
+protocol: stdio_jsonrpc
+command: bin/fbt-runner-example
+provides:
+  - runner: example.scaffold
+    type: llm
+    transform_types: ["llm", "agent", "command"]
+    artifact_types: ["markdown", "markdown_directory", "text", "directory"]
+env: []

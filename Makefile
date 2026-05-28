@@ -78,6 +78,10 @@ docs-site-build: ## Build the Astro/Starlight documentation site.
 runner-conformance: ## Run the minimal external runner protocol conformance fixture.
 	@bash scripts/runner-conformance.sh --strict
 
+.PHONY: runner-scaffold-conformance
+runner-scaffold-conformance: ## Run conformance against the copyable runner scaffold.
+	@$(PYTHON) tests/runner-conformance/run.py --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example --strict
+
 .PHONY: conformance
 conformance: build ## Run deterministic MVP conformance scenarios.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash tests/conformance/run.sh
@@ -87,5 +91,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

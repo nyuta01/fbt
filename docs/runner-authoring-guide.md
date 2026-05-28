@@ -30,7 +30,31 @@ A compatible runner must:
 
 Do not write human logs to stdout. Human debug logs belong on stderr.
 
-## 3. Initialize
+## 3. Start From The Scaffold
+
+The copyable starting point is:
+
+```text
+examples/runner_adapter_scaffold/
+```
+
+It contains a dependency-free Python runner that implements `initialize`,
+`fbt/runTransform`, `fbt/event`, and `fbt/outputCandidate`. Replace the
+`render_candidate()` function with the provider, CLI agent, converter, or
+internal service call you need.
+
+Check the scaffold with:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
+  --strict
+```
+
+Keep stdout reserved for JSON-RPC messages. Put human debug logs on stderr, and
+write final candidates only under `params.work.outputs`.
+
+## 4. Initialize
 
 The initialize response is authoritative for the current process. Static
 manifests are useful for discovery, but build and doctor use runtime
@@ -57,7 +81,7 @@ Required capability fields:
 Advertise only the transform and artifact types that the runner can actually
 produce in this invocation. fbt rejects incompatible runners before execution.
 
-## 4. Run Transform
+## 5. Run Transform
 
 `fbt/runTransform` provides:
 
@@ -74,7 +98,7 @@ Runners should treat inputs, assets, state, and official target paths as
 read-only. Write intermediate files under `work.temp` and final candidates under
 `work.outputs`.
 
-## 5. Output Candidates
+## 6. Output Candidates
 
 Each candidate must include a declared output `name`, an `artifact_type`, and a
 filesystem `path` under `work.outputs`.
@@ -101,7 +125,7 @@ filesystem `path` under `work.outputs`.
 Core computes descriptors and semantic descriptors. Runners may provide helpful
 metadata, but runner-provided digests are advisory only.
 
-## 6. Events and Redaction
+## 7. Events and Redaction
 
 Use `fbt/event` for progress, usage, safe tool-call summaries, warnings, and
 debug metadata. Do not emit raw prompts, raw inputs, raw generated documents,
@@ -111,7 +135,7 @@ Useful event attributes follow OpenTelemetry GenAI names where they apply, for
 example `gen_ai.provider.name`, `gen_ai.request.model`,
 `gen_ai.usage.input_tokens`, and `gen_ai.usage.output_tokens`.
 
-## 7. CLI-Agent Adapters
+## 8. CLI-Agent Adapters
 
 When wrapping Codex CLI, Claude Code, Gemini CLI, provider SDK agents, or an
 internal agent launcher, the adapter process is the fbt runner.
@@ -129,7 +153,7 @@ The external agent should not write directly to logical artifact paths,
 immutable artifact storage, `.fbt/state`, or source paths during the normal fbt
 build path.
 
-## 8. Existing CLI Tool Adapters
+## 9. Existing CLI Tool Adapters
 
 For tools such as remark, Pandoc, converters, linters, and internal scripts,
 prefer a thin command runner over implementing document logic in fbt core.
@@ -164,7 +188,7 @@ the runner returns.
 See `examples/markdown_toolchain` for remark-style Markdown normalization and a
 Pandoc-style document conversion wrapper.
 
-## 9. Conformance Check
+## 10. Conformance Check
 
 Run the default harness against the source fake runner:
 
@@ -192,7 +216,7 @@ The harness starts the runner, verifies `initialize`, sends a minimal
 `work.outputs`. `--strict` also requires at least one progress event and one
 `fbt/outputCandidate` notification.
 
-## 10. Discovery Packaging
+## 11. Discovery Packaging
 
 A runner can be referenced from project config, a plugin manifest, or a PATH
 command convention. Use `command`, optional ordered `args`, optional `cwd`, and

@@ -30,6 +30,14 @@ For looser core-compatibility checks without strict notification requirements:
 python3 tests/runner-conformance/run.py --runner-command 'my-fbt-runner'
 ```
 
+Run the copyable adapter scaffold:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
+  --strict
+```
+
 The JSON fixtures in `fixtures/` show the canonical minimal request shapes. The
 harness generates temporary absolute work paths at runtime, so fixture paths are
 illustrative rather than used as static golden input.

@@ -24,7 +24,28 @@ An adapter package is responsible for:
 fbt core is responsible only for discovery, invocation, capability validation,
 state, policy/eval checks, descriptors, and official commits.
 
-## 2. Package Naming
+## 2. Minimal Scaffold
+
+Start from `examples/runner_adapter_scaffold` when building a new adapter. It
+contains:
+
+```text
+bin/fbt-runner-example
+fbt_plugin.yml
+README.md
+```
+
+The runner is a dependency-free Python stdio JSON-RPC process. It passes strict
+conformance and marks the one function an adapter author should replace with a
+real provider, agent, converter, or service call.
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
+  --strict
+```
+
+## 3. Package Naming
 
 Recommended package names:
 
@@ -47,7 +68,7 @@ adapter for the practical examples. It is outside `internal/`, is invoked as an
 external process, and reads `OPENAI_API_KEY` from the environment. Separately
 packaged adapters should follow the same protocol and credential boundary.
 
-## 3. Distribution
+## 4. Distribution
 
 Installation is out-of-band in MVP. Acceptable distribution paths include:
 
@@ -62,7 +83,7 @@ Installation is out-of-band in MVP. Acceptable distribution paths include:
 fbt core must not download packages, vendor provider SDKs, or mutate
 `fs_project.yml` as part of installation in MVP.
 
-## 4. Project Config
+## 5. Project Config
 
 Projects may reference an adapter directly:
 
@@ -99,7 +120,7 @@ runners:
 Only environment variable names are stored. Values stay in the user's shell,
 secret manager, CI environment, or adapter-specific credential mechanism.
 
-## 5. Plugin Manifest
+## 6. Plugin Manifest
 
 Adapter packages may include `fbt_plugin.yml` so fbt can discover them from
 project or user plugin directories.
@@ -124,7 +145,7 @@ checksum:
 Manifest capabilities are advisory. The runner process must still return
 authoritative capabilities from `initialize`.
 
-## 6. PATH Convention
+## 7. PATH Convention
 
 When a project omits explicit runner config and no plugin manifest is found,
 fbt may resolve a logical runner through the PATH convention:
@@ -138,7 +159,7 @@ Package-level commands such as `fbt-runner-openai` are still preferred when the
 adapter needs subcommands, shared configuration, or multiple logical runners.
 In that case, use project config or a plugin manifest.
 
-## 7. CLI-Agent Adapter Requirements
+## 8. CLI-Agent Adapter Requirements
 
 Packages such as `fbt-runner-codex-cli` and `fbt-runner-claude-code` wrap an
 external agent CLI. They must follow the safe adapter contract:
@@ -155,7 +176,7 @@ external agent CLI. They must follow the safe adapter contract:
 See [Runner Protocol Spec](runner-protocol-spec.md) and
 [Security and Conformance Spec](security-and-conformance-spec.md).
 
-## 8. Versioning
+## 9. Versioning
 
 Adapter packages should use semantic versioning. Breaking changes include:
 
@@ -174,7 +195,7 @@ Recommended release metadata:
 - credential environment variable names
 - checksum or signature for distributed binaries when available
 
-## 9. Conformance Checklist
+## 10. Conformance Checklist
 
 Before documenting an adapter as fbt-compatible:
 
@@ -190,7 +211,7 @@ Before documenting an adapter as fbt-compatible:
 Adapters that require real provider accounts should keep provider smoke tests
 behind explicit opt-in commands, not `make verify`.
 
-## 10. Non-Goals
+## 11. Non-Goals
 
 Adapter packaging does not add:
 
