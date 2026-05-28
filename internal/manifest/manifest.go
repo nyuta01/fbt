@@ -93,6 +93,7 @@ type TransformResource struct {
 	Assets        []string          `json:"assets,omitempty"`
 	Policy        string            `json:"policy,omitempty"`
 	Evals         []string          `json:"evals,omitempty"`
+	Review        map[string]any    `json:"review,omitempty"`
 	Model         map[string]any    `json:"model,omitempty"`
 	Tools         []string          `json:"tools,omitempty"`
 	Determinism   string            `json:"determinism"`
@@ -442,6 +443,7 @@ func (b *manifestBuilder) addTransform(transform parser.Transform) {
 		Assets:        assets,
 		Policy:        policyID,
 		Evals:         evals,
+		Review:        transform.Review,
 		Model:         transform.Model,
 		Tools:         sortedCopy(transform.Tools),
 		Determinism:   determinism(transform.Type),

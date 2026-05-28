@@ -383,13 +383,13 @@
       "id": "FBT-MVP-012",
       "title": "Implement evals, review gates, approvals, and confidence",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-010",
         "FBT-MVP-011"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-MVP-012-plan.md",
       "paths": [
         "internal/eval",
         "internal/approval",
@@ -398,11 +398,12 @@
         "docs/cli-reference.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
+        "go_test": true,
+        "cli_smoke": true,
         "conformance": false
       },
-      "notes": "Implement deterministic evals, review-required handling, commit_pending, review status/approve/reject, confidence propagation, and downstream blocking."
+      "verification_override_reason": "No conformance target exists yet; eval/review behavior is covered by Go tests and CLI smoke until the suite is added in FBT-MVP-016.",
+      "notes": "Runs deterministic evals before commit, records evaluation results, commits review-required outputs as pending, implements review status/approve/reject, promotes approved current pointers to reviewed confidence, and keeps downstream reviewed/approved requirements blocked until approval."
     },
     {
       "id": "FBT-MVP-013",

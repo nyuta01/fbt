@@ -255,11 +255,65 @@ func (s Store) WriteApprovals(index ApprovalIndex) error {
 	return s.atomicWriteJSON("approvals.json", index)
 }
 
+func (s Store) ReadApprovals() (ApprovalIndex, error) {
+	var index ApprovalIndex
+	err := s.readJSON("approvals.json", &index)
+	if errors.Is(err, os.ErrNotExist) {
+		return ApprovalIndex{
+			Metadata:  Metadata{FBTSchemaVersion: ApprovalsSchemaVersion},
+			Approvals: map[string]Approval{},
+		}, nil
+	}
+	if err != nil {
+		return ApprovalIndex{}, err
+	}
+	if index.Approvals == nil {
+		index.Approvals = map[string]Approval{}
+	}
+	return index, nil
+}
+
+func (s Store) PutApproval(approval Approval) error {
+	index, err := s.ReadApprovals()
+	if err != nil {
+		return err
+	}
+	index.Approvals[approval.ArtifactVersionID] = approval
+	return s.WriteApprovals(index)
+}
+
 func (s Store) WriteEvaluationResults(index EvaluationResultsIndex) error {
 	if index.EvaluationResults == nil {
 		index.EvaluationResults = map[string]EvaluationResult{}
 	}
 	return s.atomicWriteJSON("evaluation_results.json", index)
+}
+
+func (s Store) ReadEvaluationResults() (EvaluationResultsIndex, error) {
+	var index EvaluationResultsIndex
+	err := s.readJSON("evaluation_results.json", &index)
+	if errors.Is(err, os.ErrNotExist) {
+		return EvaluationResultsIndex{
+			Metadata:          Metadata{FBTSchemaVersion: EvaluationResultsSchemaVersion},
+			EvaluationResults: map[string]EvaluationResult{},
+		}, nil
+	}
+	if err != nil {
+		return EvaluationResultsIndex{}, err
+	}
+	if index.EvaluationResults == nil {
+		index.EvaluationResults = map[string]EvaluationResult{}
+	}
+	return index, nil
+}
+
+func (s Store) PutEvaluationResult(result EvaluationResult) error {
+	index, err := s.ReadEvaluationResults()
+	if err != nil {
+		return err
+	}
+	index.EvaluationResults[result.ResultID] = result
+	return s.WriteEvaluationResults(index)
 }
 
 func (s Store) WritePolicyDecisions(index PolicyDecisionsIndex) error {

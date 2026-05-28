@@ -11,7 +11,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/nyuta01/fbt/internal/approval"
 	buildmgr "github.com/nyuta01/fbt/internal/build"
+	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/graph"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
@@ -26,6 +28,8 @@ var implementedCommands = []string{
 	"parse",
 	"plan",
 	"build",
+	"eval",
+	"review",
 	"state",
 	"artifact",
 	"runner",
@@ -34,9 +38,7 @@ var implementedCommands = []string{
 var plannedCommands = []string{
 	"init",
 	"run",
-	"eval",
 	"diff",
-	"review",
 	"docs",
 	"debug",
 }
@@ -74,6 +76,10 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		return runPlan(opts, stdout, stderr)
 	case "build":
 		return runBuild(opts, stdout, stderr)
+	case "eval":
+		return runEval(opts, commandArgs[1:], stdout, stderr)
+	case "review":
+		return runReview(opts, commandArgs[1:], stdout, stderr)
 	case "state":
 		return runState(opts, commandArgs[1:], stdout, stderr)
 	case "artifact":
@@ -87,6 +93,124 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stderr, "unknown command: %s\n\n", commandArgs[0])
 		printHelp(stderr)
+		return 2
+	}
+}
+
+func runEval(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	if len(args) < 1 {
+		fmt.Fprintln(stderr, "Error: eval requires a target")
+		return 2
+	}
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	snapshot, err := ctx.Store.ReadState()
+	if err != nil {
+		printError("eval", err, stderr, opts.JSON)
+		return 5
+	}
+	versions, err := ctx.Store.ReadArtifactVersions()
+	if err != nil {
+		printError("eval", err, stderr, opts.JSON)
+		return 5
+	}
+	version, ok := findVersion(snapshot, versions, args[0])
+	if !ok {
+		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", args[0])
+		return 2
+	}
+	transform, ok := producerTransform(ctx.Manifest, version.ArtifactID)
+	if !ok {
+		fmt.Fprintf(stderr, "Error: producer transform not found for %s\n", version.ArtifactID)
+		return 2
+	}
+	evalIDs, err := selectedEvalIDs(ctx.Manifest, transform.Evals, opts.Select)
+	if err != nil {
+		printError("eval", err, stderr, opts.JSON)
+		return 2
+	}
+	transform.Evals = evalIDs
+	outcome, evalErr := evalmgr.RunForCandidate(ctx.ParseResult.ProjectDir, transform, ctx.Manifest.Evals, version.VersionID, version.GeneratedBy, filepath.Join(ctx.ParseResult.ProjectDir, version.StoragePath))
+	for _, result := range outcome.Results {
+		if err := ctx.Store.PutEvaluationResult(result); err != nil {
+			printError("eval", err, stderr, opts.JSON)
+			return 5
+		}
+	}
+	status := "success"
+	code := 0
+	if evalErr != nil {
+		status = "failed"
+		code = 1
+	}
+	if opts.JSON {
+		writeJSON(stdout, map[string]any{"command": "eval", "status": status, "artifact_version_id": version.VersionID, "results": outcome.Results})
+		return code
+	}
+	for _, result := range outcome.Results {
+		fmt.Fprintf(stdout, "%s %s\n", result.Status, result.EvalID)
+		if result.Score != nil {
+			fmt.Fprintf(stdout, "  score: %.2f\n", *result.Score)
+		}
+		if result.GrantsConfidence != "" {
+			fmt.Fprintf(stdout, "  grants_confidence: %s\n", result.GrantsConfidence)
+		}
+	}
+	if evalErr != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", evalErr)
+	}
+	return code
+}
+
+func runReview(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
+	ctx, err := loadProject(opts)
+	if err != nil {
+		printParseError(err, ctx.ParseResult.Diagnostics, stderr, opts.JSON)
+		return 2
+	}
+	subcommand := "status"
+	if len(args) > 0 {
+		subcommand = args[0]
+	}
+	switch subcommand {
+	case "status":
+		if len(args) < 2 {
+			return printAllReviewStatus(ctx.Store, opts.JSON, stdout, stderr)
+		}
+		status, err := approval.GetStatus(ctx.Store, args[1], "")
+		if err != nil {
+			printError("review status", err, stderr, opts.JSON)
+			return 2
+		}
+		printReviewStatus(status, opts.JSON, stdout)
+		return 0
+	case "approve", "reject":
+		target, versionID, comment, err := parseReviewArgs(args[1:])
+		if err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
+		reviewer := os.Getenv("USER")
+		if reviewer == "" {
+			reviewer = "local"
+		}
+		var status approval.Status
+		if subcommand == "approve" {
+			status, err = approval.Approve(ctx.Store, target, versionID, reviewer, comment)
+		} else {
+			status, err = approval.Reject(ctx.Store, target, versionID, reviewer, comment)
+		}
+		if err != nil {
+			printError("review "+subcommand, err, stderr, opts.JSON)
+			return 2
+		}
+		printReviewStatus(status, opts.JSON, stdout)
+		return 0
+	default:
+		fmt.Fprintf(stderr, "unknown review command: %s\n", subcommand)
 		return 2
 	}
 }
@@ -544,6 +668,131 @@ func matchingVersions(index state.ArtifactVersionsIndex, target string) []state.
 		return matches[i].VersionID < matches[j].VersionID
 	})
 	return matches
+}
+
+func findVersion(snapshot state.Snapshot, index state.ArtifactVersionsIndex, target string) (state.ArtifactVersion, bool) {
+	if version, ok := index.ArtifactVersions[target]; ok {
+		return version, true
+	}
+	if id, pointer, ok := findPointer(snapshot, target); ok {
+		_ = id
+		version, exists := index.ArtifactVersions[pointer.CurrentVersionID]
+		return version, exists
+	}
+	matches := matchingVersions(index, target)
+	if len(matches) == 0 {
+		return state.ArtifactVersion{}, false
+	}
+	return matches[len(matches)-1], true
+}
+
+func producerTransform(m manifest.Manifest, artifactID string) (manifest.TransformResource, bool) {
+	for _, transform := range m.Transforms {
+		for _, output := range transform.Outputs {
+			if output.UniqueID == artifactID {
+				return transform, true
+			}
+		}
+	}
+	return manifest.TransformResource{}, false
+}
+
+func selectedEvalIDs(m manifest.Manifest, evalIDs []string, expr string) ([]string, error) {
+	if expr == "" {
+		return append([]string(nil), evalIDs...), nil
+	}
+	var selected []string
+	for _, id := range evalIDs {
+		evalResource := m.Evals[id]
+		if id == expr || evalResource.Name == strings.Trim(expr, "+") {
+			selected = append(selected, id)
+		}
+	}
+	if len(selected) == 0 {
+		return nil, fmt.Errorf("unknown eval selection: %s", expr)
+	}
+	return selected, nil
+}
+
+func parseReviewArgs(args []string) (target string, versionID string, comment string, err error) {
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "--version":
+			i++
+			if i >= len(args) {
+				return "", "", "", fmt.Errorf("--version requires a value")
+			}
+			versionID = args[i]
+		case strings.HasPrefix(arg, "--version="):
+			versionID = strings.TrimPrefix(arg, "--version=")
+		case arg == "--comment":
+			i++
+			if i >= len(args) {
+				return "", "", "", fmt.Errorf("--comment requires a value")
+			}
+			comment = args[i]
+		case strings.HasPrefix(arg, "--comment="):
+			comment = strings.TrimPrefix(arg, "--comment=")
+		case strings.HasPrefix(arg, "--"):
+			return "", "", "", fmt.Errorf("unknown review flag: %s", arg)
+		default:
+			if target != "" {
+				return "", "", "", fmt.Errorf("review command accepts one target")
+			}
+			target = arg
+		}
+	}
+	if target == "" && versionID == "" {
+		return "", "", "", fmt.Errorf("review command requires a target")
+	}
+	return target, versionID, comment, nil
+}
+
+func printAllReviewStatus(store state.Store, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	index, err := store.ReadApprovals()
+	if err != nil {
+		printError("review status", err, stderr, jsonOutput)
+		return 5
+	}
+	ids := make([]string, 0, len(index.Approvals))
+	for id := range index.Approvals {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+	if jsonOutput {
+		approvals := make([]state.Approval, 0, len(ids))
+		for _, id := range ids {
+			approvals = append(approvals, index.Approvals[id])
+		}
+		writeJSON(stdout, map[string]any{"command": "review status", "status": "success", "approvals": approvals})
+		return 0
+	}
+	for _, id := range ids {
+		approval := index.Approvals[id]
+		fmt.Fprintf(stdout, "%s\n", id)
+		fmt.Fprintf(stdout, "  status: %s\n", approval.Status)
+		if approval.ReviewGroup != "" {
+			fmt.Fprintf(stdout, "  group: %s\n", approval.ReviewGroup)
+		}
+	}
+	return 0
+}
+
+func printReviewStatus(status approval.Status, jsonOutput bool, stdout io.Writer) {
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "review status", "status": "success", "review": status})
+		return
+	}
+	fmt.Fprintf(stdout, "%s\n", status.ArtifactID)
+	fmt.Fprintf(stdout, "  version: %s\n", status.ArtifactVersionID)
+	fmt.Fprintf(stdout, "  status: %s\n", status.Status)
+	if status.Confidence != "" {
+		fmt.Fprintf(stdout, "  confidence: %s\n", status.Confidence)
+	}
+	if status.ReviewGroup != "" {
+		fmt.Fprintf(stdout, "  group: %s\n", status.ReviewGroup)
+	}
 }
 
 func artifactIDs(index state.ArtifactVersionsIndex) []string {

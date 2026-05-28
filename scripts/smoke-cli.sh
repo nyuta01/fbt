@@ -63,7 +63,8 @@ evals:
   - name: required_case_sections
     type: deterministic
     config:
-      sections: ["Summary"]
+      sections: ["Fake Output"]
+    grants_confidence: structural
 YAML
 cat >"$project/transforms/case.yml" <<'YAML'
 transforms:
@@ -81,6 +82,9 @@ transforms:
     policy: support_agent_scope
     evals:
       - required_case_sections
+    review:
+      required: true
+      group: support_leads
     tags: ["support"]
 YAML
 printf '{}\n' >"$project/data/support/tickets/2026-05-28.jsonl"
@@ -105,6 +109,15 @@ grep -q "openai.responses" "$tmpdir/runner-list.txt"
 go run ./cmd/fbt build --project-dir "$project" >"$tmpdir/build.txt"
 grep -q "committed:" "$tmpdir/build.txt"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
+
+go run ./cmd/fbt eval case_summaries --project-dir "$project" >"$tmpdir/eval.txt"
+grep -q "pass eval.knowledge_ops.required_case_sections" "$tmpdir/eval.txt"
+
+go run ./cmd/fbt review status case_summaries --project-dir "$project" >"$tmpdir/review-status.txt"
+grep -q "status: pending" "$tmpdir/review-status.txt"
+
+go run ./cmd/fbt review approve case_summaries --comment "smoke" --project-dir "$project" >"$tmpdir/review-approve.txt"
+grep -q "status: approved" "$tmpdir/review-approve.txt"
 
 if go run ./cmd/fbt run >"$tmpdir/run.out" 2>"$tmpdir/run.err"; then
   echo "expected fbt run to be a planned-but-unimplemented command" >&2

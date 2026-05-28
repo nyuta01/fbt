@@ -10,7 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nyuta01/fbt/internal/approval"
 	"github.com/nyuta01/fbt/internal/artifact"
+	evalmgr "github.com/nyuta01/fbt/internal/eval"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
 	"github.com/nyuta01/fbt/internal/planner"
@@ -39,6 +41,7 @@ type Run struct {
 	TransformRunID    string
 	Status            string
 	CommittedVersions []string
+	EvaluationResults []string
 }
 
 type outputCandidate struct {
@@ -231,15 +234,31 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		if err != nil {
 			return Run{}, err
 		}
+		evalOutcome, evalErr := evalmgr.RunForCandidate(parseResult.ProjectDir, transform, m.Evals, versionID, transformRunID, candidate.Path)
+		for _, result := range evalOutcome.Results {
+			if err := store.PutEvaluationResult(result); err != nil {
+				return Run{}, err
+			}
+			run.EvaluationResults = append(run.EvaluationResults, result.ResultID)
+		}
+		if evalErr != nil {
+			return Run{}, evalErr
+		}
 		logicalAbs := filepath.Join(parseResult.ProjectDir, output.DeclaredPath)
 		if err := commitPath(candidate.Path, logicalAbs); err != nil {
 			return Run{}, err
 		}
+		review := reviewForTransform(transform, policyResource)
 		approvalStatus := "not_required"
 		confidence := "structural"
-		if reviewRequired(transform) {
+		if evalOutcome.Confidence != "" {
+			confidence = maxConfidence(confidence, evalOutcome.Confidence)
+		}
+		if review.Required {
 			approvalStatus = "pending"
-			confidence = "experimental"
+			if evalOutcome.Confidence == "" {
+				confidence = "experimental"
+			}
 		}
 		version := state.ArtifactVersion{
 			VersionID:      versionID,
@@ -255,6 +274,11 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		}
 		if err := store.PutArtifactVersion(version); err != nil {
 			return Run{}, err
+		}
+		if review.Required {
+			if err := approval.PutPending(store, version, review.Group); err != nil {
+				return Run{}, err
+			}
 		}
 		snapshot.CurrentArtifacts[output.UniqueID] = state.ArtifactPointer{
 			ArtifactID:       output.UniqueID,
@@ -281,6 +305,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		"transform_id":       transformID,
 		"status":             outcome.Result.Status,
 		"committed_versions": run.CommittedVersions,
+		"evaluation_results": run.EvaluationResults,
 	}); err != nil {
 		return Run{}, err
 	}
@@ -371,13 +396,58 @@ func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}
 	return selected, nil
 }
 
-func reviewRequired(transform manifest.TransformResource) bool {
+type reviewRequirement struct {
+	Required bool
+	Group    string
+}
+
+func reviewForTransform(transform manifest.TransformResource, policyResource *manifest.PolicyResource) reviewRequirement {
+	var review reviewRequirement
+	mergeReview(&review, transform.Review)
+	if policyResource != nil {
+		mergeReview(&review, policyResource.Review)
+	}
 	required, _ := transform.Cache["review_required"].(bool)
 	if required {
-		return true
+		review.Required = true
 	}
 	value, ok := transform.Fingerprint["review_required"]
-	return ok && value == "true"
+	if ok && value == "true" {
+		review.Required = true
+	}
+	return review
+}
+
+func mergeReview(target *reviewRequirement, values map[string]any) {
+	if len(values) == 0 {
+		return
+	}
+	if required, ok := values["required"].(bool); ok && required {
+		target.Required = true
+	}
+	if group, ok := values["group"].(string); ok && group != "" {
+		target.Group = group
+	}
+}
+
+func maxConfidence(left, right string) string {
+	order := map[string]int{
+		"experimental": 0,
+		"structural":   1,
+		"semantic":     2,
+		"exact":        3,
+		"reviewed":     4,
+	}
+	if left == "" {
+		return right
+	}
+	if right == "" {
+		return left
+	}
+	if order[right] > order[left] {
+		return right
+	}
+	return left
 }
 
 func commitPath(src, dst string) error {

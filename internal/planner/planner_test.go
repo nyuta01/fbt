@@ -112,6 +112,49 @@ func TestBuildBlocksOnReviewAndConfidenceRequirements(t *testing.T) {
 	assertContains(t, node.BlockedReasons, "requires artifact.knowledge_ops.case_summaries review status approved, current is pending")
 }
 
+func TestBuildAllowsApprovedReviewedInput(t *testing.T) {
+	m := fixtureManifest("asset-old")
+	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
+	caseID := manifest.ArtifactID("knowledge_ops", "case_summaries")
+	m.Transforms[weeklyID] = manifest.TransformResource{
+		UniqueID:      weeklyID,
+		ResourceType:  "transform",
+		Name:          "weekly_support_insights",
+		TransformType: "agent",
+		Inputs: []manifest.TransformInput{
+			{
+				Kind:     "ref",
+				UniqueID: caseID,
+				Name:     "case_summaries",
+				Require: map[string]any{
+					"confidence": "reviewed",
+					"review": map[string]any{
+						"status": "approved",
+					},
+				},
+			},
+		},
+		Outputs: []manifest.TransformOutput{
+			{UniqueID: manifest.ArtifactID("knowledge_ops", "weekly_support_insights"), Name: "weekly_support_insights"},
+		},
+		Fingerprint: map[string]string{"effective": "weekly"},
+	}
+	m.ParentMap[weeklyID] = []string{caseID}
+
+	snapshot := emptyState()
+	snapshot.CurrentArtifacts[caseID] = state.ArtifactPointer{
+		ArtifactID:     caseID,
+		Confidence:     "reviewed",
+		ApprovalStatus: "approved",
+	}
+
+	plan := Build(Inputs{Manifest: m, State: snapshot, Selected: map[string]struct{}{weeklyID: {}}})
+	node := plan.Nodes[0]
+	if node.Action == ActionBlocked {
+		t.Fatalf("expected approved input not to block, got %+v", node)
+	}
+}
+
 func TestBuildHonorsSelectedSet(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	selected := map[string]struct{}{

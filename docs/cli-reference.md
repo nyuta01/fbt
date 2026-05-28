@@ -186,6 +186,13 @@ fbt eval artifact_version.knowledge_ops.case_summaries.sha256_abcd
 fbt eval weekly_support_insights --select no_unsupported_claims
 ```
 
+MVP behavior:
+
+- deterministic evals run in core against the selected artifact version
+- semantic, LLM-judge, and human-review evals are recorded as `skipped` until
+  delegated eval runners are implemented
+- failed deterministic evals return exit code `1`
+
 ### 5.7 fbt diff
 
 Show differences between artifact versions.
@@ -215,6 +222,11 @@ fbt review reject TARGET [--version VERSION_ID] [--comment TEXT]
 ```
 
 Approval is bound to `artifact_version`. If `TARGET` is a logical artifact, the current version is used.
+
+MVP behavior: approving the current version writes an approval record and
+promotes the current pointer to `approval_status: approved` and
+`confidence: reviewed`. Rejecting the current version writes `rejected` and
+keeps downstream reviewed/approved requirements blocked.
 
 ### 5.9 fbt docs generate
 

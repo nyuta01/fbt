@@ -157,6 +157,55 @@ func TestRunStateAndArtifactCommands(t *testing.T) {
 	}
 }
 
+func TestRunEvalAndReviewCommands(t *testing.T) {
+	root := writeCLIProject(t)
+	store, version := writeCLICurrentArtifact(t, root)
+	if err := store.PutApproval(state.Approval{
+		ArtifactVersionID: version.VersionID,
+		ArtifactID:        version.ArtifactID,
+		Digest:            version.Descriptor.Digest,
+		Status:            "pending",
+		ReviewGroup:       "support_leads",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	var evalOut bytes.Buffer
+	var evalErr bytes.Buffer
+	if code := Run([]string{"eval", "case_summaries", "--project-dir", root}, &evalOut, &evalErr); code != 0 {
+		t.Fatalf("eval failed: code=%d stdout=%q stderr=%q", code, evalOut.String(), evalErr.String())
+	}
+	if !strings.Contains(evalOut.String(), "pass eval.knowledge_ops.required_case_sections") {
+		t.Fatalf("unexpected eval output: %q", evalOut.String())
+	}
+
+	var statusOut bytes.Buffer
+	var statusErr bytes.Buffer
+	if code := Run([]string{"review", "status", "case_summaries", "--project-dir", root}, &statusOut, &statusErr); code != 0 {
+		t.Fatalf("review status failed: code=%d stdout=%q stderr=%q", code, statusOut.String(), statusErr.String())
+	}
+	if !strings.Contains(statusOut.String(), "status: pending") {
+		t.Fatalf("unexpected review status: %q", statusOut.String())
+	}
+
+	var approveOut bytes.Buffer
+	var approveErr bytes.Buffer
+	if code := Run([]string{"review", "approve", "case_summaries", "--comment", "reviewed", "--project-dir", root}, &approveOut, &approveErr); code != 0 {
+		t.Fatalf("review approve failed: code=%d stdout=%q stderr=%q", code, approveOut.String(), approveErr.String())
+	}
+	if !strings.Contains(approveOut.String(), "status: approved") || !strings.Contains(approveOut.String(), "confidence: reviewed") {
+		t.Fatalf("unexpected approve output: %q", approveOut.String())
+	}
+	snapshot, err := store.ReadState()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pointer := snapshot.CurrentArtifacts[version.ArtifactID]
+	if pointer.ApprovalStatus != "approved" || pointer.Confidence != "reviewed" {
+		t.Fatalf("approval did not update pointer: %+v", pointer)
+	}
+}
+
 func TestRunRunnerListAndDoctor(t *testing.T) {
 	root := writeCLIProject(t)
 	var listOut bytes.Buffer
@@ -195,6 +244,47 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	if !strings.Contains(stdout.String(), "RUNNER_COMMAND_OK") {
 		t.Fatalf("expected ok diagnostic, got %q", stdout.String())
 	}
+}
+
+func writeCLICurrentArtifact(t *testing.T, root string) (state.Store, state.ArtifactVersion) {
+	t.Helper()
+	writeFile(t, root, "target/artifacts/support/case_summaries/index.md", "# Summary\n\nBody\n")
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	version := state.ArtifactVersion{
+		VersionID:      "artifact_version.knowledge_ops.case_summaries.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		ArtifactID:     "artifact.knowledge_ops.case_summaries",
+		LogicalPath:    "target/artifacts/support/case_summaries/",
+		StoragePath:    "target/artifacts/support/case_summaries/",
+		GeneratedBy:    "transform_run.run_1",
+		Confidence:     "structural",
+		ApprovalStatus: "pending",
+		Descriptor: artifact.Descriptor{
+			MediaType:    "inode/directory",
+			Digest:       "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			ArtifactType: "fbt.artifact.markdown_directory.v1",
+			FileCount:    1,
+		},
+	}
+	if err := store.PutArtifactVersion(version); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.WriteState(state.Snapshot{
+		CurrentArtifacts: map[string]state.ArtifactPointer{
+			version.ArtifactID: {
+				ArtifactID:       version.ArtifactID,
+				CurrentVersionID: version.VersionID,
+				CurrentDigest:    version.Descriptor.Digest,
+				LogicalPath:      version.LogicalPath,
+				Confidence:       "structural",
+				ApprovalStatus:   "pending",
+				GeneratedBy:      version.GeneratedBy,
+			},
+		},
+		LatestRuns: map[string]state.LatestRun{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return store, version
 }
 
 func writeCLIProject(t *testing.T) string {

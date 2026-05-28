@@ -5,7 +5,10 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
+
+	"github.com/nyuta01/fbt/internal/state"
 )
 
 func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
@@ -47,6 +50,88 @@ func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 	}
 	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
 		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+}
+
+func TestRunBuildRecordsEvalAndPendingReview(t *testing.T) {
+	root := writeBuildProject(t)
+	writeFile(t, root, "transforms/case.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "transforms", "case.yml")), `    tags: ["support"]
+`, `    review:
+      required: true
+      group: support_leads
+    tags: ["support"]
+`))
+
+	result, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err != nil {
+		t.Fatalf("run build: %v", err)
+	}
+	if len(result.Runs) != 1 || len(result.Runs[0].EvaluationResults) != 1 {
+		t.Fatalf("expected evaluation result, got %+v", result.Runs)
+	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	evals, err := store.ReadEvaluationResults()
+	if err != nil {
+		t.Fatalf("read eval results: %v", err)
+	}
+	if len(evals.EvaluationResults) != 1 {
+		t.Fatalf("expected one eval result, got %+v", evals.EvaluationResults)
+	}
+	for _, result := range evals.EvaluationResults {
+		if result.Status != "pass" || result.GrantsConfidence != "structural" {
+			t.Fatalf("unexpected eval result: %+v", result)
+		}
+	}
+	approvals, err := store.ReadApprovals()
+	if err != nil {
+		t.Fatalf("read approvals: %v", err)
+	}
+	if len(approvals.Approvals) != 1 {
+		t.Fatalf("expected one pending approval, got %+v", approvals.Approvals)
+	}
+	for _, approval := range approvals.Approvals {
+		if approval.Status != "pending" || approval.ReviewGroup != "support_leads" {
+			t.Fatalf("unexpected approval: %+v", approval)
+		}
+	}
+	snapshot, err := store.ReadState()
+	if err != nil {
+		t.Fatalf("read state: %v", err)
+	}
+	pointer := snapshot.CurrentArtifacts["artifact.knowledge_ops.case_summaries"]
+	if pointer.ApprovalStatus != "pending" || pointer.Confidence != "structural" {
+		t.Fatalf("unexpected current pointer: %+v", pointer)
+	}
+}
+
+func TestRunBuildEvalFailureDoesNotCommitOutput(t *testing.T) {
+	root := writeBuildProject(t)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Missing"]
+    grants_confidence: structural
+`)
+	_, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err == nil {
+		t.Fatal("expected eval failure")
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	evals, readErr := store.ReadEvaluationResults()
+	if readErr != nil {
+		t.Fatalf("read eval results: %v", readErr)
+	}
+	if len(evals.EvaluationResults) != 1 {
+		t.Fatalf("expected failed eval result, got %+v", evals.EvaluationResults)
+	}
+	for _, result := range evals.EvaluationResults {
+		if result.Status != "fail" {
+			t.Fatalf("unexpected eval result: %+v", result)
+		}
 	}
 }
 
@@ -97,7 +182,8 @@ runners:
   - name: required_case_sections
     type: deterministic
     config:
-      sections: ["Summary"]
+      sections: ["Fake Output"]
+    grants_confidence: structural
 `)
 	writeFile(t, root, "transforms/case.yml", `transforms:
   - name: case_summaries
@@ -117,6 +203,15 @@ runners:
     tags: ["support"]
 `)
 	return root
+}
+
+func readFile(t *testing.T, path string) string {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
 }
 
 func repoRoot(t *testing.T) string {
