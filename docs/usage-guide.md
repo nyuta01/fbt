@@ -316,7 +316,10 @@ Parsed 11 resources
 Manifest written to <project>/.fbt/state/manifest.json
 ```
 
-Parse errors exit with code `2`.
+Parse errors exit with code `2`. Diagnostics include a stable code, file and
+line where available, and a `hint:` line for common YAML authoring mistakes
+such as missing `config_version`, unresolved `ref:` values, unsupported
+artifact types, or outputs outside `artifact_path`.
 
 `fbt doctor` checks project parsing, state directory writability, state lock
 acquisition, runner discovery, and runner protocol initialization. It exits

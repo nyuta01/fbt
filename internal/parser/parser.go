@@ -54,6 +54,7 @@ func ParseProject(options Options) (Result, error) {
 	result := Result{
 		ProjectDir: prj.RootDir,
 		ConfigPath: prj.ConfigPath,
+		lineIndex:  map[string]int{},
 	}
 
 	projectFile, err := config.LoadProjectFile(prj.ConfigPath)
@@ -89,12 +90,12 @@ func ParseProject(options Options) (Result, error) {
 	}
 
 	for _, file := range files {
-		loaded, err := loadResourceFile(file)
+		loaded, lines, err := loadResourceFile(file)
 		if err != nil {
 			result.addError("RESOURCE_PARSE_FAILED", err.Error(), file, "")
 			continue
 		}
-		result.appendResources(file, loaded)
+		result.appendResources(file, loaded, lines)
 	}
 
 	result.validateResources()
@@ -167,19 +168,25 @@ func resourceFiles(root string, dirs []string) ([]string, error) {
 	return files, nil
 }
 
-func loadResourceFile(path string) (resourceFile, error) {
+func loadResourceFile(path string) (resourceFile, map[string]int, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return resourceFile{}, err
+		return resourceFile{}, nil, err
 	}
 	var loaded resourceFile
 	if err := yaml.Unmarshal(data, &loaded); err != nil {
-		return resourceFile{}, err
+		return resourceFile{}, nil, err
 	}
-	return loaded, nil
+	return loaded, resourceLineIndex(data), nil
 }
 
-func (r *Result) appendResources(file string, loaded resourceFile) {
+func (r *Result) appendResources(file string, loaded resourceFile, lines map[string]int) {
+	if r.lineIndex == nil {
+		r.lineIndex = map[string]int{}
+	}
+	for key, line := range lines {
+		r.lineIndex[diagKey(file, key)] = line
+	}
 	for i := range loaded.Sources {
 		loaded.Sources[i].File = file
 	}
@@ -205,6 +212,76 @@ func (r *Result) appendResources(file string, loaded resourceFile) {
 	r.Policies = append(r.Policies, loaded.Policies...)
 	r.Evals = append(r.Evals, loaded.Evals...)
 	r.Runners = append(r.Runners, loaded.Runners...)
+}
+
+func resourceLineIndex(data []byte) map[string]int {
+	lines := map[string]int{}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return lines
+	}
+	root := doc.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return lines
+	}
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		key := root.Content[i]
+		value := root.Content[i+1]
+		if value.Kind != yaml.SequenceNode {
+			continue
+		}
+		for _, item := range value.Content {
+			name, nameLine := mappingScalar(item, "name")
+			if name == "" {
+				continue
+			}
+			if nameLine == 0 {
+				nameLine = item.Line
+			}
+			lines[name] = nameLine
+			if key.Value == "sources" {
+				indexSourceArtifacts(lines, name, item)
+			}
+		}
+	}
+	return lines
+}
+
+func indexSourceArtifacts(lines map[string]int, sourceName string, sourceNode *yaml.Node) {
+	artifacts := mappingNode(sourceNode, "artifacts")
+	if artifacts == nil || artifacts.Kind != yaml.SequenceNode {
+		return
+	}
+	for _, artifactNode := range artifacts.Content {
+		name, line := mappingScalar(artifactNode, "name")
+		if name == "" {
+			continue
+		}
+		if line == 0 {
+			line = artifactNode.Line
+		}
+		lines[sourceName+"."+name] = line
+	}
+}
+
+func mappingScalar(node *yaml.Node, key string) (string, int) {
+	value := mappingNode(node, key)
+	if value == nil {
+		return "", 0
+	}
+	return value.Value, value.Line
+}
+
+func mappingNode(node *yaml.Node, key string) *yaml.Node {
+	if node == nil || node.Kind != yaml.MappingNode {
+		return nil
+	}
+	for i := 0; i+1 < len(node.Content); i += 2 {
+		if node.Content[i].Value == key {
+			return node.Content[i+1]
+		}
+	}
+	return nil
 }
 
 func (r *Result) validateResources() {
@@ -504,11 +581,78 @@ func (r *Result) validateProjectPath(code, path, file, resource string) {
 }
 
 func (r *Result) addError(code, message, file, resource string) {
-	r.Diagnostics = append(r.Diagnostics, Diagnostic{Severity: SeverityError, Code: code, Message: message, File: file, Resource: resource})
+	r.Diagnostics = append(r.Diagnostics, r.newDiagnostic(SeverityError, code, message, file, resource))
 }
 
 func (r *Result) addWarning(code, message, file, resource string) {
-	r.Diagnostics = append(r.Diagnostics, Diagnostic{Severity: SeverityWarning, Code: code, Message: message, File: file, Resource: resource})
+	r.Diagnostics = append(r.Diagnostics, r.newDiagnostic(SeverityWarning, code, message, file, resource))
+}
+
+func (r *Result) newDiagnostic(severity Severity, code, message, file, resource string) Diagnostic {
+	return Diagnostic{
+		Severity: severity,
+		Code:     code,
+		Message:  message,
+		File:     file,
+		Line:     r.diagnosticLine(file, resource),
+		Resource: resource,
+		Hint:     diagnosticHint(code),
+	}
+}
+
+func (r *Result) diagnosticLine(file, resource string) int {
+	if r.lineIndex == nil || file == "" || resource == "" {
+		return 0
+	}
+	if line, ok := r.lineIndex[diagKey(file, resource)]; ok {
+		return line
+	}
+	return 0
+}
+
+func diagKey(file, resource string) string {
+	return file + "\x00" + resource
+}
+
+func diagnosticHint(code string) string {
+	switch code {
+	case "CONFIG_VERSION_MISSING":
+		return "Add `config_version: 1` to fs_project.yml."
+	case "PROJECT_NAME_REQUIRED":
+		return "Add a non-empty `name` to fs_project.yml."
+	case "PROJECT_NAME_INVALID", "SOURCE_NAME_INVALID", "SOURCE_ARTIFACT_NAME_INVALID", "ARTIFACT_NAME_INVALID", "ASSET_NAME_INVALID", "POLICY_NAME_INVALID", "EVAL_NAME_INVALID", "TRANSFORM_NAME_INVALID":
+		return "Use a name that starts with a letter and contains only letters, numbers, and underscores."
+	case "ARTIFACT_TYPE_REQUIRED", "ARTIFACT_TYPE_UNSUPPORTED":
+		return "Use a supported artifact type from docs/schema-and-versioning-spec.md."
+	case "ARTIFACT_PATH_REQUIRED":
+		return "Add `path:` under the artifact or transform output."
+	case "PATH_OUTSIDE_ARTIFACT_PATH":
+		return "Move the output under `artifact_path` or update artifact_path in fs_project.yml."
+	case "SOURCE_PATH_MISSING":
+		return "Create the source file/directory or update the source `path:`."
+	case "ASSET_PATH_MISSING":
+		return "Create the asset file or update the asset `path:`."
+	case "REF_UNRESOLVED":
+		return "Build or declare an upstream artifact with this name, or correct the `ref:` value."
+	case "SOURCE_REF_UNRESOLVED", "SOURCE_REF_INVALID":
+		return "Use `source: source_name.artifact_name` and ensure the source artifact exists."
+	case "ASSET_REF_UNRESOLVED":
+		return "Declare the asset in an assets YAML file or correct the `ref:` value."
+	case "EVAL_REF_UNRESOLVED":
+		return "Declare the eval in an evals YAML file or remove it from the transform."
+	case "POLICY_REF_UNRESOLVED":
+		return "Declare the policy in a policies YAML file or correct the policy name."
+	case "TRANSFORM_RUNNER_REQUIRED", "RUNNER_UNDECLARED":
+		return "Declare the runner in fs_project.yml or install a runner discoverable by fbt."
+	case "TRANSFORM_INPUTS_REQUIRED":
+		return "Add at least one `inputs:` entry using `source:` or `ref:`."
+	case "TRANSFORM_OUTPUTS_REQUIRED":
+		return "Add at least one `outputs:` entry."
+	case "INPUT_REFERENCE_INVALID":
+		return "Each input must declare exactly one of `source:` or `ref:`."
+	default:
+		return ""
+	}
 }
 
 func (r Result) hasErrors() bool {

@@ -10,11 +10,13 @@ const (
 )
 
 type Diagnostic struct {
-	Severity Severity
-	Code     string
-	Message  string
-	File     string
-	Resource string
+	Severity Severity `json:"severity"`
+	Code     string   `json:"code"`
+	Message  string   `json:"message"`
+	File     string   `json:"file,omitempty"`
+	Line     int      `json:"line,omitempty"`
+	Resource string   `json:"resource,omitempty"`
+	Hint     string   `json:"hint,omitempty"`
 }
 
 type DiagnosticsError struct {
@@ -52,6 +54,7 @@ type Result struct {
 	Runners    []config.RunnerConfig
 
 	Diagnostics []Diagnostic
+	lineIndex   map[string]int
 }
 
 type Source struct {

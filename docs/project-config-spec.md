@@ -8,6 +8,10 @@ Audience: authors of `fbt` project YAML files
 
 An `fbt` project is defined by `fs_project.yml` and resource YAML files. Users declare filesystem artifacts, dependencies, runners, transform assets, policies, evals, and review requirements. `fbt` core parses these files into a manifest and delegates execution to external runners.
 
+`fbt parse` diagnostics are intended for authoring. They include a stable
+diagnostic code, file, line when fbt can locate the resource in YAML, resource
+name, and an actionable hint for common fixes.
+
 ## 2. Naming Policy
 
 Canonical field names use `snake_case`.

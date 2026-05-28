@@ -117,6 +117,13 @@ func TestParseProjectRejectsUnresolvedRefs(t *testing.T) {
 	assertDiagnostic(t, result.Diagnostics, "REF_UNRESOLVED")
 	assertDiagnostic(t, result.Diagnostics, "ASSET_REF_UNRESOLVED")
 	assertDiagnostic(t, result.Diagnostics, "EVAL_REF_UNRESOLVED")
+	diagnostic := findDiagnostic(t, result.Diagnostics, "REF_UNRESOLVED")
+	if diagnostic.Line == 0 {
+		t.Fatalf("expected line-oriented diagnostic, got %+v", diagnostic)
+	}
+	if diagnostic.Hint == "" {
+		t.Fatalf("expected actionable hint, got %+v", diagnostic)
+	}
 }
 
 func writeValidProject(t *testing.T) string {
@@ -203,12 +210,18 @@ func writeFile(t *testing.T, root, relative, content string) {
 
 func assertDiagnostic(t *testing.T, diagnostics []Diagnostic, code string) {
 	t.Helper()
+	_ = findDiagnostic(t, diagnostics, code)
+}
+
+func findDiagnostic(t *testing.T, diagnostics []Diagnostic, code string) Diagnostic {
+	t.Helper()
 	for _, diagnostic := range diagnostics {
 		if diagnostic.Code == code {
-			return
+			return diagnostic
 		}
 	}
 	t.Fatalf("expected diagnostic %s, got %+v", code, diagnostics)
+	return Diagnostic{}
 }
 
 func TestParseProjectReturnsDiagnosticsError(t *testing.T) {

@@ -188,6 +188,9 @@ func TestRunParseMissingConfigVersion(t *testing.T) {
 	if !strings.Contains(stderr.String(), "CONFIG_VERSION_MISSING") {
 		t.Fatalf("expected config version diagnostic, got %q", stderr.String())
 	}
+	if !strings.Contains(stderr.String(), "hint: Add `config_version: 1`") {
+		t.Fatalf("expected config version hint, got %q", stderr.String())
+	}
 }
 
 func TestRunStateAndArtifactCommands(t *testing.T) {

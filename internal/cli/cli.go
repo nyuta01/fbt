@@ -1817,7 +1817,18 @@ func printParseError(err error, diagnostics []parser.Diagnostic, stderr io.Write
 	}
 	fmt.Fprintf(stderr, "Error: %v\n", err)
 	for _, diagnostic := range diagnostics {
-		fmt.Fprintf(stderr, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
+		location := diagnostic.File
+		if diagnostic.Line > 0 {
+			location = fmt.Sprintf("%s:%d", location, diagnostic.Line)
+		}
+		if location != "" {
+			fmt.Fprintf(stderr, "  %s: %s (%s)\n", diagnostic.Code, diagnostic.Message, location)
+		} else {
+			fmt.Fprintf(stderr, "  %s: %s\n", diagnostic.Code, diagnostic.Message)
+		}
+		if diagnostic.Hint != "" {
+			fmt.Fprintf(stderr, "    hint: %s\n", diagnostic.Hint)
+		}
 	}
 }
 

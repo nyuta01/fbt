@@ -141,6 +141,10 @@ Main steps:
 - Validate the project
 - Write `.fbt/state/manifest.json`
 
+Parse errors exit with code `2`. Human output includes a stable diagnostic
+code, message, file, line where available, and a `hint:` line for common YAML
+authoring fixes. JSON output includes the diagnostic array.
+
 ### 5.3 fbt plan
 
 Compare current manifest and state to show what will run.

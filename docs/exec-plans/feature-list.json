@@ -785,14 +785,14 @@
       "id": "FBT-UX-006",
       "title": "Improve project validation and YAML authoring diagnostics",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-001",
         "FBT-MVP-006",
         "FBT-MVP-014"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-006-plan.md",
       "paths": [
         "internal/cli",
         "internal/config",
@@ -802,9 +802,9 @@
         "docs/usage-guide.md"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "validate_docs": false
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
       "notes": "Strengthen `fbt parse`/validation output with line-oriented, actionable YAML diagnostics and consider narrow scaffolding for new transforms. User research analogs: Terraform validate, kubectl explain, and dbt parse/debug reduce config-authoring ambiguity before execution."
     },
