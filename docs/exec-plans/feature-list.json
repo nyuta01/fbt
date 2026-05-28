@@ -1598,6 +1598,30 @@
       "notes": "Adds representative source record content, response-log content, transform YAML, required output sections, output path, and fbt lineage responsibility to the README's concrete support manual example before showing commands."
     },
     {
+      "id": "FBT-DOCS-UX-006",
+      "title": "Simplify README mental model",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-005"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-006-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-006-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Reframes README around the core user model: sources plus instructions plus an external runner produce a generated artifact plus a local build receipt. The support example now starts from the support lead's problem, shows the non-reusable evidence, generated manual, receipt, controlled process, and then the recipe/commands."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

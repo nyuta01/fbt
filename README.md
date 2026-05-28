@@ -11,71 +11,98 @@
 <a href="https://github.com/nyuta01/fbt/actions/workflows/verify.yml"><img alt="verify" src="https://img.shields.io/github/actions/workflow/status/nyuta01/fbt/verify.yml?branch=main&label=verify"></a>
 </p>
 
-`fbt` is a local-first file build tool for turning operational evidence into
-reviewed, traceable knowledge artifacts.
+`fbt` is a build tool for files generated from other files.
 
-Use it when source material already exists as files and the output is produced
-by an LLM, agent, script, or provider runner:
-
-- incident logs and response notes to an approved incident runbook
-- support tickets and reply logs to a support resolution manual
-- investigation notes to a repeatable operating procedure
-- raw case records to reviewed summaries and weekly insights
-
-fbt does not generate the content by itself. It gives external runners a
-controlled workflow: declare inputs, plan work, run the runner, version the
-output, require review, inspect lineage, and export standard records.
-
-## Why fbt Exists
-
-AI-generated operational documents are hard to trust if the workflow only
-produces a loose Markdown file. A reviewer needs to know:
-
-- which source files were used
-- which prompt, style guide, policy, and runner produced the output
-- whether required checks passed
-- whether a human approved the exact generated version
-- what downstream files depended on that approved version
-- how to export lineage or traces into standard tools
-
-fbt is the local control plane around that process. The model or agent can be
-OpenAI, Claude Code, Codex, Gemini, a shell script, or an internal tool, as long
-as it is exposed through a compatible runner.
-
-## Concrete Example
-
-Suppose a support team wants to turn resolved tickets and agent response logs
-into an official support resolution manual.
-
-The example project is `examples/support_resolution_manual/`:
+The simplest mental model is:
 
 ```text
-data/support/tickets/*.jsonl          customer inquiries
-data/support/response_logs/*.md       agent handling notes
-data/reference/product_docs/*.md      product facts
-data/reference/macros/*.md            approved customer language
-assets/*.md                           prompt, format, style guide, rubric
-transforms/support/manual.yml         output and runner definition
+sources + instructions + runner -> artifact + build receipt
 ```
 
-One source record looks like this:
+- `sources` are files your team already has: logs, tickets, notes, product
+  docs, approved replies.
+- `instructions` say what to create: prompt, required format, style guide,
+  checks, review rule.
+- `runner` is the external worker: OpenAI, Claude Code, Codex, Gemini, a script,
+  or an internal command.
+- `artifact` is the generated file under `target/artifacts`.
+- `build receipt` is fbt's local record of the exact inputs, runner, output
+  version, checks, approval, and lineage.
 
-```json
-{"ticket_id":"SUP-10437","topic":"billing","summary":"Customer asks why seat count increased after SSO group sync","customer_impact":"unexpected invoice estimate","resolution_status":"resolved"}
+Use fbt when the generated file must be reproducible, reviewable, and
+explainable. Do not use it as a chat UI, CMS, ticket system, hosted knowledge
+base, scheduler, or LLM provider.
+
+## What It Solves
+
+Without fbt, an LLM-generated manual or runbook is usually just a file. A
+reviewer cannot easily answer:
+
+- What source files was this based on?
+- Which prompt and format rules were used?
+- Which runner and model produced this version?
+- Was this exact version reviewed?
+- What should be rebuilt if an input changes?
+
+fbt answers those questions by treating generated files like build outputs.
+
+## Example: Turn Cases Into A Manual
+
+A support lead has a practical problem:
+
+> We solved the same SSO billing question several times. I want one approved
+> procedure that the next agent can use, and I want to know which tickets and
+> notes the procedure came from.
+
+The source files already contain the answer, but not in a reusable form:
+
+```text
+ticket SUP-10437
+  Customer asks why seat count increased after SSO group sync.
+
+response log
+  Confirm SSO group sync, compare the IdP billing group with workspace members,
+  explain that removed users stop counting after the next sync.
+
+product doc
+  Billable seats follow synced group membership.
 ```
 
-One response log says what worked:
+fbt turns those files into this kind of artifact:
 
-```md
-## Agent Steps That Worked
+```text
+target/artifacts/support/support_resolution_manual.md
 
-1. Confirm the workspace has SSO group sync enabled.
-2. Ask the admin to compare the identity provider billing group with the workspace member list.
-3. Explain that removing users from the billing group takes effect after the next sync.
-4. Escalate billing disputes when the customer reports a mismatch after sync.
+Manual sections:
+- when to use this procedure
+- intake checklist
+- triage steps
+- resolution procedure
+- escalation rule
+- customer response template
+- source evidence
 ```
 
-The transform declares the conversion:
+And fbt keeps the receipt for that generated file:
+
+```text
+sources: tickets, response logs, product docs, approved macros
+instructions: prompt, manual format, style guide, evidence checklist
+runner: openai.responses / gpt-5
+review: support_leads approved this exact artifact version
+lineage: this manual came from these files and this runner invocation
+```
+
+In plain terms, fbt does not answer the support question itself. It makes the
+generation process controlled:
+
+1. declare which files are allowed as evidence
+2. declare what the runner must create
+3. run the external worker
+4. store the generated manual as a versioned artifact
+5. require review before that version becomes trusted
+
+The transform is the recipe for that process:
 
 ```yaml
 name: support_resolution_manual
@@ -85,115 +112,65 @@ inputs:
   - source: support.response_logs
   - source: reference.product_docs
   - source: reference.approved_macros
-outputs:
-  - path: target/artifacts/support/support_resolution_manual.md
 assets:
   - ref: support_resolution_prompt
   - ref: support_resolution_manual_format
-  - ref: support_manual_style_guide
-policy: support_manual_generation_scope
-evals:
-  - required_support_manual_sections
+outputs:
+  - path: target/artifacts/support/support_resolution_manual.md
 review:
   required: true
   group: support_leads
 ```
 
-The format asset requires the generated manual to contain sections such as
-`Audience`, `When to Use`, `Intake Checklist`, `Triage`,
-`Resolution Procedure`, `Escalation`, `Customer Response Templates`, and
-`Source Evidence`.
+The checked-in support example is a real runner workflow, so `build` requires
+the configured runner and credentials. The quickstart below uses demo runners.
 
-Run the workflow:
+The commands are the user workflow:
 
 ```bash
-fbt parse --project-dir examples/support_resolution_manual
-fbt doctor --project-dir examples/support_resolution_manual
 fbt plan --project-dir examples/support_resolution_manual --select support_resolution_manual
 fbt build --project-dir examples/support_resolution_manual --select support_resolution_manual
 fbt review show support_resolution_manual --project-dir examples/support_resolution_manual
 fbt review approve support_resolution_manual \
   --project-dir examples/support_resolution_manual \
   --comment "Support lead approved"
-
-fbt docs generate --project-dir examples/support_resolution_manual
 fbt artifact history support_resolution_manual --project-dir examples/support_resolution_manual
 ```
 
-In this example, the runner writes:
+`plan` shows what will happen, `build` calls the runner, `review show` lets a
+lead inspect the generated manual, `review approve` records approval for that
+exact version, and `artifact history` shows how the current manual was made.
 
-```text
-target/artifacts/support/support_resolution_manual.md
-```
+## Other Fit Cases
 
-fbt records which source files, assets, policy, eval, runner, model, artifact
-version, and approval produced that file.
+The same shape applies to:
 
-In this flow, fbt is responsible for:
-
-| Step | What fbt does |
+| Source files | Artifact |
 |---|---|
-| `parse` | Reads `fs_project.yml`, sources, transforms, assets, policies, and evals. |
-| `doctor` | Checks local state, runner command readiness, env requirements, and protocol capabilities. |
-| `plan` | Explains what will run, skip, or block before any output is created. |
-| `build` | Calls the configured runner and commits the candidate output as an immutable artifact version. |
-| `review` | Binds approval to the exact artifact version, not just a path. |
-| `artifact` | Shows where the file came from, what produced it, and what version is current. |
-| `docs/export` | Writes local project docs, OpenLineage events, and OTLP/JSON traces. |
-
-## What You Can Do Today
-
-- Define a file-based transformation project in YAML.
-- Use deterministic demo runners for local smoke tests.
-- Use external runners for provider-backed work, including OpenAI or CLI-agent
-  adapters that speak the fbt runner protocol.
-- Build Markdown artifacts into `target/artifacts`.
-- Store immutable generated versions under `.fbt/artifacts`.
-- Gate downstream transforms on reviewed artifact versions.
-- Inspect lineage locally with `artifact path`, `artifact history`, and
-  `artifact explain`.
-- Generate local project docs with `fbt docs generate`.
-- Export OpenLineage NDJSON and OTLP/JSON traces for existing lineage and
-  observability tools.
+| incident logs plus response notes | incident response runbook |
+| investigation notes | standard operating procedure |
+| raw case records | reviewed summaries and weekly insights |
 
 ## Try It Locally
 
-The quickstart is a small offline fixture. It is useful for checking that the
-control plane works before wiring a real runner.
+The quickstart uses deterministic demo runners, so it works without provider
+credentials:
 
 ```bash
 fbt init knowledge_ops --template support
-fbt parse --project-dir knowledge_ops
-fbt doctor --project-dir knowledge_ops
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries
 fbt review approve case_summaries --project-dir knowledge_ops --comment "Reviewed locally"
-fbt build --project-dir knowledge_ops --select weekly_support_insights
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
 
-The full command transcript and generated files are in the
-[quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).
-
-## Boundaries
-
-fbt core does not implement LLM providers, agent runtimes, OCR, document
-conversion, a scheduler, daemon, metadata database, hosted UI, CMS, knowledge
-base, ticket system, or document editor. Those capabilities stay outside core;
-fbt coordinates them through external runners and records what happened
-locally.
+The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx).
 
 ## Install
 
 Download the current macOS, Linux, or Windows archive from
-[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0) and
-verify it:
-
-```bash
-shasum -a 256 -c SHA256SUMS
-```
-
-Or build from source:
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0), or build
+from source:
 
 ```bash
 git clone https://github.com/nyuta01/fbt.git
@@ -204,16 +181,4 @@ make build
 
 ## Documentation
 
-Start with the [usage guide](docs/usage-guide.md),
-[manual generation guide](apps/docs/src/content/docs/get-started/manual-generation.mdx),
-and [CLI reference](docs/cli-reference.md). Core contracts are the
-[design doc](docs/design-doc.md), [core spec](docs/spec.md),
-[project config spec](docs/project-config-spec.md),
-[schema/versioning spec](docs/schema-and-versioning-spec.md),
-[runner discovery spec](docs/runner-discovery-spec.md),
-[runner protocol spec](docs/runner-protocol-spec.md),
-[security/conformance spec](docs/security-and-conformance-spec.md), and
-[standard export spec](docs/standard-export-spec.md).
-
-The published docs site is
-[nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).
+Start with the [usage guide](docs/usage-guide.md), [manual generation guide](apps/docs/src/content/docs/get-started/manual-generation.mdx), and [CLI reference](docs/cli-reference.md). Core contracts are the [design doc](docs/design-doc.md), [core spec](docs/spec.md), [schema/versioning spec](docs/schema-and-versioning-spec.md), [runner discovery spec](docs/runner-discovery-spec.md), [runner protocol spec](docs/runner-protocol-spec.md), and [security/conformance spec](docs/security-and-conformance-spec.md). The published docs site is [nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).

@@ -34,6 +34,10 @@ before linking to reference docs.
 The README concrete example now shows representative input content, response
 log content, transform declaration, required manual sections, output path, and
 what fbt records around the external runner.
+The README now leads with the simplified user mental model:
+`sources + instructions + runner -> artifact + build receipt`. Feature breadth
+is pushed into linked docs so the entry point explains the core value before
+details.
 The current verification gate also includes practical example parse/plan smoke,
 docs-site build, deterministic conformance, and local release-binary smoke
 checks. The MVP source default is `0.1.0`, and release builds can stamp
@@ -150,6 +154,12 @@ including why fbt exists, what it can be used for, what fbt owns in a concrete
 workflow, and how a first-time user should try it.
 `FBT-DOCS-UX-005` is complete: README's support manual example now explains
 the files and transform logic before listing the commands.
+`FBT-DOCS-UX-006` is complete: README now explains fbt through the core
+user-facing model, then shows the support manual example as one instance of
+that model instead of trying to enumerate all product surfaces. The example now
+starts from the support lead's problem: prior cases contain the answer, but not
+in a reusable or reviewable form, so fbt turns them into an approved manual plus
+a local build receipt.
 
 ## Verification
 

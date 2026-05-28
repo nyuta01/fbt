@@ -107,6 +107,27 @@ README now explains the example through actual source snippets, response-log
 steps, transform YAML, required manual sections, output path, and fbt's
 lineage/review responsibility before listing commands.
 
+## F-006 README over-explained before teaching the core model
+
+- **Status**: `fixed`
+- **Task**: `FBT-DOCS-UX-006`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-UX-006-plan.md`
+
+### Observation
+
+README improvements kept adding more concrete detail, but the entry point still
+forced first-time readers to assemble the product model from many features and
+examples. The core user value was hidden behind breadth.
+
+### Permanent fix
+
+README now starts from one mental model:
+`sources + instructions + runner -> artifact + build receipt`. The support
+example now starts from the support lead's problem, shows that prior cases
+contain the answer in a non-reusable form, then shows the generated manual,
+receipt, review, and lineage before YAML or commands. Detailed capabilities
+remain in linked docs instead of the README opening.
+
 ## Entry Template
 
 ```markdown
