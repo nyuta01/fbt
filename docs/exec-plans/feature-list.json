@@ -1133,6 +1133,198 @@
       "notes": "Adds first-pass `text_normalized_v1` and `markdown_ast_v1` semantic descriptors for text/Markdown artifacts, persists them on artifact versions, and surfaces them in artifact inspection and generated docs while keeping raw descriptor digests as artifact version identity."
     },
     {
+      "id": "FBT-RUNNER-000",
+      "title": "Capture external runner hardening backlog",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-013",
+        "FBT-AI-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-000-plan.md",
+      "paths": [
+        "docs/exec-plans/feature-list.json",
+        "docs/exec-plans/active/FBT-RUNNER-000-plan.md",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "validate_docs": true
+      },
+      "notes": "Captures the post-MVP runner extensibility gap: fbt core should stay provider/runtime-free, while OpenAI, Claude, Gemini, Codex, Claude Code, and other integrations should be easy to add as out-of-process protocol runners."
+    },
+    {
+      "id": "FBT-RUNNER-001",
+      "title": "Pass complete execution context to protocol runners",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-008",
+        "FBT-MVP-010"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/build",
+        "internal/protocol",
+        "docs/runner-protocol-spec.md",
+        "tests/conformance"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false
+      },
+      "notes": "Populate `fbt/runTransform` with resolved inputs, input artifact versions, descriptors, semantic descriptors, transform assets, runner config, prior state, and dirty/review context so external runners do not need to parse fbt project files themselves."
+    },
+    {
+      "id": "FBT-RUNNER-002",
+      "title": "Harden runner process invocation with args, env, and cwd",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-007",
+        "FBT-MVP-008"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/config",
+        "internal/runner",
+        "internal/protocol",
+        "internal/cli",
+        "docs/project-config-spec.md",
+        "docs/runner-discovery-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Add runner `args`, explicit working directory behavior, declared environment passthrough, missing-env diagnostics, and tests so wrappers for provider CLIs and SDK adapters can be configured without shell scripts or accidental credential exposure."
+    },
+    {
+      "id": "FBT-RUNNER-003",
+      "title": "Enforce runner capability negotiation in doctor and build",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-007",
+        "FBT-MVP-008"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/runner",
+        "internal/cli",
+        "internal/build",
+        "docs/runner-discovery-spec.md",
+        "tests/conformance"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false
+      },
+      "notes": "Make `initialize` capabilities authoritative: reject incompatible protocol versions, missing transform types, missing artifact types, missing output-candidate support, or required event/usage capabilities before running transforms when possible."
+    },
+    {
+      "id": "FBT-RUNNER-004",
+      "title": "Define safe CLI-agent adapter contract for Codex and Claude Code",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-011",
+        "FBT-RUNNER-001",
+        "FBT-RUNNER-002"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/runner-protocol-spec.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/usage-guide.md",
+        "tests/conformance"
+      ],
+      "verification": {
+        "conformance": false,
+        "validate_docs": false
+      },
+      "notes": "Specify how agent CLI wrappers run existing tools such as Codex or Claude Code in a staging workspace, avoid direct writes to managed artifacts, redact tool-call payloads, and return only declared output candidates for fbt core to commit."
+    },
+    {
+      "id": "FBT-RUNNER-005",
+      "title": "Add runner authoring kit and protocol conformance fixtures",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-001",
+        "FBT-RUNNER-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/runner-authoring-guide.md",
+        "tests/runner-conformance",
+        "scripts",
+        "docs/runner-protocol-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false
+      },
+      "notes": "Provide golden JSONL protocol fixtures, a reusable runner conformance check, and a minimal authoring guide so Python, TypeScript, Go, Rust, or shell runners can be implemented without reverse-engineering fbt internals."
+    },
+    {
+      "id": "FBT-RUNNER-006",
+      "title": "Clarify demo runners and external runner UX",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-014",
+        "FBT-RUNNER-000"
+      ],
+      "plan_url": null,
+      "paths": [
+        "runners",
+        "internal/templates",
+        "README.md",
+        "docs/usage-guide.md",
+        "docs/cli-reference.md",
+        "docs/runner-discovery-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "e2e_smoke": false,
+        "validate_docs": false
+      },
+      "notes": "Make local deterministic LLM/agent runners visibly demo-only, document the shortest path to replace them with external runners, and consider template flags or naming that distinguish `demo` from provider-backed `external` runner setups."
+    },
+    {
+      "id": "FBT-RUNNER-007",
+      "title": "Define optional provider adapter packaging outside core",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-005"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/runner-adapters.md",
+        "docs/runner-discovery-spec.md",
+        "docs/project-config-spec.md"
+      ],
+      "verification": {
+        "validate_docs": false
+      },
+      "notes": "Document package and plugin-manifest conventions for optional adapters such as `fbt-runner-openai`, `fbt-runner-anthropic`, `fbt-runner-gemini`, `fbt-runner-codex-cli`, and `fbt-runner-claude-code` without adding provider SDKs to fbt core."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

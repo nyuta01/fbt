@@ -34,6 +34,11 @@ direct `export openmetadata` command, and any OpenMetadata-specific publisher
 belongs outside core.
 `make real-llm-smoke` is available as an opt-in external runner smoke gated by
 `FBT_REAL_LLM_RUNNER_COMMAND`; it is intentionally outside `make verify`.
+External runner extensibility has a dedicated backlog under `FBT-RUNNER-*`.
+The backlog keeps provider SDKs and agent runtimes outside fbt core while
+hardening the protocol payload, process invocation, capability validation,
+safe CLI-agent adapter contract, runner authoring fixtures, demo-runner UX, and
+optional provider adapter packaging.
 The CLI command surface is now closed around implemented commands; `run` and
 `debug` placeholders were removed from help and user docs.
 The conformance gate now covers schema failures, clean reruns, docs/export
@@ -53,11 +58,11 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
-The practical local MVP and unblocked post-MVP hardening tasks are complete.
-Remaining tracked work is release publication. `FBT-REL-002` is blocked on
-maintainer release credentials and signing setup: no Git remote, signing config,
-or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
-release baseline exists.
+The practical local MVP is complete. Remaining tracked work is release
+publication plus the newly captured external runner hardening backlog.
+`FBT-REL-002` is blocked on maintainer release credentials and signing setup:
+no Git remote, signing config, or `v0.1.0` tag is present locally.
+`FBT-REL-003` is blocked until that signed release baseline exists.
 
 ## Verification
 
@@ -85,14 +90,17 @@ This runs:
 2. Complete maintainer-owned `FBT-REL-002` when release credentials and signing
    setup are available; otherwise continue with the next unblocked P0 agent
    task.
-3. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
+3. Start external runner hardening with `FBT-RUNNER-001`, then proceed through
+   process invocation, capability validation, safe CLI-agent adapters, authoring
+   fixtures, demo-runner UX, and optional provider adapter packaging.
+4. Keep OpenMetadata integration on the OpenLineage ingestion path unless a
    future optional publisher is explicitly requested outside core.
-4. Keep fbt-native state as the internal source of truth and delegate graph,
+5. Keep fbt-native state as the internal source of truth and delegate graph,
    trace, and catalog visualization to standard-compatible tools where
    possible.
-5. Keep expanding the Go CLI only when a task has a spec-backed acceptance
+6. Keep expanding the Go CLI only when a task has a spec-backed acceptance
    criterion.
-6. Keep `make verify` green after each bounded task.
+7. Keep `make verify` green after each bounded task.
 
 ## Notes For Next Agent
 
