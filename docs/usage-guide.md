@@ -127,6 +127,17 @@ such as "all expected files arrived", "batch marker exists", or "source export
 completed". fbt can tell that a file set changed; it does not decide when the
 business batch is complete.
 
+Use `--force` only when you intentionally want to regenerate selected clean
+artifacts:
+
+```sh
+fbt plan --select daily_qa_candidates --force
+fbt build --select daily_qa_candidates --force
+```
+
+Force is not a cache engine and does not bypass upstream, confidence, policy,
+or output-boundary checks.
+
 ## 6. Existing Tool Composition
 
 Use `type: command` transforms when an existing CLI already does the work.

@@ -56,6 +56,17 @@ func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
 	if second.Plan.Summary.Skipped != 1 {
 		t.Fatalf("expected clean second run to skip, got %+v", second.Plan.Summary)
 	}
+
+	forced, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test", Force: true})
+	if err != nil {
+		t.Fatalf("run forced build: %v", err)
+	}
+	if forced.Plan.Summary.Run != 1 || len(forced.Runs) != 1 {
+		t.Fatalf("expected forced clean build to run, got plan=%+v runs=%+v", forced.Plan.Summary, forced.Runs)
+	}
+	if len(forced.Plan.Nodes) != 1 || !contains(forced.Plan.Nodes[0].DirtyReasons, "forced rebuild") {
+		t.Fatalf("expected forced rebuild dirty reason, got %+v", forced.Plan.Nodes)
+	}
 }
 
 func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
@@ -454,6 +465,15 @@ func repoRoot(t *testing.T) string {
 
 func shellQuote(value string) string {
 	return "'" + value + "'"
+}
+
+func contains(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }
 
 func writeFile(t *testing.T, root, relative, content string) {

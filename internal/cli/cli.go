@@ -520,7 +520,8 @@ func parseInitArgs(args []string) (initOptions, error) {
 }
 
 func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := expectNoArgs("build", args); err != nil {
+	buildOpts, err := parseBuildArgs(args)
+	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
@@ -528,6 +529,7 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		ProjectDir: opts.ProjectDir,
 		StateDir:   opts.StateDir,
 		Select:     opts.Select,
+		Force:      buildOpts.Force,
 		FBTVersion: versioninfo.Version,
 	})
 	if err != nil {
@@ -564,6 +566,26 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		return 3
 	}
 	return 0
+}
+
+type buildOptions struct {
+	Force bool
+}
+
+func parseBuildArgs(args []string) (buildOptions, error) {
+	opts := buildOptions{}
+	for _, arg := range args {
+		switch arg {
+		case "--force":
+			opts.Force = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				return buildOptions{}, fmt.Errorf("unknown build flag: %s", arg)
+			}
+			return buildOptions{}, fmt.Errorf("build accepts no arguments")
+		}
+	}
+	return opts, nil
 }
 
 func isSelectionError(err error) bool {
@@ -826,7 +848,8 @@ func loadProject(opts options) (projectContext, error) {
 }
 
 func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) int {
-	if err := expectNoArgs("plan", args); err != nil {
+	planOpts, err := parsePlanArgs(args)
+	if err != nil {
 		fmt.Fprintf(stderr, "Error: %v\n", err)
 		return 2
 	}
@@ -852,7 +875,7 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		printError("plan", err, stderr, opts.JSON)
 		return 2
 	}
-	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected})
+	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: planOpts.Force})
 	if opts.JSON {
 		writeJSON(stdout, map[string]any{"command": "plan", "status": "success", "summary": plan.Summary, "nodes": plan.Nodes})
 		return 0
@@ -862,6 +885,26 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		printPlanNode(stdout, node)
 	}
 	return 0
+}
+
+type planOptions struct {
+	Force bool
+}
+
+func parsePlanArgs(args []string) (planOptions, error) {
+	opts := planOptions{}
+	for _, arg := range args {
+		switch arg {
+		case "--force":
+			opts.Force = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				return planOptions{}, fmt.Errorf("unknown plan flag: %s", arg)
+			}
+			return planOptions{}, fmt.Errorf("plan accepts no arguments")
+		}
+	}
+	return opts, nil
 }
 
 func printPlanNode(stdout io.Writer, node planner.Node) {

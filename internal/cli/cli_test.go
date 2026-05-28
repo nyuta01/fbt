@@ -250,6 +250,20 @@ func TestRunPlanJSON(t *testing.T) {
 	}
 }
 
+func TestRunPlanForceShowsForcedRebuild(t *testing.T) {
+	root := writeCLIProject(t)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := Run([]string{"plan", "--project-dir", root, "--force"}, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "reason: forced rebuild") {
+		t.Fatalf("expected forced rebuild reason, got %q", stdout.String())
+	}
+}
+
 func TestRunPlanMissingConfigVersion(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "fs_project.yml", "name: demo\n")

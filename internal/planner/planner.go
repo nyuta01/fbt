@@ -23,6 +23,7 @@ type Inputs struct {
 	PreviousManifest *manifest.Manifest
 	State            state.Snapshot
 	Selected         map[string]struct{}
+	Force            bool
 }
 
 type Plan struct {
@@ -161,6 +162,9 @@ func blockedReasons(transform manifest.TransformResource, snapshot state.Snapsho
 
 func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs) []string {
 	reasons := map[string]struct{}{}
+	if inputs.Force {
+		reasons["forced rebuild"] = struct{}{}
+	}
 	for _, output := range transform.Outputs {
 		if _, ok := inputs.State.CurrentArtifacts[output.UniqueID]; !ok {
 			reasons["output missing"] = struct{}{}

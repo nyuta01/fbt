@@ -30,6 +30,7 @@ toolbox of debug subcommands.
 ```sh
 fbt plan --project-dir knowledge_ops --select tag:support
 fbt build --project-dir knowledge_ops --select case_summaries --json
+fbt build --project-dir knowledge_ops --select case_summaries --force
 ```
 
 Common flags:
@@ -38,3 +39,4 @@ Common flags:
 - `--state-dir PATH`
 - `--select EXPR`
 - `--json`
+- `--force` for `plan` and `build`

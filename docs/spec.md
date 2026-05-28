@@ -279,6 +279,13 @@ changes:
 - Missing output
 - Forced rebuild
 
+The cache model is intentionally small. By default, fbt skips a transform when
+the latest successful run fingerprint and current outputs are still valid.
+`fbt plan --force` previews selected clean transforms as dirty with
+`forced rebuild`, and `fbt build --force` regenerates selected transforms. Force
+does not bypass upstream artifact requirements, confidence requirements, policy
+checks, or output-candidate boundaries.
+
 For local file, directory, and glob sources, the source fingerprint includes
 the resolved file set and file content fingerprints. Adding, removing, or
 changing a file under a declared source path makes dependent transforms dirty.

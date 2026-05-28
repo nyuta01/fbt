@@ -33,7 +33,9 @@ writes, and `build` handles runner execution, evals, state writes, and artifact
 receipts. CLI argument handling is strict: unknown flags, extra arguments, and
 selectors that match no transforms fail instead of being ignored. Graph
 selectors support `+target`, `target+`, and `+target+` around normal selector
-expressions.
+expressions. `plan --force` previews deliberate rebuilds with `reason: forced
+rebuild`; `build --force` runs selected clean transforms without bypassing
+upstream, confidence, policy, or output-boundary checks.
 
 Docs and examples are aligned with the simpler model:
 
@@ -77,6 +79,10 @@ Graph selection now supports `+target`, `target+`, and `+target+` for
 upstream, downstream, and bidirectional transform expansion. Both `plan` and
 `build` share the same graph selection path.
 
+Explicit rebuild control is intentionally one bit: `--force` on `plan` and
+`build`. There is no general cache engine, cache invalidation subcommand, or
+full-refresh concept in core.
+
 Specs and active plans have been cleaned up so current-state docs use
 artifact inspection, confidence/upstream blocking, docs-site build, and
 OpenLineage/OTel export language. Remaining review/approval command references
@@ -117,7 +123,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-008` to define explicit rebuild and cache controls.
+1. Run `FBT-UNIX-009` to keep semantic evaluation outside core.
 2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
 3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.

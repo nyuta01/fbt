@@ -36,6 +36,14 @@ grep -q "Plan: 2 selected, 1 run, 1 skipped, 0 blocked" "$tmpdir/plan-downstream
 grep -q "skip transform.knowledge_ops.case_summaries" "$tmpdir/plan-downstream.txt"
 grep -q "run transform.knowledge_ops.weekly_support_insights" "$tmpdir/plan-downstream.txt"
 
+"$fbt_bin" plan --project-dir "$project" --select case_summaries --force >"$tmpdir/plan-force.txt"
+grep -q "Plan: 1 selected, 1 run, 0 skipped, 0 blocked" "$tmpdir/plan-force.txt"
+grep -q "reason: forced rebuild" "$tmpdir/plan-force.txt"
+
+"$fbt_bin" build --project-dir "$project" --select case_summaries --force >"$tmpdir/build-case-force.txt"
+grep -q "Build: 1 selected, 1 run, 0 skipped, 0 blocked" "$tmpdir/build-case-force.txt"
+grep -q "committed:" "$tmpdir/build-case-force.txt"
+
 "$fbt_bin" artifact path case_summaries --project-dir "$project" >"$tmpdir/artifact-path.txt"
 grep -q "logical_path: target/artifacts/support/case_summaries" "$tmpdir/artifact-path.txt"
 grep -q "storage_path: .fbt/artifacts/" "$tmpdir/artifact-path.txt"

@@ -1927,13 +1927,13 @@
       "id": "FBT-UNIX-008",
       "title": "Define explicit rebuild and cache controls",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-005",
         "FBT-UNIX-000"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-008-plan.md",
       "paths": [
         "internal/planner",
         "internal/build",
@@ -1946,7 +1946,7 @@
         "cli_smoke": true,
         "make_verify": true
       },
-      "notes": "Add a small, explicit model for when fbt skips, rebuilds, or forces regeneration. Evaluate `--force` or `--full-refresh` style controls without adding a general-purpose cache engine."
+      "notes": "Added `plan --force` and `build --force` as the minimal explicit rebuild control. Force marks selected clean transforms dirty with `forced rebuild`, does not bypass blocking or policy checks, and reuses existing immutable artifact versions for identical output."
     },
     {
       "id": "FBT-UNIX-009",

@@ -24,12 +24,18 @@ build work starts.
 `fbt plan` compares the manifest and local state. It reports dirty artifacts,
 clean artifacts, missing upstream artifacts, and skipped work.
 
+Use `fbt plan --force` to preview a deliberate rebuild of selected clean
+transforms. It stays read-only and reports `reason: forced rebuild`.
+
 ## Build
 
 `fbt build` invokes external runners, validates output candidates, records run
 results, commits artifact versions, runs configured evals, and writes the build
 receipt. The command name follows build-tool semantics: declared file inputs
 produce declared file outputs.
+
+Use `fbt build --force` to regenerate selected clean transforms. Force does not
+bypass upstream, confidence, policy, or output-boundary checks.
 
 ## Inspect
 

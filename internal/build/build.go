@@ -28,6 +28,7 @@ type Options struct {
 	ProjectDir string
 	StateDir   string
 	Select     string
+	Force      bool
 	FBTVersion string
 }
 
@@ -109,7 +110,7 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 	if err != nil {
 		return result, err
 	}
-	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected})
+	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: options.Force})
 	result.Plan = plan
 
 	for _, node := range plan.Nodes {
@@ -291,8 +292,17 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		}
 		versionStorageRel := filepath.ToSlash(filepath.Join(".fbt", "artifacts", versionID, "content"))
 		versionStorageAbs := filepath.Join(parseResult.ProjectDir, versionStorageRel)
-		if err := commitPath(candidate.Path, versionStorageAbs); err != nil {
+		artifactVersions, err := store.ReadArtifactVersions()
+		if err != nil {
 			return Run{}, err
+		}
+		existingVersion, versionExists := artifactVersions.ArtifactVersions[versionID]
+		if versionExists {
+			versionStorageRel = existingVersion.StoragePath
+		} else {
+			if err := commitPath(candidate.Path, versionStorageAbs); err != nil {
+				return Run{}, err
+			}
 		}
 		logicalAbs := filepath.Join(parseResult.ProjectDir, output.DeclaredPath)
 		if err := commitPath(candidate.Path, logicalAbs); err != nil {
@@ -314,8 +324,12 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			CreatedAt:          time.Now().UTC().Format(time.RFC3339),
 			CommittedAt:        time.Now().UTC().Format(time.RFC3339),
 		}
-		if err := store.PutArtifactVersion(version); err != nil {
-			return Run{}, err
+		if versionExists {
+			version = existingVersion
+		} else {
+			if err := store.PutArtifactVersion(version); err != nil {
+				return Run{}, err
+			}
 		}
 		snapshot.CurrentArtifacts[output.UniqueID] = state.ArtifactPointer{
 			ArtifactID:       output.UniqueID,

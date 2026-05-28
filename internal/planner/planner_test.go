@@ -43,6 +43,12 @@ func TestBuildSkipsCleanTransform(t *testing.T) {
 		t.Fatalf("expected skip, got %+v", plan.Nodes[0])
 	}
 	assertContains(t, plan.Nodes[0].NextSteps, "fbt artifact show case_summaries")
+
+	forced := Build(Inputs{Manifest: m, State: snapshot, Force: true})
+	if forced.Nodes[0].Action != ActionRun {
+		t.Fatalf("expected forced clean transform to run, got %+v", forced.Nodes[0])
+	}
+	assertContains(t, forced.Nodes[0].DirtyReasons, "forced rebuild")
 }
 
 func TestBuildDetectsManifestDirtyReasons(t *testing.T) {

@@ -118,12 +118,15 @@ Compare current project definitions and state to show what will run. `plan` is
 read-only: it does not start runners, commit artifacts, or write fbt state.
 
 ```sh
-fbt plan [--select EXPR]
+fbt plan [--select EXPR] [--force]
 ```
 
 Shows selected transforms, skipped transforms, dirty reasons, blocked reasons,
 confidence requirements, and next commands. Use `fbt artifact explain TARGET`
 to focus on one artifact.
+
+`--force` is read-only for `plan`: it previews selected clean transforms as
+`run` with `reason: forced rebuild`.
 
 Example:
 
@@ -143,7 +146,7 @@ blocked transform.knowledge_ops.weekly_support_insights
 Produce selected artifacts and write the build receipt.
 
 ```sh
-fbt build [--select EXPR]
+fbt build [--select EXPR] [--force]
 ```
 
 The command is called `build` because fbt treats generated files as build
@@ -156,6 +159,10 @@ Lifecycle:
 ```text
 parse -> plan -> run external runner -> eval -> commit -> write state
 ```
+
+`--force` runs selected transforms even when the normal plan would skip them as
+clean. It does not bypass upstream artifact, confidence, policy, or output
+boundary checks.
 
 ### 5.4 fbt diff
 
