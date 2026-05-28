@@ -16,7 +16,7 @@ other backend in the default gate.
 ## Permanent Fix
 
 The conformance run now injects a redaction marker into source and asset files,
-builds and reviews the support loop, exports OpenLineage and OTel payloads, and
+builds the support loop, exports OpenLineage and OTel payloads, and
 asserts required standard keys, fbt facets, trace/span attributes, runner span
 events, and absence of raw source content or the marker secret.
 

@@ -14,7 +14,7 @@ first changing to the source checkout.
 
 Fix the runner wrapper portability issue and rewrite the entry docs around a
 captured support knowledge loop: exact commands, expected output, generated
-files, artifact excerpts, review behavior, lineage commands, standard export
+files, artifact excerpts, artifact inspection, lineage commands, standard export
 results, and diagrams.
 
 ## Permanent Fix

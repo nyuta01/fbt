@@ -3,7 +3,7 @@
 ## Observation
 
 Current lineage is stored in fbt-native JSON files: `manifest.json`,
-`state.json`, `artifact_versions.json`, run results, eval results, approvals,
+`state.json`, `artifact_versions.json`, run results, eval results,
 and policy decisions. These files include `metadata.fbt_schema_version`, but
 they are not OpenLineage, OpenTelemetry, or OpenMetadata records.
 

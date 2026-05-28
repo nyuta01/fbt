@@ -62,6 +62,11 @@ wrap remark-style and Pandoc-style document tools through the external command
 runner. fbt records the resulting artifact versions and lineage; document
 processing remains outside core.
 
+Specs and active plans have been cleaned up so current-state docs use
+artifact inspection, confidence/upstream blocking, docs-site build, and
+OpenLineage/OTel export language. Remaining review/approval command references
+are explicit outside-core or superseded historical notes.
+
 The checked-in examples cover:
 
 - `examples/knowledge_ops`: offline support knowledge-loop fixture using demo
@@ -93,17 +98,15 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Run `FBT-UNIX-014` to remove stale docs/review/approval references from
-   source-of-truth specs.
-2. Run `FBT-UNIX-005` to add dbt and DataChain interoperability examples.
-3. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-4. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
+1. Run `FBT-UNIX-005` to add dbt and DataChain interoperability examples.
+2. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
+3. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
    core unless implemented as external tooling.
-5. Improve source-window ergonomics and artifact explanations without turning
+4. Improve source-window ergonomics and artifact explanations without turning
    fbt into a scheduler or transform engine.
-6. Keep graph, trace, and catalog visualization on standard-compatible exports
+5. Keep graph, trace, and catalog visualization on standard-compatible exports
    rather than a custom fbt backend.
-7. Add CLI surface only when backed by a spec and verification.
+6. Add CLI surface only when backed by a spec and verification.
 
 ## Notes For Next Agent
 

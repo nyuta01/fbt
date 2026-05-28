@@ -165,8 +165,8 @@ Current executable coverage:
 - runner-declared output candidates outside `work.outputs` fail before output
   commit
 - downstream build succeeds after the upstream artifact exists
-- docs generation succeeds after the build loop
-- docs output does not include the redaction marker
+- docs-site build succeeds after the build loop
+- docs-site output does not include the redaction marker
 - policy-denied output is not committed to the official artifact path
 - prompt/asset changes make dependent transforms dirty again
 - OpenLineage export contains standard event keys and fbt facets without raw

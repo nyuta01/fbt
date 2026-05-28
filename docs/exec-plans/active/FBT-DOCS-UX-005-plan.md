@@ -12,7 +12,7 @@ around the runner execution.
 Keep the README product-focused but make the concrete example self-explanatory:
 show representative source content, response-log content, transform YAML,
 required manual sections, output path, and fbt's responsibility for recording
-source/assets/policy/eval/runner/model/version/approval lineage.
+source/assets/policy/eval/runner/model/version lineage.
 
 ## Permanent Fix
 

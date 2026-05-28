@@ -3,7 +3,7 @@
 ## Observation
 
 Manifest and descriptor primitives exist, but there is no local state backend
-for writing manifest snapshots, artifact version indexes, approvals, eval
+for writing manifest snapshots, artifact version indexes, eval
 results, policy decisions, current-state snapshots, run results, or locks.
 
 ## Decision
@@ -15,7 +15,7 @@ Implement a local filesystem state store:
 - append JSON Lines records to `run_results.jsonl`
 - acquire and release `.lock` files with invocation metadata
 - detect active and stale locks
-- provide typed helpers for state, artifact versions, approvals, evaluation
+- provide typed helpers for state, artifact versions, evaluation
   results, and policy decisions
 
 ## Permanent Fix

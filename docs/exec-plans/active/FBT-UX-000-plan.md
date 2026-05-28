@@ -3,8 +3,8 @@
 ## Observation
 
 The local MVP demo works end to end, but from a user perspective the CLI still
-requires too much inference after blocked/skipped decisions, generated artifact
-discovery, and review approval steps.
+requires too much inference after blocked/skipped decisions and generated
+artifact discovery.
 
 Comparable tools make these flows explicit: DVC exposes status/repro/diff/list
 and artifact access paths, dbt has debug/build/ls/artifact surfaces, Dagster
@@ -19,7 +19,6 @@ Create prioritized post-MVP backlog items for user-facing workflow hardening:
 - actionable next-step guidance for blocked and skipped work
 - artifact explanation for plan decisions
 - artifact path, show, and history commands
-- review show and safer approval guidance
 - top-level project doctor checks
 - stronger YAML validation and authoring diagnostics
 

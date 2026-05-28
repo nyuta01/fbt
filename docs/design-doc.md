@@ -229,7 +229,7 @@ Implemented MVP scope:
 - artifact versions and local state
 - deterministic evals
 - artifact path/show/history/explain
-- docs generation
+- docs-site build and published documentation
 - OpenLineage and OTLP/JSON export
 - smoke, conformance, docs, and distribution checks
 

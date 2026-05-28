@@ -13,8 +13,8 @@ Add `fbt export openlineage [--output PATH]` as an explicit export command. The
 export emits OpenLineage-compatible `RunEvent` records as NDJSON, mapping fbt
 transforms to jobs, transform runs to runs, source/artifact inputs to input
 datasets, and artifact versions to output datasets. fbt-specific descriptor,
-confidence, approval, eval, runner/model, and policy metadata stays in `fbt_`
-custom facets.
+confidence, eval, runner/model, and policy metadata stays in `fbt_` custom
+facets.
 
 ## Permanent Fix
 

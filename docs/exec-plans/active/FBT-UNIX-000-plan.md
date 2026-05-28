@@ -8,14 +8,14 @@ dataset database, document converter, or workflow orchestrator.
 
 The strongest product position is narrower: fbt should be the local-first
 control plane that turns externally generated files into explainable,
-reviewable, versioned artifacts with lineage and build receipts.
+versioned artifacts with lineage and build receipts.
 
 ## Decision
 
 Register a Unix-style backlog that keeps fbt focused on one job:
 
 ```text
-external tools generate files; fbt records, explains, reviews, and exports the
+external tools generate files; fbt records, explains, versions, and exports the
 artifact lifecycle
 ```
 
@@ -26,7 +26,7 @@ document conversion, scheduling, or dataset storage to core.
 ## Permanent Fix
 
 Added `FBT-UNIX-*` tasks to the structured feature list. The tasks make the
-product boundary explicit, improve the core receipt/explain/review UX, define
+product boundary explicit, improve the core receipt/explain UX, define
 daily source-window patterns, and add examples/adapters for existing tools such
 as remark, Pandoc, dbt, and DataChain without expanding fbt core into those
 tools' domains.

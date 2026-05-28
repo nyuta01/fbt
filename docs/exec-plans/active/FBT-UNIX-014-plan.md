@@ -1,7 +1,7 @@
 # FBT-UNIX-014 Remove Stale Non-Core Feature References From Specs
 
-Status: todo  
-Owner: agent  
+Status: done
+Owner: agent
 Updated: 2026-05-29
 
 ## Goal
@@ -25,14 +25,14 @@ versions, and export standard lineage/trace records.
 
 ## Permanent Fix
 
-Planned:
-
-- Audit `docs/spec.md`, `docs/design-doc.md`,
-  `docs/security-and-conformance-spec.md`, `docs/manifest-spec.md`, active
-  plans, and research docs for stale non-core feature claims.
-- Replace built-in docs/review/approval wording with artifact inspection and
-  standard export wording.
-- Keep `validate-docs` and `make verify` green.
+- Audited source-of-truth specs and active plans for stale docs/review/approval
+  wording.
+- Replaced current-state `docs generation`, approvals, review gates, and review
+  command wording with docs-site build, confidence/upstream blocking, artifact
+  inspection, and standard export language.
+- Left explicit "outside core" and "superseded note" references in place where
+  they document removed behavior rather than current behavior.
+- Kept `validate-docs` and `make verify` green.
 
 ## Next Check
 
@@ -42,3 +42,6 @@ Run:
 rg -n "docs generation|docs generate|review gates|approval state|approval facets|fbt parse|fbt eval|fbt state|fbt runner" README.md docs apps/docs/src examples
 make verify
 ```
+
+Expected result: any remaining hits are explicit outside-core or superseded
+historical notes, not current product claims.

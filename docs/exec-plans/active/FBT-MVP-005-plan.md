@@ -4,7 +4,8 @@
 
 The repository can parse resources, build a manifest graph, compute descriptors,
 and persist local state, but it cannot yet decide which transforms should run,
-which are clean, or which are blocked by review/confidence requirements.
+which are clean, or which are blocked by upstream artifact or confidence
+requirements.
 
 ## Decision
 
@@ -15,14 +16,13 @@ Implement a planner baseline:
 - compare a previous manifest when available for source, asset, policy, eval,
   runner, transform config, and model changes
 - report dirty reasons deterministically
-- report blocked reasons for missing inputs, required confidence, and required
-  approval status
+- report blocked reasons for missing inputs and required confidence
 - support a preselected transform ID set for later CLI selector integration
 
 ## Permanent Fix
 
 Added planner tests for missing outputs, clean skips, manifest-driven dirty
-reasons, selected transform sets, and review/confidence blocking.
+reasons, selected transform sets, and upstream/confidence blocking.
 
 ## Next Check
 

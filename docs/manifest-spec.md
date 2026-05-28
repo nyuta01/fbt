@@ -37,7 +37,7 @@ belongs in `.fbt/state/run_results.jsonl` and related state files.
 - Complete tool-call logs
 - Failed attempt history
 - Full eval-result or policy-decision history
-- Human approval state
+- Human workflow approval state
 - Binary artifact content
 
 ## 4. Resource Types

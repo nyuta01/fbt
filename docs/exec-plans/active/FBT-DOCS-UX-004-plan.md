@@ -16,7 +16,7 @@ small quickstart fixture, project structure, boundaries, install, and docs.
 ## Permanent Fix
 
 README now explains fbt as a local-first file build tool for turning
-operational evidence into reviewed, traceable knowledge artifacts. It uses the
+operational evidence into versioned, traceable knowledge artifacts. It uses the
 support resolution manual example to show the intended workflow before listing
 commands and reference docs.
 

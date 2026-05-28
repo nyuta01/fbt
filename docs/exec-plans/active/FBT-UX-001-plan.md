@@ -10,8 +10,7 @@ show the blocked node details.
 
 Add planner-owned `next_steps` so both text and JSON output share the same
 action guidance. Keep the guidance command-based and local-first: build missing
-upstream artifacts, inspect/review/approve pending upstream artifacts, run
-evals when confidence is below a non-review requirement, and inspect skipped
+upstream artifacts, inspect blocked upstream artifacts, and inspect skipped
 artifacts.
 
 ## Permanent Fix

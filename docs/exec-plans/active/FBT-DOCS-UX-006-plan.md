@@ -20,7 +20,7 @@ README opening.
 README now focuses on the user's starting point and outcome: existing files go
 through an external runner and become a generated artifact plus an inspectable
 local receipt. The support example now starts from the support lead's actual
-problem: prior cases contain the answer, but not in a reusable or reviewable
+problem: prior cases contain the answer, but not in a reusable or inspectable
 form. It then shows the generated manual, the receipt, the controlled process,
 and only then the YAML and CLI commands.
 

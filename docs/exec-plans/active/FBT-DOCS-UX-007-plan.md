@@ -11,7 +11,7 @@ step gives the user.
 
 Replace the README example with the simpler incident-response workflow already
 present in the repository: incident logs, response notes, and a postmortem
-become an approved runbook. Remove YAML from the README example and explain the
+become a versioned runbook. Remove YAML from the README example and explain the
 recipe as a small table. For each command, state the result the user gets.
 
 ## Permanent Fix
@@ -19,7 +19,7 @@ recipe as a small table. For each command, state the result the user gets.
 README now explains the example as "incident notes to runbook": existing
 incident evidence becomes a runbook plus a build receipt. The command flow is
 shown one step at a time with the concrete outcome of `plan`, `build`,
-`review`, and `artifact history`.
+`diff`, and `artifact history`.
 
 ## Next Check
 

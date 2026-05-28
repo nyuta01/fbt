@@ -341,9 +341,9 @@ fbt core exposes local build state through a small CLI surface:
 - `fbt export openlineage` for standard lineage event records
 - `fbt export otel` for standard execution trace payloads
 
-Project documentation, catalogs, dashboards, and review UIs should consume those
-files or the `.fbt/state` directory from external tools instead of requiring a
-built-in docs generator.
+Docs sites, catalogs, dashboards, and review UIs should consume those files or
+the `.fbt/state` directory from external tools instead of requiring a built-in
+docs generator.
 
 ## 17. MVP Acceptance Criteria
 

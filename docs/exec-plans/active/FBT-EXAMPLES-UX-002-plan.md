@@ -4,7 +4,7 @@
 
 The practical examples could make a first-time user infer that fbt expects
 JSONL sources and built-in review gates as the default operating model. That is
-not the product model: fbt tracks declared filesystem sources, and approval
+not the product model: fbt tracks declared filesystem sources, and human approval
 belongs outside core.
 
 The daily operations use case also needed a runnable example that starts from

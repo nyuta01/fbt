@@ -3,15 +3,15 @@
 ## Observation
 
 The MVP feature set is implemented behind Go tests and local smokes, but
-security/review conformance and release-binary checks are not yet first-class
+security conformance and release-binary checks are not yet first-class
 verification targets.
 
 ## Decision
 
 Add deterministic gates:
 
-- conformance smoke for policy denial, review blocking, approval unblocking,
-  build, eval, and docs generation
+- conformance smoke for policy denial, upstream/confidence blocking, build,
+  eval, and docs-site build
 - dist check that builds a local release binary and exercises core commands
 - wire both checks into `make verify`
 - update docs and task state to reflect MVP completion

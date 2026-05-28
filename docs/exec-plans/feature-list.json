@@ -121,7 +121,7 @@
         "harness_check": true,
         "validate_docs": true
       },
-      "notes": "Pinned core/runner trust boundary, path safety, approval blocking, and MVP fake-runner conformance scenarios."
+      "notes": "Pinned core/runner trust boundary, path safety, confidence blocking, and MVP fake-runner conformance scenarios."
     },
     {
       "id": "FBT-MVP-001",
@@ -212,7 +212,7 @@
         "conformance": false
       },
       "verification_override_reason": "No conformance target exists yet; local state locking and atomic write behavior is covered by Go tests until the suite is added in FBT-MVP-016.",
-      "notes": "Writes manifest/state/run_results/artifact_versions/approvals/evaluation_results/policy_decisions with schema metadata, lock files, append-only run results, idempotent artifact version writes, and atomic snapshot updates."
+      "notes": "Writes manifest/state/run_results/artifact_versions/evaluation_results/policy_decisions with schema metadata, lock files, append-only run results, idempotent artifact version writes, and atomic snapshot updates."
     },
     {
       "id": "FBT-MVP-005",
@@ -691,7 +691,7 @@
         "cli_smoke": true,
         "validate_docs": true
       },
-      "notes": "Add a user-facing explanation surface such as `fbt explain <artifact>` or `fbt plan --why` that reports why an artifact will run, skip, or block, including upstream dependencies, dirty reasons, approval/confidence constraints, and previous run evidence. User research analogs: Bazel query somepath/allpaths and Dagster asset selection/lineage."
+      "notes": "Add a user-facing explanation surface such as `fbt explain <artifact>` or `fbt plan --why` that reports why an artifact will run, skip, or block, including upstream dependencies, dirty reasons, confidence constraints, and previous run evidence. User research analogs: Bazel query somepath/allpaths and Dagster asset selection/lineage."
     },
     {
       "id": "FBT-UX-003",
@@ -851,7 +851,7 @@
         "validate_docs": true,
         "conformance": true
       },
-      "notes": "Specify the command surface and stable mapping for exporting fbt-native lineage without replacing internal schemas. Cover artifact/artifact_version, transform, transform_run, source, eval, approval, policy, runner/model metadata, redaction rules, JSON output shape, and the explicit non-goal of building a custom lineage graph UI when standard-compatible viewers can consume the export."
+      "notes": "Specify the command surface and stable mapping for exporting fbt-native lineage without replacing internal schemas. Cover artifact/artifact_version, transform, transform_run, source, eval, policy, runner/model metadata, redaction rules, JSON output shape, and the explicit non-goal of building a custom lineage graph UI when standard-compatible viewers can consume the export."
     },
     {
       "id": "FBT-STD-002",
@@ -884,7 +884,7 @@
         "conformance": true,
         "validate_docs": true
       },
-      "notes": "Implements `fbt export openlineage [--output PATH]` as OpenLineage RunEvent NDJSON. Maps fbt artifacts/artifact_versions to datasets, transforms to jobs, transform_runs to UUID-backed runs, and confidence, approval, eval, descriptor, model, and policy metadata to `fbt_` custom facets so Marquez/OpenLineage tooling can own visualization."
+      "notes": "Implements `fbt export openlineage [--output PATH]` as OpenLineage RunEvent NDJSON. Maps fbt artifacts/artifact_versions to datasets, transforms to jobs, transform_runs to UUID-backed runs, and confidence, eval, descriptor, model, and policy metadata to `fbt_` custom facets so Marquez/OpenLineage tooling can own visualization."
     },
     {
       "id": "FBT-STD-003",
@@ -2093,7 +2093,7 @@
       "id": "FBT-UNIX-014",
       "title": "Remove stale non-core feature references from specs",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-011",
@@ -2113,7 +2113,7 @@
         "go_test": true,
         "make_verify": true
       },
-      "notes": "Audit and remove or explicitly mark stale references to deleted docs generation, review, approval, and old debug CLI surfaces. Specs should describe the current Unix-style boundary: artifact inspection plus OpenLineage/OTel export instead of built-in docs, review, or custom visualization."
+      "notes": "Audited specs and active plans for stale docs/review/approval/debug command-surface claims. Current docs now use docs-site build, artifact inspection, confidence/upstream blocking, and OpenLineage/OTel export language; remaining hits are explicit outside-core or superseded historical notes."
     },
     {
       "id": "FBT-UNIX-015",
