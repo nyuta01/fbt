@@ -13,6 +13,37 @@ fi
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
+schema_missing="$tmpdir/schema-missing"
+mkdir -p "$schema_missing"
+cat >"$schema_missing/fs_project.yml" <<'YAML'
+name: schema_missing
+YAML
+set +e
+"$FBT_BIN" parse --project-dir "$schema_missing" >"$tmpdir/schema-missing.out" 2>"$tmpdir/schema-missing.err"
+schema_missing_code=$?
+set -e
+if [[ "$schema_missing_code" -ne 2 ]]; then
+  echo "expected missing config_version parse exit code 2, got $schema_missing_code" >&2
+  exit 1
+fi
+grep -q "CONFIG_VERSION_MISSING" "$tmpdir/schema-missing.err"
+
+schema_unsupported="$tmpdir/schema-unsupported"
+mkdir -p "$schema_unsupported"
+cat >"$schema_unsupported/fs_project.yml" <<'YAML'
+name: schema_unsupported
+config_version: 999
+YAML
+set +e
+"$FBT_BIN" parse --project-dir "$schema_unsupported" >"$tmpdir/schema-unsupported.out" 2>"$tmpdir/schema-unsupported.err"
+schema_unsupported_code=$?
+set -e
+if [[ "$schema_unsupported_code" -ne 2 ]]; then
+  echo "expected unsupported config_version parse exit code 2, got $schema_unsupported_code" >&2
+  exit 1
+fi
+grep -q "CONFIG_VERSION_UNSUPPORTED" "$tmpdir/schema-unsupported.err"
+
 happy="$tmpdir/happy"
 "$FBT_BIN" init "$happy" --template support >"$tmpdir/init-happy.txt"
 redaction_marker="FBT_CONFORMANCE_SECRET_DO_NOT_EXPORT"
@@ -20,6 +51,9 @@ printf '\n- Do not export marker: %s\n' "$redaction_marker" >>"$happy/assets/sup
 printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redaction_marker" >>"$happy/data/support/tickets/2026-05-28.jsonl"
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case.txt"
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
+
+"$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case-again.txt"
+grep -q "Build: 1 selected, 0 run, 1 skipped, 0 blocked" "$tmpdir/build-case-again.txt"
 
 set +e
 "$FBT_BIN" build --project-dir "$happy" --select weekly_support_insights >"$tmpdir/build-weekly-blocked.txt" 2>"$tmpdir/build-weekly-blocked.err"
@@ -39,6 +73,10 @@ grep -q "status: approved" "$tmpdir/review-approve.txt"
 test -f "$happy/target/artifacts/support/weekly_insights.md"
 "$FBT_BIN" docs generate --project-dir "$happy" >"$tmpdir/docs.txt"
 test -f "$happy/target/docs/index.md"
+if grep -R "$redaction_marker" "$happy/target/docs" >/dev/null; then
+  echo "docs leaked redaction marker" >&2
+  exit 1
+fi
 
 "$FBT_BIN" export openlineage --project-dir "$happy" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 "$FBT_BIN" export otel --project-dir "$happy" --output "$tmpdir/otel.json" >"$tmpdir/export-otel.txt"
@@ -110,6 +148,10 @@ if not any("gen_ai.usage.input_tokens" in attr_keys(span) for span in spans):
 if not any(span.get("events") for span in spans):
     raise SystemExit("OTel export missing runner span events")
 PY
+
+printf '\n- Dirty propagation fixture\n' >>"$happy/assets/support_style_guide.md"
+"$FBT_BIN" plan --project-dir "$happy" --select case_summaries >"$tmpdir/plan-dirty.txt"
+grep -Eq "run transform\\..*\\.case_summaries" "$tmpdir/plan-dirty.txt"
 
 denied="$tmpdir/denied"
 "$FBT_BIN" init "$denied" --template support >"$tmpdir/init-denied.txt"

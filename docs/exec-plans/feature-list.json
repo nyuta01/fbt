@@ -1049,22 +1049,23 @@
       "id": "FBT-CONF-001",
       "title": "Expand conformance beyond compact shell smoke",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-CONF-001-plan.md",
       "paths": [
         "tests/conformance",
-        "scripts",
-        "docs/security-and-conformance-spec.md"
+        "docs/security-and-conformance-spec.md",
+        "docs/exec-plans/active/FBT-CONF-001-plan.md"
       ],
       "verification": {
-        "conformance": false,
-        "go_test": false
+        "conformance": true,
+        "go_test": true,
+        "validate_docs": true
       },
-      "notes": "Convert compact shell scenarios into a richer scenario matrix covering schema errors, digest stability, runner capability mismatch, redaction, dirty-state propagation, policy decisions, and docs secret absence."
+      "notes": "Expanded the deterministic conformance matrix with schema error checks, clean rerun skip behavior, docs/export redaction, standard export determinism, dirty-state propagation after asset changes, and existing policy-denied commit safety without adding external services."
     },
     {
       "id": "FBT-STATE-001",

@@ -144,12 +144,16 @@ conformance target that runs these scenarios without external services.
 
 Current executable coverage:
 
+- schema errors for missing and unsupported `config_version`
 - local support template build and pending-review commit
+- clean rerun skips unchanged artifact work
 - downstream build blocked before approval
 - approval promotes the current artifact for downstream reuse
 - downstream build succeeds after approval
 - docs generation succeeds after the review/build loop
+- docs output does not include the redaction marker
 - policy-denied output is not committed to the official artifact path
+- prompt/asset changes make dependent transforms dirty again
 - OpenLineage export contains standard event keys and fbt facets without raw
   source content
 - OTel export contains OTLP/JSON resource spans, transform attributes, usage
