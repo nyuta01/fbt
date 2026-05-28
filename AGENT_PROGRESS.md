@@ -14,6 +14,9 @@ The first implementation baseline now pins schema/versioning, artifact type
 registry, runner discovery, plugin manifest semantics, security model, and MVP
 conformance scenarios.
 
+The remaining practical-MVP work is registered as `FBT-MVP-001` through
+`FBT-MVP-016` in `docs/exec-plans/feature-list.json`.
+
 ## Verification
 
 Latest expected gate:
@@ -33,13 +36,12 @@ This runs:
 
 ## Next Steps
 
-1. Create the next product implementation task for project discovery and
-   `fs_project.yml` parsing.
+1. Start `FBT-MVP-001` with a plan for project discovery and `fs_project.yml`
+   parsing.
 2. Add executable tests for `config_version`, artifact type alias validation,
-   and runner resolution before implementing build behavior.
+   and path validation before implementing downstream graph behavior.
 3. Expand the Go CLI only when a task has a spec-backed acceptance criterion.
-4. Create the first baseline commit after a maintainer configures commit signing
-   and remote settings if required.
+4. Keep `make verify` green after each bounded MVP task.
 
 ## Notes For Next Agent
 

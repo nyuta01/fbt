@@ -124,6 +124,397 @@
       "notes": "Pinned core/runner trust boundary, path safety, approval blocking, and MVP fake-runner conformance scenarios."
     },
     {
+      "id": "FBT-MVP-001",
+      "title": "Implement project config and resource parser",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-002",
+        "FBT-H-004"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/project",
+        "internal/config",
+        "internal/parser",
+        "docs/project-config-spec.md",
+        "docs/schema-and-versioning-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false
+      },
+      "notes": "Read fs_project.yml, require config_version: 1, load resource YAML, validate names, paths, artifact aliases, source/ref syntax, and emit parse diagnostics."
+    },
+    {
+      "id": "FBT-MVP-002",
+      "title": "Implement manifest graph and selectors",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/manifest",
+        "internal/graph",
+        "docs/manifest-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false
+      },
+      "notes": "Build manifest resources, parent/child maps, resource IDs, selector support for name/tag/path/resource_type/parent/child, and deterministic manifest JSON."
+    },
+    {
+      "id": "FBT-MVP-003",
+      "title": "Implement artifact descriptors and safe path handling",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-002",
+        "FBT-H-004"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/artifact",
+        "internal/security",
+        "docs/schema-and-versioning-spec.md",
+        "docs/security-and-conformance-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Compute file and canonical directory SHA-256 descriptors, map artifact aliases, generate artifact_version IDs, normalize paths, and reject path/symlink escapes."
+    },
+    {
+      "id": "FBT-MVP-004",
+      "title": "Implement local state store, locks, and atomic writes",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-002",
+        "FBT-MVP-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/state",
+        "docs/state-and-run-results-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Write manifest/state/run_results/artifact_versions/approvals/evaluation_results/policy_decisions with schema metadata, lock files, append-only run results, and atomic snapshot updates."
+    },
+    {
+      "id": "FBT-MVP-005",
+      "title": "Implement planner and dirty-state semantics",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-002",
+        "FBT-MVP-004"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/planner",
+        "docs/spec.md",
+        "docs/manifest-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false
+      },
+      "notes": "Select runnable transforms, compute dirty reasons for source/assets/policy/eval/runner/model/upstream/output changes, and report blocked review/confidence requirements."
+    },
+    {
+      "id": "FBT-MVP-006",
+      "title": "Implement parse, plan, state, and artifact CLI surfaces",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-001",
+        "FBT-MVP-002",
+        "FBT-MVP-004",
+        "FBT-MVP-005"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "cmd/fbt",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false
+      },
+      "notes": "Turn planned commands into working parse/plan/state/artifact commands with human and JSON output, stable exit codes, and fixture-backed tests."
+    },
+    {
+      "id": "FBT-MVP-007",
+      "title": "Implement runner discovery and diagnostics",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-H-003",
+        "FBT-MVP-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/runner",
+        "internal/plugin",
+        "docs/runner-discovery-spec.md",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false
+      },
+      "notes": "Resolve project runners, plugin manifests, user-local plugins, and PATH conventions; implement runner list/doctor/validate diagnostics and missing-runner exit code 6."
+    },
+    {
+      "id": "FBT-MVP-008",
+      "title": "Implement JSON-RPC runner protocol client",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-007"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/protocol",
+        "internal/runner",
+        "docs/runner-protocol-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Start runner processes, negotiate initialize, send fbt/runTransform, read JSONL notifications, handle output candidates, timeouts, cancellation, and protocol errors."
+    },
+    {
+      "id": "FBT-MVP-009",
+      "title": "Implement fake and command runners for local MVP",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-008"
+      ],
+      "plan_url": null,
+      "paths": [
+        "runners/fake",
+        "runners/command",
+        "tests/fixtures"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Provide no-service fake runners for conformance and a command runner for deterministic local transforms without adding heavy dependencies to the base CLI."
+    },
+    {
+      "id": "FBT-MVP-010",
+      "title": "Implement build lifecycle and idempotent commit",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-003",
+        "FBT-MVP-004",
+        "FBT-MVP-005",
+        "FBT-MVP-008",
+        "FBT-MVP-009"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/build",
+        "internal/artifact",
+        "internal/state",
+        "docs/spec.md",
+        "docs/state-and-run-results-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "conformance": false
+      },
+      "notes": "Run parse-plan-run-eval-review-commit-state lifecycle, manage .fbt/work, validate output candidates, record transform_run and artifact_version, and keep commit idempotent."
+    },
+    {
+      "id": "FBT-MVP-011",
+      "title": "Implement policy and security enforcement",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-003",
+        "FBT-MVP-010"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/security",
+        "internal/policy",
+        "docs/security-and-conformance-spec.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false
+      },
+      "notes": "Enforce read/write scopes, output work-dir containment, artifact_path containment, source mutation protection, secret redaction, timeout/output limits, and failed-run state safety."
+    },
+    {
+      "id": "FBT-MVP-012",
+      "title": "Implement evals, review gates, approvals, and confidence",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-010",
+        "FBT-MVP-011"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/eval",
+        "internal/approval",
+        "internal/cli",
+        "docs/state-and-run-results-spec.md",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "conformance": false
+      },
+      "notes": "Implement deterministic evals, review-required handling, commit_pending, review status/approve/reject, confidence propagation, and downstream blocking."
+    },
+    {
+      "id": "FBT-MVP-013",
+      "title": "Implement AI-native runner experience",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-008",
+        "FBT-MVP-010",
+        "FBT-MVP-012"
+      ],
+      "plan_url": null,
+      "paths": [
+        "runners/llm",
+        "runners/agent",
+        "docs/runner-protocol-spec.md",
+        "docs/examples/knowledge-loop-example.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "manual_opt_in_smoke": false
+      },
+      "notes": "Provide optional out-of-process LLM and simple agent runner examples, protocol compatibility tests, usage/cost/tool-call reporting, and no base-runtime dependency on provider SDKs."
+    },
+    {
+      "id": "FBT-MVP-014",
+      "title": "Implement init templates and runnable knowledge-loop example",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-006",
+        "FBT-MVP-009",
+        "FBT-MVP-010",
+        "FBT-MVP-012"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/templates",
+        "examples/knowledge_ops",
+        "docs/examples/knowledge-loop-example.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "e2e_smoke": false
+      },
+      "notes": "Implement fbt init with blank/support/incident templates and make the knowledge loop run locally with fake or command runners from init through review."
+    },
+    {
+      "id": "FBT-MVP-015",
+      "title": "Implement diff and docs generation",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-004",
+        "FBT-MVP-010",
+        "FBT-MVP-012"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/diff",
+        "internal/docs",
+        "docs/cli-reference.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "e2e_smoke": false
+      },
+      "notes": "Provide raw text and Markdown heading-aware diff plus static docs with graph lineage, artifact versions, runner/model metadata, eval results, and review state."
+    },
+    {
+      "id": "FBT-MVP-016",
+      "title": "Complete MVP conformance, packaging, and release smoke",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-001",
+        "FBT-MVP-002",
+        "FBT-MVP-003",
+        "FBT-MVP-004",
+        "FBT-MVP-005",
+        "FBT-MVP-006",
+        "FBT-MVP-007",
+        "FBT-MVP-008",
+        "FBT-MVP-009",
+        "FBT-MVP-010",
+        "FBT-MVP-011",
+        "FBT-MVP-012",
+        "FBT-MVP-013",
+        "FBT-MVP-014",
+        "FBT-MVP-015"
+      ],
+      "plan_url": null,
+      "paths": [
+        "Makefile",
+        ".github/workflows/verify.yml",
+        "scripts",
+        "tests/conformance",
+        "docs/security-and-conformance-spec.md",
+        "docs/usage-guide.md"
+      ],
+      "verification": {
+        "harness_check": false,
+        "go_test": false,
+        "cli_smoke": false,
+        "conformance": false,
+        "e2e_smoke": false,
+        "dist_check": false
+      },
+      "notes": "Make the complete fbt init -> parse -> plan -> build -> eval -> review -> docs flow pass without external services, add release binary checks, and document opt-in real LLM smoke."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
