@@ -27,6 +27,14 @@ func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
 		t.Fatalf("expected committed output: %v", err)
 	}
 	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	versions, err := store.ReadArtifactVersions()
+	if err != nil {
+		t.Fatalf("read artifact versions: %v", err)
+	}
+	version := versions.ArtifactVersions[result.Runs[0].CommittedVersions[0]]
+	if version.SemanticDescriptor["text_normalized_v1"] == nil || version.SemanticDescriptor["markdown_ast_v1"] == nil {
+		t.Fatalf("expected semantic descriptors, got %+v", version.SemanticDescriptor)
+	}
 	decisions, err := store.ReadPolicyDecisions()
 	if err != nil {
 		t.Fatalf("read policy decisions: %v", err)

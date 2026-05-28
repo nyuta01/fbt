@@ -183,6 +183,19 @@ Initial methods:
 Semantic descriptors are used for diffing, confidence, and optional approval
 carryover. They must not be used as the immutable artifact version identity.
 
+Implemented MVP semantic descriptors:
+
+- `text_normalized_v1` for `text`, `markdown`, and `markdown_directory`
+  artifacts. It stores a SHA-256 digest of line/whitespace-normalized text plus
+  line, word, and character counts.
+- `markdown_ast_v1` for `markdown` and `markdown_directory` artifacts. It
+  stores a SHA-256 digest of the heading/code-block structure plus heading and
+  code-block counts.
+
+For directory artifacts, semantic descriptors read text-like files in
+deterministic path order. Raw descriptor digests still define
+`artifact_version` identity.
+
 ## 9. Artifact Version IDs
 
 Persisted artifact version IDs use the artifact logical ID plus the full digest
@@ -206,4 +219,3 @@ When a breaking schema change is required:
 3. Keep old state readable until the next major product release.
 4. Record migration activity in `run_results.jsonl`.
 5. Never mutate artifact content during schema migration.
-

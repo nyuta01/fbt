@@ -1630,6 +1630,9 @@ func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 	if record.GeneratedBy != "" {
 		fmt.Fprintf(stdout, "  generated_by: %s\n", record.GeneratedBy)
 	}
+	if len(record.SemanticDescriptor) > 0 {
+		fmt.Fprintf(stdout, "  semantic_descriptor: %s\n", compactJSON(record.SemanticDescriptor))
+	}
 	if record.Confidence != "" {
 		fmt.Fprintf(stdout, "  confidence: %s\n", record.Confidence)
 	}

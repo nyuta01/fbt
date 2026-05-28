@@ -116,6 +116,8 @@ grep -q "openai.responses" "$tmpdir/runner-list.txt"
 go run ./cmd/fbt build --project-dir "$project" >"$tmpdir/build.txt"
 grep -q "committed:" "$tmpdir/build.txt"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
+go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
+grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
 
 go run ./cmd/fbt eval case_summaries --project-dir "$project" >"$tmpdir/eval.txt"
 grep -q "pass eval.knowledge_ops.required_case_sections" "$tmpdir/eval.txt"

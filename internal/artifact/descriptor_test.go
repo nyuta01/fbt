@@ -78,6 +78,41 @@ func TestDescribeRejectsPathEscape(t *testing.T) {
 	}
 }
 
+func TestSemanticDescriptorForTextNormalizesWhitespace(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "first.txt", "Hello   world\r\n\nAgain\n")
+	writeFile(t, root, "second.txt", "Hello world\nAgain\n")
+
+	first, err := SemanticDescriptor(root, "first.txt", "text")
+	if err != nil {
+		t.Fatalf("semantic first: %v", err)
+	}
+	second, err := SemanticDescriptor(root, "second.txt", "text")
+	if err != nil {
+		t.Fatalf("semantic second: %v", err)
+	}
+	if first["text_normalized_v1"].(map[string]any)["digest"] != second["text_normalized_v1"].(map[string]any)["digest"] {
+		t.Fatalf("normalized text digest should ignore whitespace: %+v != %+v", first, second)
+	}
+}
+
+func TestSemanticDescriptorForMarkdownStructure(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "report.md", "# Title\n\nBody\n\n## Details\n\n```go\n# not heading\n```\n")
+
+	semantic, err := SemanticDescriptor(root, "report.md", "markdown")
+	if err != nil {
+		t.Fatalf("semantic markdown: %v", err)
+	}
+	if semantic["text_normalized_v1"] == nil || semantic["markdown_ast_v1"] == nil {
+		t.Fatalf("expected text and markdown descriptors: %+v", semantic)
+	}
+	markdown := semantic["markdown_ast_v1"].(map[string]any)
+	if markdown["heading_count"] != 2 || markdown["code_block_count"] != 1 {
+		t.Fatalf("unexpected markdown structure: %+v", markdown)
+	}
+}
+
 func TestVersionID(t *testing.T) {
 	digest := "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 	id, err := VersionID("knowledge_ops", "weekly_report", digest)

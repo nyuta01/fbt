@@ -51,6 +51,8 @@ printf '\n- Do not export marker: %s\n' "$redaction_marker" >>"$happy/assets/sup
 printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redaction_marker" >>"$happy/data/support/tickets/2026-05-28.jsonl"
 "$FBT_BIN" build --project-dir "$happy" --select case_summaries >"$tmpdir/build-case.txt"
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
+"$FBT_BIN" artifact show case_summaries --project-dir "$happy" >"$tmpdir/artifact-show.txt"
+grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
 test -f "$happy/.fbt/state/policy_decisions.json"
 grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 

@@ -245,6 +245,10 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		if err != nil {
 			return Run{}, err
 		}
+		semanticDescriptor, err := artifact.SemanticDescriptor(parseResult.ProjectDir, relCandidate, output.ArtifactType)
+		if err != nil {
+			return Run{}, err
+		}
 		versionID, err := artifact.VersionID(parseResult.Config.Name, output.Name, descriptor.Digest)
 		if err != nil {
 			return Run{}, err
@@ -290,16 +294,17 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			}
 		}
 		version := state.ArtifactVersion{
-			VersionID:      versionID,
-			ArtifactID:     output.UniqueID,
-			LogicalPath:    output.DeclaredPath,
-			StoragePath:    versionStorageRel,
-			Descriptor:     descriptor,
-			GeneratedBy:    transformRunID,
-			Confidence:     confidence,
-			ApprovalStatus: approvalStatus,
-			CreatedAt:      time.Now().UTC().Format(time.RFC3339),
-			CommittedAt:    time.Now().UTC().Format(time.RFC3339),
+			VersionID:          versionID,
+			ArtifactID:         output.UniqueID,
+			LogicalPath:        output.DeclaredPath,
+			StoragePath:        versionStorageRel,
+			Descriptor:         descriptor,
+			SemanticDescriptor: semanticDescriptor,
+			GeneratedBy:        transformRunID,
+			Confidence:         confidence,
+			ApprovalStatus:     approvalStatus,
+			CreatedAt:          time.Now().UTC().Format(time.RFC3339),
+			CommittedAt:        time.Now().UTC().Format(time.RFC3339),
 		}
 		if err := store.PutArtifactVersion(version); err != nil {
 			return Run{}, err

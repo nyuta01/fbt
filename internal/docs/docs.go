@@ -101,6 +101,9 @@ func render(m manifest.Manifest, snapshot state.Snapshot, versions state.Artifac
 		fmt.Fprintf(&b, "  - artifact: `%s`\n", version.ArtifactID)
 		fmt.Fprintf(&b, "  - digest: `%s`\n", version.Descriptor.Digest)
 		fmt.Fprintf(&b, "  - generated_by: `%s`\n", version.GeneratedBy)
+		if len(version.SemanticDescriptor) > 0 {
+			fmt.Fprintf(&b, "  - semantic_descriptor: `%s`\n", compactJSON(version.SemanticDescriptor))
+		}
 	}
 	b.WriteString("\n## Evaluation Results\n\n")
 	for _, id := range sortedEvalResultIDs(evals.EvaluationResults) {

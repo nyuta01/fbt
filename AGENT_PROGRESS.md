@@ -38,6 +38,9 @@ redaction, standard export determinism, and dirty propagation in addition to the
 support/review/policy loop.
 Build now persists policy decision records for allowed and denied commit checks;
 generated docs and OTel export reference those policy decision IDs.
+Artifact versions now include first-pass semantic descriptors for normalized
+text and Markdown heading/code-block structure, surfaced through `artifact show`
+and generated docs while raw descriptors remain artifact version identity.
 `fbt doctor` now checks project readiness, state writability/lock acquisition,
 runner discovery, and runner protocol initialization. YAML authoring diagnostics
 now include line numbers where available and actionable hints for common parse
@@ -49,8 +52,8 @@ conformance scenarios.
 
 The practical local MVP tasks are complete. Remaining tracked work is release
 readiness, user-facing workflow hardening, and post-MVP depth:
-repository/release publication, OpenMetadata evaluation, and semantic
-descriptors. `FBT-REL-002` is blocked on
+repository/release publication and OpenMetadata evaluation. `FBT-REL-002` is
+blocked on
 maintainer release credentials and signing setup: no Git remote, signing config,
 or `v0.1.0` tag is present locally. `FBT-REL-003` is blocked until that signed
 release baseline exists.

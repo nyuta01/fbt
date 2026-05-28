@@ -27,6 +27,7 @@ grep -q "logical_path: target/artifacts/support/case_summaries" "$tmpdir/artifac
 grep -q "storage_path: .fbt/artifacts/" "$tmpdir/artifact-path.txt"
 go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
 grep -q "generated_by: transform_run.run_" "$tmpdir/artifact-show.txt"
+grep -q "semantic_descriptor:" "$tmpdir/artifact-show.txt"
 go run ./cmd/fbt artifact history case_summaries --project-dir "$project" >"$tmpdir/artifact-history.txt"
 grep -q "artifact_version.knowledge_ops.case_summaries" "$tmpdir/artifact-history.txt"
 

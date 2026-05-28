@@ -1100,23 +1100,32 @@
       "id": "FBT-ARTIFACT-001",
       "title": "Implement semantic descriptors for common document types",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-003",
         "FBT-MVP-015"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-ARTIFACT-001-plan.md",
       "paths": [
         "internal/artifact",
-        "internal/diff",
-        "docs/schema-and-versioning-spec.md"
+        "internal/build",
+        "internal/cli",
+        "internal/docs",
+        "scripts/smoke-cli.sh",
+        "scripts/smoke-knowledge-loop.sh",
+        "tests/conformance",
+        "docs/schema-and-versioning-spec.md",
+        "docs/cli-reference.md",
+        "docs/exec-plans/active/FBT-ARTIFACT-001-plan.md"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false
+        "go_test": true,
+        "conformance": true,
+        "cli_smoke": true,
+        "validate_docs": true
       },
-      "notes": "Add first-pass semantic descriptors for text_normalized_v1 and markdown_ast_v1, wire them into diff/docs where useful, and keep raw digest as the artifact version identity."
+      "notes": "Adds first-pass `text_normalized_v1` and `markdown_ast_v1` semantic descriptors for text/Markdown artifacts, persists them on artifact versions, and surfaces them in artifact inspection and generated docs while keeping raw descriptor digests as artifact version identity."
     },
     {
       "id": "FBT-PDCA-001",

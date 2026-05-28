@@ -21,6 +21,9 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 			Digest: "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 		},
 		GeneratedBy: "transform_run.run_1",
+		SemanticDescriptor: map[string]any{
+			"text_normalized_v1": map[string]any{"digest": "sha256:semantic"},
+		},
 	}
 	if err := store.PutArtifactVersion(version); err != nil {
 		t.Fatal(err)
@@ -96,7 +99,7 @@ func TestGenerateWritesStaticMarkdownDocs(t *testing.T) {
 		t.Fatal(err)
 	}
 	content := string(data)
-	for _, want := range []string{"# knowledge_ops", "approval_status", "eval.knowledge_ops.required", "approved", "Policy Decisions", "write_scope"} {
+	for _, want := range []string{"# knowledge_ops", "approval_status", "eval.knowledge_ops.required", "approved", "Policy Decisions", "write_scope", "text_normalized_v1"} {
 		if !strings.Contains(content, want) {
 			t.Fatalf("expected %q in docs:\n%s", want, content)
 		}
