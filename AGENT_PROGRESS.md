@@ -167,6 +167,11 @@ output now separates Project, State, and Runners with per-runner nesting while
 `--json` keeps the flat diagnostics array for automation. The structured
 backlog now has no unfinished tasks.
 
+README first-user journey (`FBT-DOCS-UX-009`) is done: the README now leads
+with fbt's value, maps user questions to commands, shows project anatomy, runs
+an offline success loop before the real runner example, and routes deeper
+reading by goal while staying within the compact README guard.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.

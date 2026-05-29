@@ -2737,6 +2737,29 @@
       "notes": "Human doctor output now groups diagnostics into Project, State, and Runners sections with runner-specific nesting, while --json preserves the flat checks array for automation."
     },
     {
+      "id": "FBT-DOCS-UX-009",
+      "title": "Rework README first-user journey",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-008",
+        "FBT-UX-014"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-009-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-009-plan.md",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "README now follows a first-user journey: value, command questions, project anatomy, offline first loop, real workflow example, tool boundaries, and goal-oriented deep links."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
