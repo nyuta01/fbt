@@ -2268,7 +2268,7 @@
       "id": "FBT-BUILD-001",
       "title": "Execute selected build DAGs in dependency order",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-016"
@@ -2286,12 +2286,12 @@
         "tests"
       ],
       "verification": {
-        "go_test": false,
-        "cli_smoke": false,
-        "conformance": false,
-        "make_verify": false
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "make_verify": true
       },
-      "notes": "Selected transforms should run in topological order within one build invocation. A selected downstream transform that depends on an upstream selected in the same build should run after the upstream commits instead of requiring a second command."
+      "notes": "Selected transforms now plan and build in dependency order. Missing upstream artifacts no longer block a downstream transform when the upstream producer is selected in the same invocation; upstream run intent propagates dirty state to downstream nodes, and build rechecks runtime blockers before each transform."
     },
     {
       "id": "FBT-BUILD-002",

@@ -142,8 +142,7 @@ transforms:
 ```sh
 fbt doctor
 fbt plan --select tag:support
-fbt build --select case_summaries
-fbt build --select weekly_support_insights
+fbt build --select tag:support
 fbt artifact explain weekly_support_insights
 fbt export openlineage --output target/lineage/openlineage.ndjson
 ```
@@ -151,8 +150,11 @@ fbt export openlineage --output target/lineage/openlineage.ndjson
 Important behavior:
 
 - New tickets, chats, or call notes make `case_summaries` dirty.
-- `weekly_support_insights` blocks until `case_summaries` exists with the
-  required confidence.
+- When both transforms are selected, fbt builds `case_summaries` first and then
+  runs `weekly_support_insights` in the same invocation if confidence
+  requirements are satisfied.
+- `weekly_support_insights` still blocks when selected alone before
+  `case_summaries` exists.
 - Prompt, style-guide, policy, eval, runner, or model changes make dependent
   transforms dirty.
 - Failed evals prevent confidence grants.

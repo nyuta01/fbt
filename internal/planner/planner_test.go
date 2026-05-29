@@ -182,6 +182,45 @@ func TestBuildAllowsSatisfiedConfidenceInput(t *testing.T) {
 	}
 }
 
+func TestBuildOrdersSelectedUpstreamBeforeDownstream(t *testing.T) {
+	m := fixtureManifest("asset-old")
+	weeklyID := addWeeklyTransform(m, "structural")
+	caseTransformID := manifest.TransformID("knowledge_ops", "case_summaries")
+
+	plan := Build(Inputs{
+		Manifest: m,
+		State:    emptyState(),
+		Selected: map[string]struct{}{
+			caseTransformID: {},
+			weeklyID:        {},
+		},
+	})
+	if plan.Summary.Run != 2 || plan.Summary.Blocked != 0 {
+		t.Fatalf("expected both selected transforms to run, got %+v nodes=%+v", plan.Summary, plan.Nodes)
+	}
+	if len(plan.Nodes) != 2 || plan.Nodes[0].TransformID != caseTransformID || plan.Nodes[1].TransformID != weeklyID {
+		t.Fatalf("expected dependency order case -> weekly, got %+v", plan.Nodes)
+	}
+	assertContains(t, plan.Nodes[1].DirtyReasons, "upstream artifact selected to run")
+}
+
+func TestBuildKeepsUnselectedMissingUpstreamBlocked(t *testing.T) {
+	m := fixtureManifest("asset-old")
+	weeklyID := addWeeklyTransform(m, "structural")
+
+	plan := Build(Inputs{
+		Manifest: m,
+		State:    emptyState(),
+		Selected: map[string]struct{}{
+			weeklyID: {},
+		},
+	})
+	if len(plan.Nodes) != 1 || plan.Nodes[0].Action != ActionBlocked {
+		t.Fatalf("expected unselected missing upstream to block, got %+v", plan.Nodes)
+	}
+	assertContains(t, plan.Nodes[0].BlockedReasons, "requires artifact.knowledge_ops.case_summaries current artifact")
+}
+
 func TestBuildHonorsSelectedSet(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	selected := map[string]struct{}{
@@ -245,6 +284,40 @@ func fixtureManifest(assetFingerprint string) manifest.Manifest {
 		},
 		ChildMap: map[string][]string{},
 	}
+}
+
+func addWeeklyTransform(m manifest.Manifest, requiredConfidence string) string {
+	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
+	caseID := manifest.ArtifactID("knowledge_ops", "case_summaries")
+	weeklyArtifactID := manifest.ArtifactID("knowledge_ops", "weekly_support_insights")
+	m.Artifacts[weeklyArtifactID] = manifest.ArtifactResource{
+		UniqueID:     weeklyArtifactID,
+		ResourceType: "artifact",
+		Name:         "weekly_support_insights",
+	}
+	m.Transforms[weeklyID] = manifest.TransformResource{
+		UniqueID:      weeklyID,
+		ResourceType:  "transform",
+		Name:          "weekly_support_insights",
+		TransformType: "agent",
+		Inputs: []manifest.TransformInput{
+			{
+				Kind:     "ref",
+				UniqueID: caseID,
+				Name:     "case_summaries",
+				Require: map[string]any{
+					"confidence": requiredConfidence,
+				},
+			},
+		},
+		Outputs: []manifest.TransformOutput{
+			{UniqueID: weeklyArtifactID, Name: "weekly_support_insights"},
+		},
+		Fingerprint: map[string]string{"effective": "weekly"},
+	}
+	m.ParentMap[weeklyID] = []string{caseID}
+	m.ChildMap[caseID] = []string{weeklyID}
+	return weeklyID
 }
 
 func emptyState() state.Snapshot {

@@ -30,7 +30,7 @@ later inspection and exports use.
 ```sh
 fbt init knowledge_ops --template support
 fbt plan --project-dir knowledge_ops --select tag:support
-fbt build --project-dir knowledge_ops --select case_summaries
+fbt build --project-dir knowledge_ops --select tag:support
 fbt artifact show case_summaries --project-dir knowledge_ops
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
@@ -40,9 +40,9 @@ Expected first plan shape:
 ```text
 Plan
   selected  2
-  run       1
+  run       2
   skipped   0
-  blocked   1
+  blocked   0
 
 RUN     case_summaries
         because  no previous successful run
@@ -50,13 +50,17 @@ RUN     case_summaries
         output   case_summaries
         next     fbt build --select case_summaries
 
-BLOCK   weekly_support_insights
-        blocked  requires case_summaries current artifact
+RUN     weekly_support_insights
+        because  no previous successful run
+        because  output missing
+        because  upstream artifact selected to run
         output   weekly_support_insights
-        next     fbt build --select case_summaries
+        next     fbt build --select weekly_support_insights
 ```
 
-After `case_summaries` exists, the downstream transform can run:
+`build` executes the selected graph in dependency order. The upstream
+`case_summaries` artifact is committed before `weekly_support_insights` runs.
+You can still build one transform at a time:
 
 ```sh
 fbt build --project-dir knowledge_ops --select weekly_support_insights

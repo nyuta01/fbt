@@ -1,6 +1,6 @@
 # FBT-BUILD-001 Execute Selected Build DAGs In Dependency Order
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -28,13 +28,17 @@ separate task deliberately implements broader execution policy.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
-
-- Add a topological build order over selected transforms.
-- Re-plan or evaluate readiness after each upstream commit.
-- Keep real blockers visible when an upstream is not selected, fails, or cannot
-  satisfy confidence/eval requirements.
-- Add CLI and conformance coverage for one command building a two-stage graph.
+- Added dependency-ordered planning for selected transforms based on artifact
+  producer/consumer edges.
+- Missing upstream artifacts no longer block a transform when the selected graph
+  also includes the upstream producer.
+- Planned upstream runs propagate a dirty reason to selected downstream
+  transforms so the graph can complete in one invocation.
+- `build` rechecks runtime blockers before each transform using the latest
+  in-memory state, so confidence or missing-input blockers still stop the
+  downstream run when they remain after upstream work.
+- Added planner/build tests and smoke/conformance coverage for a two-stage graph
+  built by one command.
 
 ## Next Check
 

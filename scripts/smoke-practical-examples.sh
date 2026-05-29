@@ -32,10 +32,10 @@ check_daily_qa_ops() {
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select tag:daily_qa >"$tmpdir/$name-plan.txt"
   grep -q "selected  2" "$tmpdir/$name-plan.txt"
-  grep -q "run       1" "$tmpdir/$name-plan.txt"
-  grep -q "blocked   1" "$tmpdir/$name-plan.txt"
+  grep -q "run       2" "$tmpdir/$name-plan.txt"
+  grep -q "blocked   0" "$tmpdir/$name-plan.txt"
   grep -q "RUN     daily_qa_candidates" "$tmpdir/$name-plan.txt"
-  grep -q "BLOCK   promote_manual_update" "$tmpdir/$name-plan.txt"
+  grep -q "RUN     promote_manual_update" "$tmpdir/$name-plan.txt"
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select daily_qa_candidates >"$tmpdir/$name-build-candidates.txt"
   grep -q "SUCCESS daily_qa_candidates" "$tmpdir/$name-build-candidates.txt"
@@ -79,10 +79,10 @@ check_markdown_toolchain() {
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt plan --project-dir "$project" --select tag:document_toolchain >"$tmpdir/$name-plan.txt"
   grep -q "selected  2" "$tmpdir/$name-plan.txt"
-  grep -q "run       1" "$tmpdir/$name-plan.txt"
-  grep -q "blocked   1" "$tmpdir/$name-plan.txt"
+  grep -q "run       2" "$tmpdir/$name-plan.txt"
+  grep -q "blocked   0" "$tmpdir/$name-plan.txt"
   grep -q "RUN     remark_markdown" "$tmpdir/$name-plan.txt"
-  grep -q "BLOCK   pandoc_handbook" "$tmpdir/$name-plan.txt"
+  grep -q "RUN     pandoc_handbook" "$tmpdir/$name-plan.txt"
 
   FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt build --project-dir "$project" --select remark_markdown >"$tmpdir/$name-build-remark.txt"
   grep -q "SUCCESS remark_markdown" "$tmpdir/$name-build-remark.txt"

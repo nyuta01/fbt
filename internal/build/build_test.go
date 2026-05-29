@@ -69,6 +69,31 @@ func TestRunBuildCommitsFakeRunnerOutputAndSkipsCleanSecondRun(t *testing.T) {
 	}
 }
 
+func TestRunBuildExecutesSelectedDAGInDependencyOrder(t *testing.T) {
+	root := writeBuildProject(t)
+	writeWeeklyTransform(t, root)
+
+	result, err := RunBuild(context.Background(), Options{ProjectDir: root, Select: "tag:support", FBTVersion: "test"})
+	if err != nil {
+		t.Fatalf("run build: %v", err)
+	}
+	if result.Plan.Summary.Run != 2 || result.Plan.Summary.Blocked != 0 {
+		t.Fatalf("expected both selected transforms to run, got %+v nodes=%+v", result.Plan.Summary, result.Plan.Nodes)
+	}
+	if len(result.Runs) != 2 {
+		t.Fatalf("expected two runs, got %+v", result.Runs)
+	}
+	if !strings.HasSuffix(result.Runs[0].TransformID, ".case_summaries") || !strings.HasSuffix(result.Runs[1].TransformID, ".weekly_report") {
+		t.Fatalf("expected dependency order case -> weekly, got %+v", result.Runs)
+	}
+	if _, err := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); err != nil {
+		t.Fatalf("expected upstream output: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(root, "target", "artifacts", "support", "weekly_report.md")); err != nil {
+		t.Fatalf("expected downstream output: %v", err)
+	}
+}
+
 func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 	root := writeBuildProject(t)
 	writeFile(t, root, "policies/support.yml", `policies:
@@ -443,6 +468,25 @@ runners:
     tags: ["support"]
 `)
 	return root
+}
+
+func writeWeeklyTransform(t *testing.T, root string) {
+	t.Helper()
+	writeFile(t, root, "transforms/weekly.yml", `transforms:
+  - name: weekly_report
+    type: agent
+    runner: openai.responses
+    inputs:
+      - ref: case_summaries
+        require:
+          confidence: structural
+    outputs:
+      - name: weekly_report
+        type: markdown
+        path: target/artifacts/support/weekly_report.md
+    policy: support_agent_scope
+    tags: ["support"]
+`)
 }
 
 func readFile(t *testing.T, path string) string {

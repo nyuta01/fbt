@@ -269,6 +269,12 @@ parse
 Commit records an allowed output candidate as an immutable artifact version and
 atomically updates the logical artifact pointer.
 
+When selected transforms depend on each other, `build` executes them in
+dependency order within the same invocation. A downstream selected transform may
+wait for an upstream selected transform to commit a current artifact, then runs
+after runtime confidence and policy requirements are checked against the updated
+state.
+
 ## 12. Dirty-State Semantics
 
 A transform becomes dirty when any relevant input to the effective transform

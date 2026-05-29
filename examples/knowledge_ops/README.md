@@ -6,7 +6,7 @@ works before wiring a real provider or agent.
 It demonstrates:
 
 - source files becoming versioned artifacts
-- downstream work waiting for a current upstream artifact
+- selected upstream and downstream transforms building in dependency order
 - local build receipts for generated files
 - OpenLineage and OTel export files
 
@@ -33,9 +33,9 @@ Expected shape:
 ```text
 Plan
   selected  2
-  run       1
+  run       2
   skipped   0
-  blocked   1
+  blocked   0
 
 RUN     case_summaries
         because  no previous successful run
@@ -43,16 +43,18 @@ RUN     case_summaries
         output   case_summaries
         next     fbt build --select case_summaries
 
-BLOCK   weekly_support_insights
-        blocked  requires case_summaries current artifact
+RUN     weekly_support_insights
+        because  no previous successful run
+        because  output missing
+        because  upstream artifact selected to run
         output   weekly_support_insights
-        next     fbt build --select case_summaries
+        next     fbt build --select weekly_support_insights
 ```
 
-Build and inspect the first artifact:
+Build the selected graph and inspect the first artifact:
 
 ```sh
-fbt build --select case_summaries
+fbt build --select tag:support
 fbt artifact show case_summaries
 fbt artifact explain case_summaries
 ```
@@ -63,12 +65,6 @@ You get:
 target/artifacts/support/case_summaries/index.md
 .fbt/artifacts/<artifact_version>/content
 .fbt/state/artifact_versions.json
-```
-
-Now the downstream transform can run:
-
-```sh
-fbt build --select weekly_support_insights
 ```
 
 Inspect and export what happened:

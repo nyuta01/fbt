@@ -49,18 +49,12 @@ type Node struct {
 }
 
 func Build(inputs Inputs) Plan {
-	ids := make([]string, 0, len(inputs.Manifest.Transforms))
-	for id := range inputs.Manifest.Transforms {
-		if len(inputs.Selected) > 0 {
-			if _, ok := inputs.Selected[id]; !ok {
-				continue
-			}
-		}
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
+	selected := selectedTransformSet(inputs.Manifest, inputs.Selected)
+	ids := dependencyOrderedTransformIDs(inputs.Manifest, selected)
+	selectedProducers := selectedArtifactProducers(inputs.Manifest, selected)
 
 	plan := Plan{}
+	plannedRunOutputs := map[string]struct{}{}
 	for _, id := range ids {
 		transform := inputs.Manifest.Transforms[id]
 		node := Node{
@@ -68,15 +62,18 @@ func Build(inputs Inputs) Plan {
 			Name:        transform.Name,
 			Outputs:     outputIDs(transform),
 		}
-		node.BlockedReasons = blockedReasons(transform, inputs.State)
+		node.BlockedReasons = blockedReasons(transform, inputs.State, selectedProducers)
 		if len(node.BlockedReasons) > 0 {
 			node.Action = ActionBlocked
 			plan.Summary.Blocked++
 		} else {
-			node.DirtyReasons = dirtyReasons(id, transform, inputs)
+			node.DirtyReasons = dirtyReasons(id, transform, inputs, plannedRunOutputs)
 			if len(node.DirtyReasons) > 0 {
 				node.Action = ActionRun
 				plan.Summary.Run++
+				for _, output := range transform.Outputs {
+					plannedRunOutputs[output.UniqueID] = struct{}{}
+				}
 			} else {
 				node.Action = ActionSkip
 				plan.Summary.Skipped++
@@ -87,6 +84,14 @@ func Build(inputs Inputs) Plan {
 		plan.Summary.Selected++
 	}
 	return plan
+}
+
+func RuntimeBlock(transform manifest.TransformResource, snapshot state.Snapshot) ([]string, []string) {
+	reasons := blockedReasons(transform, snapshot, nil)
+	if len(reasons) == 0 {
+		return nil, nil
+	}
+	return reasons, blockedNextSteps(transform, snapshot)
 }
 
 func nextSteps(transform manifest.TransformResource, action Action, snapshot state.Snapshot) []string {
@@ -141,7 +146,7 @@ func skippedNextSteps(transform manifest.TransformResource) []string {
 	return uniqueStrings(steps)
 }
 
-func blockedReasons(transform manifest.TransformResource, snapshot state.Snapshot) []string {
+func blockedReasons(transform manifest.TransformResource, snapshot state.Snapshot, selectedProducers map[string]string) []string {
 	var reasons []string
 	for _, input := range transform.Inputs {
 		if input.Kind != "ref" {
@@ -149,6 +154,9 @@ func blockedReasons(transform manifest.TransformResource, snapshot state.Snapsho
 		}
 		pointer, ok := snapshot.CurrentArtifacts[input.UniqueID]
 		if !ok {
+			if producer, ok := selectedProducers[input.UniqueID]; ok && producer != transform.UniqueID {
+				continue
+			}
 			reasons = append(reasons, fmt.Sprintf("requires %s current artifact", input.UniqueID))
 			continue
 		}
@@ -160,10 +168,18 @@ func blockedReasons(transform manifest.TransformResource, snapshot state.Snapsho
 	return reasons
 }
 
-func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs) []string {
+func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs, plannedRunOutputs map[string]struct{}) []string {
 	reasons := map[string]struct{}{}
 	if inputs.Force {
 		reasons["forced rebuild"] = struct{}{}
+	}
+	for _, input := range transform.Inputs {
+		if input.Kind != "ref" {
+			continue
+		}
+		if _, ok := plannedRunOutputs[input.UniqueID]; ok {
+			reasons["upstream artifact selected to run"] = struct{}{}
+		}
 	}
 	for _, output := range transform.Outputs {
 		if _, ok := inputs.State.CurrentArtifacts[output.UniqueID]; !ok {
@@ -183,6 +199,98 @@ func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs
 	}
 
 	return sortedReasons(reasons)
+}
+
+func selectedTransformSet(m manifest.Manifest, selected map[string]struct{}) map[string]struct{} {
+	out := map[string]struct{}{}
+	for id := range m.Transforms {
+		if len(selected) > 0 {
+			if _, ok := selected[id]; !ok {
+				continue
+			}
+		}
+		out[id] = struct{}{}
+	}
+	return out
+}
+
+func selectedArtifactProducers(m manifest.Manifest, selected map[string]struct{}) map[string]string {
+	producers := map[string]string{}
+	for id := range selected {
+		transform := m.Transforms[id]
+		for _, output := range transform.Outputs {
+			producers[output.UniqueID] = id
+		}
+	}
+	return producers
+}
+
+func dependencyOrderedTransformIDs(m manifest.Manifest, selected map[string]struct{}) []string {
+	ids := make([]string, 0, len(selected))
+	for id := range selected {
+		ids = append(ids, id)
+	}
+	sort.Strings(ids)
+
+	producers := selectedArtifactProducers(m, selected)
+	children := map[string][]string{}
+	indegree := map[string]int{}
+	for _, id := range ids {
+		indegree[id] = 0
+	}
+	for _, id := range ids {
+		transform := m.Transforms[id]
+		for _, input := range transform.Inputs {
+			if input.Kind != "ref" {
+				continue
+			}
+			producer, ok := producers[input.UniqueID]
+			if !ok || producer == id {
+				continue
+			}
+			children[producer] = append(children[producer], id)
+			indegree[id]++
+		}
+	}
+	for id := range children {
+		sort.Strings(children[id])
+	}
+
+	var queue []string
+	for _, id := range ids {
+		if indegree[id] == 0 {
+			queue = append(queue, id)
+		}
+	}
+	sort.Strings(queue)
+
+	var ordered []string
+	for len(queue) > 0 {
+		id := queue[0]
+		queue = queue[1:]
+		ordered = append(ordered, id)
+		for _, child := range children[id] {
+			indegree[child]--
+			if indegree[child] == 0 {
+				queue = append(queue, child)
+				sort.Strings(queue)
+			}
+		}
+	}
+	if len(ordered) == len(ids) {
+		return ordered
+	}
+
+	seen := map[string]struct{}{}
+	for _, id := range ordered {
+		seen[id] = struct{}{}
+	}
+	for _, id := range ids {
+		if _, ok := seen[id]; !ok {
+			ordered = append(ordered, id)
+		}
+	}
+	return ordered
 }
 
 func addManifestDiffReasons(reasons map[string]struct{}, id string, transform manifest.TransformResource, current manifest.Manifest, previous manifest.Manifest) {

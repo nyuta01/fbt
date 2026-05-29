@@ -61,30 +61,26 @@ Expected first-run shape:
 ```text
 Plan
   selected  2
-  run       1
+  run       2
   skipped   0
-  blocked   1
+  blocked   0
 
 RUN     daily_qa_candidates
         because  no previous successful run
         because  output missing
         output   faq_candidates, manual_patch_candidates, unresolved_questions
 
-BLOCK   promote_manual_update
-        blocked  requires manual_patch_candidates current artifact
+RUN     promote_manual_update
+        because  no previous successful run
+        because  output missing
+        because  upstream artifact selected to run
         output   manual_update
 ```
 
-Build the daily candidates:
+Build the selected graph in dependency order:
 
 ```sh
-fbt build --project-dir examples/daily_qa_ops --select daily_qa_candidates
-```
-
-Promote the manual update:
-
-```sh
-fbt build --project-dir examples/daily_qa_ops --select promote_manual_update
+fbt build --project-dir examples/daily_qa_ops --select tag:daily_qa
 ```
 
 Inspect the generated files:

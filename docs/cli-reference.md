@@ -137,19 +137,19 @@ Example:
 ```text
 Plan
   selected  2
-  run       1
+  run       2
   skipped   0
-  blocked   1
+  blocked   0
 
 RUN     case_summaries
         because  no previous successful run
         output   case_summaries
         next     fbt build --select case_summaries
 
-BLOCK   weekly_support_insights
-        blocked  requires case_summaries current artifact
+RUN     weekly_support_insights
+        because  upstream artifact selected to run
         output   weekly_support_insights
-        next     fbt build --select case_summaries
+        next     fbt build --select weekly_support_insights
 ```
 
 ### 5.3 fbt build
@@ -170,6 +170,11 @@ Lifecycle:
 ```text
 parse -> plan -> run external runner -> eval -> commit -> write state
 ```
+
+When selected transforms depend on each other, `build` runs them in dependency
+order within the same invocation. A downstream selected transform waits for the
+upstream selected transform to commit its artifact, then runs if confidence and
+policy requirements are satisfied.
 
 `--force` runs selected transforms even when the normal plan would skip them as
 clean. It does not bypass upstream artifact, confidence, policy, or output

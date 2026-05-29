@@ -113,11 +113,22 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: options.Force})
 	result.Plan = plan
 
-	for _, node := range plan.Nodes {
+	for i := range result.Plan.Nodes {
+		node := &result.Plan.Nodes[i]
 		if node.Action != planner.ActionRun {
 			continue
 		}
-		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, node, invocationID)
+		transform := currentManifest.Transforms[node.TransformID]
+		if blockedReasons, nextSteps := planner.RuntimeBlock(transform, snapshot); len(blockedReasons) > 0 {
+			node.Action = planner.ActionBlocked
+			node.DirtyReasons = nil
+			node.BlockedReasons = blockedReasons
+			node.NextSteps = nextSteps
+			result.Plan.Summary.Run--
+			result.Plan.Summary.Blocked++
+			continue
+		}
+		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, *node, invocationID)
 		if err != nil {
 			return result, err
 		}

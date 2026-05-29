@@ -68,10 +68,18 @@ A product audit against that boundary is now captured in the structured
 backlog. The critical gaps are not review, scheduling, provider SDKs, or custom
 visualization; those remain outside core. The new high-priority tasks focus on
 build-tool reliability: one-invocation dependency-ordered builds
-(`FBT-BUILD-001`), failed-run receipts (`FBT-BUILD-002`), inert config cleanup
-(`FBT-CONFIG-001`), strict YAML diagnostics (`FBT-CONFIG-002`), CLI-agent
-adapter safety (`FBT-RUNNER-010`), and stale current-state docs cleanup
-(`FBT-DOCS-DRIFT-001`).
+(`FBT-BUILD-001`, now done), failed-run receipts (`FBT-BUILD-002`), inert
+config cleanup (`FBT-CONFIG-001`), strict YAML diagnostics (`FBT-CONFIG-002`),
+CLI-agent adapter safety (`FBT-RUNNER-010`), and stale current-state docs
+cleanup (`FBT-DOCS-DRIFT-001`).
+
+`FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
+transforms are ordered by artifact dependencies. A downstream selected transform
+is no longer blocked merely because its selected upstream artifact does not
+exist yet; the upstream run intent propagates dirty state, build commits the
+upstream first, then rechecks the downstream against current state before
+running it. Real blockers such as unselected missing upstreams or unsatisfied
+confidence requirements still block.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
@@ -158,15 +166,13 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Start with `FBT-BUILD-001`: a selected upstream/downstream graph should build
-   in one dependency-ordered invocation when no external blocker remains.
-2. Then implement `FBT-BUILD-002` so failed runner, policy, eval, and
+1. Implement `FBT-BUILD-002` so failed runner, policy, eval, and
    cancellation paths leave safe receipts without moving artifact pointers.
-3. Clean the project contract through `FBT-CONFIG-001` and `FBT-CONFIG-002` so
+2. Clean the project contract through `FBT-CONFIG-001` and `FBT-CONFIG-002` so
    YAML has no placebo controls and typos fail fast.
-4. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
+3. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
    SDKs and agent runtimes outside base core.
-5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

@@ -170,7 +170,7 @@ credentials:
 ```bash
 fbt init knowledge_ops --template support
 fbt plan --project-dir knowledge_ops --select tag:support
-fbt build --project-dir knowledge_ops --select case_summaries
+fbt build --project-dir knowledge_ops --select tag:support
 fbt artifact show case_summaries --project-dir knowledge_ops
 fbt artifact history case_summaries --project-dir knowledge_ops
 ```
@@ -180,21 +180,22 @@ The output includes the same lifecycle signals, shortened here:
 ```text
 Plan
   selected  2
-  run       1
+  run       2
 
 RUN     case_summaries
-        because  no previous successful run
         because  output missing
 
+RUN     weekly_support_insights
+        because  upstream artifact selected to run
+
 Build
-  selected  1
-  run       1
+  selected  2
+  run       2
 
 SUCCESS case_summaries
         committed  case_summaries@sha256:a5b4dfd91df7
 
 Artifact: case_summaries
-  Status      current
   Path        target/artifacts/support/case_summaries
   Version     case_summaries@sha256:a5b4dfd91df7
 ```
