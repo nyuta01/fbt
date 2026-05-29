@@ -20,6 +20,9 @@ fbt export otel --output target/telemetry/otel.json
 
 The first file is OpenLineage RunEvent NDJSON for artifact, job, and dataset
 lineage. The second file is an OTLP/JSON trace payload for execution telemetry.
+With `--output`, fbt writes the file and prints a short human summary naming
+the format, output path, record count, and backend handoff. Without `--output`,
+the command writes raw records to stdout for shell piping.
 
 ## 2. Reproducible Local Export
 

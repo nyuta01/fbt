@@ -591,8 +591,11 @@ func TestRunExportOpenLineage(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("export openlineage failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "OpenLineage events written") || !strings.Contains(stdout.String(), "Events: 1") {
+	if !strings.Contains(stdout.String(), "Export: openlineage") || !strings.Contains(stdout.String(), "Format  OpenLineage RunEvent NDJSON") || !strings.Contains(stdout.String(), "Events  1") {
 		t.Fatalf("unexpected export output: %q", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "Marquez/OpenMetadata-compatible workflow") {
+		t.Fatalf("expected backend handoff hint, got %q", stdout.String())
 	}
 	data, err := os.ReadFile(outputPath)
 	if err != nil {
@@ -665,8 +668,11 @@ func TestRunExportOTel(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("export otel failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "OTel traces written") || !strings.Contains(stdout.String(), "Spans: 2") {
+	if !strings.Contains(stdout.String(), "Export: otel") || !strings.Contains(stdout.String(), "Format  OpenTelemetry OTLP/JSON traces") || !strings.Contains(stdout.String(), "Spans   2") {
 		t.Fatalf("unexpected otel export output: %q", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "OTLP-compatible collector") {
+		t.Fatalf("expected otel handoff hint, got %q", stdout.String())
 	}
 	data, err := os.ReadFile(outputPath)
 	if err != nil {

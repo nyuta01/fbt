@@ -524,8 +524,13 @@ func runExportOpenLineage(opts options, exportOpts exportOptions, stdout io.Writ
 			})
 			return 0
 		}
-		fmt.Fprintf(stdout, "OpenLineage events written to %s\n", exportOpts.OutputPath)
-		fmt.Fprintf(stdout, "Events: %d\n", len(events))
+		fmt.Fprintln(stdout, "Export: openlineage")
+		printDisplayRows(stdout, "  ", []displayRow{
+			{Label: "Format", Value: "OpenLineage RunEvent NDJSON"},
+			{Label: "Output", Value: exportOpts.OutputPath},
+			{Label: "Events", Value: fmt.Sprintf("%d", len(events))},
+			{Label: "Next", Value: "post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow"},
+		})
 		return 0
 	}
 	if opts.JSON {
@@ -583,8 +588,13 @@ func runExportOTel(opts options, exportOpts exportOptions, stdout io.Writer, std
 			})
 			return 0
 		}
-		fmt.Fprintf(stdout, "OTel traces written to %s\n", exportOpts.OutputPath)
-		fmt.Fprintf(stdout, "Spans: %d\n", spanCount)
+		fmt.Fprintln(stdout, "Export: otel")
+		printDisplayRows(stdout, "  ", []displayRow{
+			{Label: "Format", Value: "OpenTelemetry OTLP/JSON traces"},
+			{Label: "Output", Value: exportOpts.OutputPath},
+			{Label: "Spans", Value: fmt.Sprintf("%d", spanCount)},
+			{Label: "Next", Value: "post this JSON to an OTLP-compatible collector or store it as evidence"},
+		})
 		return 0
 	}
 	if opts.JSON {

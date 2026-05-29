@@ -2690,12 +2690,12 @@
       "id": "FBT-STD-008",
       "title": "Clarify standard export command UX",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STD-007"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STD-008-plan.md",
       "paths": [
         "internal/cli",
         "docs/cli-reference.md",
@@ -2709,7 +2709,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Make export openlineage and export otel help explain that they write standard records from local run history, where output goes, and how users can pipe or post those records to existing backends."
+      "notes": "export openlineage and export otel keep stdout raw for piping and print clearer --output summaries with standard format, output path, record count, and backend handoff guidance."
     },
     {
       "id": "FBT-UX-014",

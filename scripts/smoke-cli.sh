@@ -109,12 +109,14 @@ go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir
 grep -q "Semantic summary  " "$tmpdir/artifact-show.txt"
 
 go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
-grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
+grep -q "Export: openlineage" "$tmpdir/export-openlineage.txt"
+grep -q "OpenLineage RunEvent NDJSON" "$tmpdir/export-openlineage.txt"
 grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
 grep -q '"fbt_evaluations"' "$tmpdir/openlineage.ndjson"
 
 go run ./cmd/fbt export otel --project-dir "$project" --output "$tmpdir/otel.json" >"$tmpdir/export-otel.txt"
-grep -q "OTel traces written" "$tmpdir/export-otel.txt"
+grep -q "Export: otel" "$tmpdir/export-otel.txt"
+grep -q "OpenTelemetry OTLP/JSON traces" "$tmpdir/export-otel.txt"
 grep -q '"resourceSpans"' "$tmpdir/otel.json"
 grep -q '"fbt.transform.id"' "$tmpdir/otel.json"
 grep -q '"progress"' "$tmpdir/otel.json"

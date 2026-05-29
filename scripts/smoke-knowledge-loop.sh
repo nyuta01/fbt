@@ -66,7 +66,7 @@ grep -q "Semantic summary  " "$tmpdir/artifact-show.txt"
 grep -Eq "artifact_version\\..*\\.case_summaries\\.sha256_" "$tmpdir/artifact-history.txt"
 
 "$fbt_bin" export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
-grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"
+grep -q "Export: openlineage" "$tmpdir/export-openlineage.txt"
 grep -q '"eventType":"COMPLETE"' "$tmpdir/openlineage.ndjson"
 grep -Eq '"name":"transform\..*\.case_summaries"' "$tmpdir/openlineage.ndjson"
 grep -q '"fbt_artifact"' "$tmpdir/openlineage.ndjson"

@@ -205,11 +205,17 @@ fbt export otel \
 Expected output:
 
 ```text
-OpenLineage events written to knowledge_ops/target/lineage/openlineage.ndjson
-Events: 2
+Export: openlineage
+  Format  OpenLineage RunEvent NDJSON
+  Output  knowledge_ops/target/lineage/openlineage.ndjson
+  Events  2
+  Next    post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow
 
-OTel traces written to knowledge_ops/target/telemetry/otel.json
-Spans: 4
+Export: otel
+  Format  OpenTelemetry OTLP/JSON traces
+  Output  knowledge_ops/target/telemetry/otel.json
+  Spans   4
+  Next    post this JSON to an OTLP-compatible collector or store it as evidence
 ```
 
 The final files created by the quickstart are:
