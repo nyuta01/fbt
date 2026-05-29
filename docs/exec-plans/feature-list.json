@@ -2531,14 +2531,14 @@
       "id": "FBT-UX-010",
       "title": "Make common CLI errors actionable",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-001",
         "FBT-UX-003",
         "FBT-CONFIG-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-010-plan.md",
       "paths": [
         "internal/cli",
         "internal/artifact",
@@ -2553,7 +2553,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Improve declared-but-unbuilt artifact, empty selector, and common unsupported-flag diagnostics with concrete next actions such as fbt build --select TARGET, fbt plan, or using plan instead of --dry-run."
+      "notes": "Declared-but-unbuilt artifacts, empty selectors, and --dry-run now emit strict errors plus short Hint lines with concrete next actions such as fbt build --select TARGET, fbt plan, or using plan instead of --dry-run."
     },
     {
       "id": "FBT-UX-011",

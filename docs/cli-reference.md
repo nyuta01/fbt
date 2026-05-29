@@ -43,6 +43,11 @@ global flags, extra positional arguments, or a `--select` expression that
 matches no transforms. fbt should never silently turn a typo into a broader
 build.
 
+Common user-facing errors include a short `Hint:` line. For example, a declared
+artifact that has not been built yet suggests `fbt build --select TARGET`, an
+empty selector suggests running `fbt plan` without `--select`, and `--dry-run`
+points to the read-only `plan` command.
+
 ## 3. Exit Codes
 
 | Code | Meaning |

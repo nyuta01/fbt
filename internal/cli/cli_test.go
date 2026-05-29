@@ -223,6 +223,56 @@ func TestRunSelectNoMatchFails(t *testing.T) {
 	}
 }
 
+func TestRunActionableErrorHints(t *testing.T) {
+	root := writeCLIProject(t)
+
+	cases := []struct {
+		name     string
+		args     []string
+		expected []string
+	}{
+		{
+			name: "declared artifact has no version",
+			args: []string{"artifact", "show", "case_summaries", "--project-dir", root},
+			expected: []string{
+				"artifact has no built version yet: case_summaries",
+				"Hint: run `fbt build --select case_summaries` to create it.",
+			},
+		},
+		{
+			name: "empty selector",
+			args: []string{"plan", "--select", "no_such", "--project-dir", root},
+			expected: []string{
+				"selector matched no transforms: no_such",
+				"Hint: run `fbt plan` without --select",
+			},
+		},
+		{
+			name: "dry run flag",
+			args: []string{"build", "--dry-run", "--project-dir", root},
+			expected: []string{
+				"unknown flag: --dry-run",
+				"Hint: use `fbt plan` to preview without writing state or starting runners.",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			if code := Run(tc.args, &stdout, &stderr); code != 2 {
+				t.Fatalf("expected exit code 2, got %d; stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+			}
+			for _, expected := range tc.expected {
+				if !strings.Contains(stderr.String(), expected) {
+					t.Fatalf("expected %q in stderr:\n%s", expected, stderr.String())
+				}
+			}
+		})
+	}
+}
+
 func TestRunPlanIsReadOnly(t *testing.T) {
 	root := writeCLIProject(t)
 	var stdout bytes.Buffer

@@ -46,7 +46,7 @@ func Run(args []string, stdout io.Writer, stderr io.Writer) int {
 		if errors.As(err, &exitErr) {
 			return exitErr.code
 		}
-		fmt.Fprintf(stderr, "Error: %v\n", err)
+		printCLIError(stderr, err.Error())
 		return 2
 	}
 	return 0
@@ -403,8 +403,7 @@ func runDiff(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 	}
 	current, ok := findVersion(snapshot, versions, diffOpts.Target)
 	if !ok {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", diffOpts.Target)
-		return 2
+		return printArtifactLookupError(ctx, diffOpts.Target, "diff", opts.JSON, stderr)
 	}
 	against, err := resolveAgainst(ctx.Store, snapshot, versions, current, diffOpts.Against)
 	if err != nil {
@@ -1367,8 +1366,7 @@ func runArtifactPath(ctx projectContext, versions state.ArtifactVersionsIndex, t
 	}
 	record, ok := declaredArtifactRecord(ctx, target)
 	if !ok {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
-		return 2
+		return printArtifactLookupError(ctx, target, "artifact path", jsonOutput, stderr)
 	}
 	if jsonOutput {
 		writeJSON(stdout, map[string]any{"command": "artifact path", "status": "success", "artifact": record})
@@ -1386,8 +1384,7 @@ func runArtifactShow(ctx projectContext, versions state.ArtifactVersionsIndex, t
 	}
 	version, ok := findVersion(snapshot, versions, target)
 	if !ok {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
-		return 2
+		return printArtifactLookupError(ctx, target, "artifact show", jsonOutput, stderr)
 	}
 	record := buildArtifactRecord(ctx, snapshot, version)
 	if jsonOutput {
@@ -1406,8 +1403,7 @@ func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex
 	}
 	matches := matchingVersions(versions, target)
 	if len(matches) == 0 {
-		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
-		return 2
+		return printArtifactLookupError(ctx, target, "artifact history", jsonOutput, stderr)
 	}
 	sortArtifactVersions(matches)
 	records := make([]artifactRecord, 0, len(matches))
@@ -2143,6 +2139,39 @@ func findPointer(snapshot state.Snapshot, target string) (string, state.Artifact
 	return "", state.ArtifactPointer{}, false
 }
 
+func printArtifactLookupError(ctx projectContext, target, command string, jsonOutput bool, stderr io.Writer) int {
+	artifactID, declared := resolveArtifactID(ctx.Manifest, target)
+	if jsonOutput {
+		payload := map[string]any{
+			"command": command,
+			"status":  "error",
+			"error":   "artifact not found: " + target,
+		}
+		if declared {
+			payload["error"] = "artifact has no built version yet: " + target
+			payload["artifact_id"] = artifactID
+			payload["hint"] = "run fbt build --select " + buildTargetForArtifact(ctx.Manifest, artifactID)
+		}
+		writeJSON(stderr, payload)
+		return 2
+	}
+	if declared {
+		fmt.Fprintf(stderr, "Error: artifact has no built version yet: %s\n", target)
+		fmt.Fprintf(stderr, "Hint: run `fbt build --select %s` to create it.\n", buildTargetForArtifact(ctx.Manifest, artifactID))
+		return 2
+	}
+	fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
+	fmt.Fprintln(stderr, "Hint: run `fbt artifact ls` to list recorded artifacts, or `fbt plan` to inspect declared transforms.")
+	return 2
+}
+
+func buildTargetForArtifact(m manifest.Manifest, artifactID string) string {
+	if transform, ok := producerTransform(m, artifactID); ok && transform.Name != "" {
+		return transform.Name
+	}
+	return shortenResourceID(artifactID)
+}
+
 func printParseError(err error, diagnostics []parser.Diagnostic, stderr io.Writer, jsonOutput bool) {
 	if jsonOutput {
 		writeJSON(stderr, map[string]any{"status": "error", "error": err.Error(), "diagnostics": diagnostics})
@@ -2166,11 +2195,43 @@ func printParseError(err error, diagnostics []parser.Diagnostic, stderr io.Write
 }
 
 func printError(command string, err error, stderr io.Writer, jsonOutput bool) {
+	hint := errorHint(err)
 	if jsonOutput {
-		writeJSON(stderr, map[string]any{"command": command, "status": "error", "error": err.Error()})
+		payload := map[string]any{"command": command, "status": "error", "error": err.Error()}
+		if hint != "" {
+			payload["hint"] = hint
+		}
+		writeJSON(stderr, payload)
 		return
 	}
-	fmt.Fprintf(stderr, "Error: %v\n", err)
+	printCLIError(stderr, err.Error())
+}
+
+func printCLIError(stderr io.Writer, message string) {
+	fmt.Fprintf(stderr, "Error: %s\n", message)
+	if hint := errorMessageHint(message); hint != "" {
+		fmt.Fprintf(stderr, "Hint: %s\n", hint)
+	}
+}
+
+func errorHint(err error) string {
+	if err == nil {
+		return ""
+	}
+	return errorMessageHint(err.Error())
+}
+
+func errorMessageHint(message string) string {
+	switch {
+	case strings.Contains(message, "selector matched no transforms"):
+		return "run `fbt plan` without --select to see available transforms, or check selectors in fs_project.yml."
+	case strings.Contains(message, "unknown selector"):
+		return "use a transform name, tag:, path:, resource_type:, selector:, or graph form such as +target."
+	case strings.Contains(message, "unknown flag: --dry-run") || strings.Contains(message, "unknown plan flag: --dry-run") || strings.Contains(message, "unknown build flag: --dry-run"):
+		return "use `fbt plan` to preview without writing state or starting runners."
+	default:
+		return ""
+	}
 }
 
 func writeJSON(w io.Writer, value any) {
