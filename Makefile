@@ -150,6 +150,10 @@ own-files-smoke: ## Verify the first own-files user path.
 daily-ops-smoke: ## Verify daily growing-source operations with multiple artifacts.
 	@bash scripts/smoke-daily-ops.sh
 
+.PHONY: production-pilot-smoke
+production-pilot-smoke: ## Verify the daily operations loop with official adapters.
+	@bash scripts/pilot-daily-real-adapters.sh
+
 .PHONY: semantic-eval-boundary-smoke
 semantic-eval-boundary-smoke: ## Verify external semantic/evidence quality checks stay outside core.
 	@bash scripts/smoke-semantic-eval-boundary.sh
@@ -195,5 +199,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check release-version-check agent-skills-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke install-script-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check release-version-check agent-skills-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke install-script-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke production-pilot-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

@@ -603,6 +603,14 @@ domain-review handoff as `quality-gates.txt` and `quality-gates.json` in the
 run bundle. The quality gate remains an external CI check rather than fbt core
 LLM-judge or approval behavior.
 
+`FBT-PROD-001` is done. `scripts/pilot-daily-real-adapters.sh` copies
+`daily_qa_ops`, rewires it to the official OpenAI and Codex CLI adapters, runs
+the same production wrapper, and checks protocol diagnostics, quality gates,
+and OpenLineage evidence. The default path is network-free through the OpenAI
+fake response and Codex fixture; live OpenAI execution is opt-in with
+`FBT_PILOT_LIVE_OPENAI=1` and `OPENAI_API_KEY`. `make verify` now includes
+`production-pilot-smoke`.
+
 ## Verification
 
 Required gate before calling work done:
@@ -613,13 +621,14 @@ make verify
 
 This runs harness, drift, docs validation, release version drift checks, agent
 skills checks, Go formatting/tests, CLI smoke, installer smoke, knowledge-loop
-smoke, practical examples smoke, daily operations smoke, docs site build,
-runner conformance, product conformance, and distribution smoke checks.
+smoke, practical examples smoke, daily operations smoke, production pilot
+smoke, docs site build, runner conformance, product conformance, and
+distribution smoke checks.
 
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-PROD-001` and `FBT-RUNNER-027`.
+   `FBT-RUNNER-027`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

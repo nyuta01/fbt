@@ -4251,20 +4251,31 @@
       "id": "FBT-PROD-001",
       "title": "Run production daily support pilot with real adapters",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-OPS-003",
         "FBT-RUNNER-026"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-PROD-001-plan.md",
       "paths": [
         "examples/daily_qa_ops/",
         "docs/pilots/",
-        "scripts/"
+        "scripts/",
+        "Makefile",
+        "docs/exec-plans/active/FBT-PROD-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Execute the daily support knowledge loop with installed production-capable adapters instead of demo runners, capture cost/latency/failure/quality friction, and keep live provider calls behind explicit opt-in credentials."
+      "verification": {
+        "official_openai_adapter_pilot": true,
+        "official_codex_cli_adapter_pilot": true,
+        "live_provider_opt_in": true,
+        "production_pilot_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Added a production pilot smoke that rewires a temporary daily_qa_ops project to official OpenAI and Codex CLI adapters, runs the same production wrapper, captures run-bundle evidence, and keeps live OpenAI calls behind FBT_PILOT_LIVE_OPENAI=1 plus OPENAI_API_KEY."
     },
     {
       "id": "FBT-RUNNER-027",
