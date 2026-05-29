@@ -2380,7 +2380,7 @@
       "id": "FBT-RUNNER-009",
       "title": "Add opt-in real runner adapter smoke matrix",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-006"
@@ -2394,9 +2394,9 @@
         "Makefile"
       ],
       "verification": {
-        "runner_conformance": false,
-        "validate_docs": false,
-        "make_verify": false
+        "runner_conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
       "notes": "Keep provider SDKs outside core, but make OpenAI, Claude Code, Codex, Gemini, and internal CLI adapters easier to validate through opt-in smoke commands and documented adapter package contracts."
     },

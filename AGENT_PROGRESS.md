@@ -117,6 +117,14 @@ docs-generation surface, `internal/README.md` lists the current public CLI and
 actual internal packages, and `scripts/harness_drift.py` rejects those exact
 stale phrases if they reappear outside historical notes.
 
+`FBT-RUNNER-009` added an opt-in installed-adapter smoke matrix. `make
+runner-adapter-smoke` reads `FBT_RUNNER_ADAPTER_SMOKE_MATRIX` rows in the form
+`logical_name|runner_type|artifact_type|command|required_env_csv|agent_adapter`,
+then runs conformance, a generated-project `doctor`, and a generated-project
+`plan` for each row. Setting `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` also performs a
+real temporary build and artifact inspection. The target is intentionally not
+part of `make verify`.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
@@ -187,7 +195,9 @@ External runner extensibility remains out-of-core. `runners/openai` is optional
 and reads `OPENAI_API_KEY`; provider SDKs and agent runtimes are not part of
 base core. Runner authoring, adapter packaging, protocol fixtures, and
 conformance checks are documented under `docs/runner-authoring-guide.md`,
-`docs/runner-adapters.md`, and `tests/runner-conformance/`.
+`docs/runner-adapters.md`, and `tests/runner-conformance/`. Installed adapter
+checks use `make runner-adapter-smoke` with explicit matrix rows and optional
+real builds.
 
 ## Verification
 
@@ -203,11 +213,10 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Add opt-in real runner adapter smoke coverage through `FBT-RUNNER-009`.
-2. Define local state/artifact retention hygiene through `FBT-STATE-002`.
-3. Add opt-in standard backend visualization verification through
+1. Define local state/artifact retention hygiene through `FBT-STATE-002`.
+2. Add opt-in standard backend visualization verification through
    `FBT-STD-007`.
-4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+3. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

@@ -210,7 +210,40 @@ Recommended release metadata:
 - credential environment variable names
 - checksum or signature for distributed binaries when available
 
-## 10. Conformance Checklist
+## 10. Opt-In Smoke Matrix
+
+`make verify` stays deterministic and service-free. To validate installed
+provider or CLI-agent adapters on a workstation or CI secret context, use:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false
+codex.cli|agent|markdown|fbt-runner-codex-cli --profile fbt|OPENAI_API_KEY|true
+claude_code.cli|agent|markdown|fbt-runner-claude-code --profile fbt|ANTHROPIC_API_KEY|true
+gemini.generate_content|llm|markdown|fbt-runner-gemini generate-content|GEMINI_API_KEY|false
+internal.agent|agent|markdown|company-fbt-agent --mode fbt|INTERNAL_AGENT_TOKEN|true' \
+make runner-adapter-smoke
+```
+
+Each row is:
+
+```text
+logical_name|runner_type|artifact_type|command|required_env_csv|agent_adapter
+```
+
+The smoke script validates each row by:
+
+- running runner conformance against the command
+- adding `--agent-adapter` for CLI-agent rows
+- generating a temporary fbt project with that logical runner
+- running `fbt doctor`
+- running `fbt plan --select adapter_smoke`
+
+Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` to also run a real build and inspect the
+committed artifact. Keep this explicit because it may call paid providers or
+local agents. Set `FBT_RUNNER_ADAPTER_SMOKE_TIMEOUT_SECONDS` when an installed
+adapter needs a longer conformance timeout.
+
+## 11. Conformance Checklist
 
 Before documenting an adapter as fbt-compatible:
 
@@ -227,9 +260,10 @@ For CLI-agent adapters, also run `tests/runner-conformance/run.py` with
 `--strict --agent-adapter` before recommending the package.
 
 Adapters that require real provider accounts should keep provider smoke tests
-behind explicit opt-in commands, not `make verify`.
+behind explicit opt-in commands such as `make runner-adapter-smoke`, not
+`make verify`.
 
-## 11. Non-Goals
+## 12. Non-Goals
 
 Adapter packaging does not add:
 

@@ -1,6 +1,6 @@
 # FBT-RUNNER-009 Add Opt-In Real Runner Adapter Smoke Matrix
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -25,11 +25,24 @@ real project without making credentials or SDKs part of `make verify`.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
+Added `make runner-adapter-smoke`, backed by
+`scripts/smoke-runner-adapters.sh`. The target is opt-in and is not part of
+`make verify`.
 
-- Document adapter-specific smoke command shapes and required env vars.
-- Add opt-in Make/script entrypoints for locally installed adapters.
-- Keep base verification deterministic and service-free.
+The matrix format is:
+
+```text
+logical_name|runner_type|artifact_type|command|required_env_csv|agent_adapter
+```
+
+For each row, the script runs runner conformance, adds `--agent-adapter` when
+requested, generates a temporary fbt project, runs `fbt doctor`, and runs
+`fbt plan --select adapter_smoke`. If
+`FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` is set, it also builds the temporary
+artifact and inspects it with `fbt artifact show`.
+
+Docs now show command shapes for OpenAI, Codex CLI, Claude Code, Gemini, and an
+internal CLI adapter without adding provider SDKs or agent runtimes to fbt core.
 
 ## Next Check
 
@@ -39,5 +52,12 @@ Run:
 make verify
 ```
 
-Expected result: base verify remains offline, while adapter authors get a clear
-opt-in smoke path for real installed runners.
+Latest targeted result:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='scaffold.agent|agent|markdown|examples/runner_adapter_scaffold/bin/fbt-runner-example||true' \
+FBT_RUNNER_ADAPTER_SMOKE_BUILD=1 \
+make runner-adapter-smoke
+```
+
+passed. Final gate: `make verify` passed and base verification remains offline.

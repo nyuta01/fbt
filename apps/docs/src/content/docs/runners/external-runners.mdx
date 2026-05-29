@@ -30,3 +30,18 @@ The runner boundary keeps fbt lightweight:
 A transform declares the runner it needs. fbt resolves runner commands from
 project config, plugin manifests, and `PATH`, then validates capabilities during
 doctor/build.
+
+## Opt-in smoke matrix
+
+Real provider and CLI-agent checks stay outside `make verify`. To validate
+installed adapters, pass matrix rows to `make runner-adapter-smoke`:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false
+codex.cli|agent|markdown|fbt-runner-codex-cli --profile fbt|OPENAI_API_KEY|true' \
+make runner-adapter-smoke
+```
+
+Each row runs protocol conformance, a generated-project `doctor`, and a
+generated-project `plan`. Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when you
+intend to call the real provider or agent.

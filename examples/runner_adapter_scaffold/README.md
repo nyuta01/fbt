@@ -46,6 +46,15 @@ Expected output:
 runner-conformance: ok
 ```
 
+To exercise the same adapter through the installed-adapter smoke matrix and a
+temporary fbt project:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='scaffold.agent|agent|markdown|examples/runner_adapter_scaffold/bin/fbt-runner-example||true' \
+FBT_RUNNER_ADAPTER_SMOKE_BUILD=1 \
+make runner-adapter-smoke
+```
+
 ## Package Shape
 
 An adapter package can ship this shape:

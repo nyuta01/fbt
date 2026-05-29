@@ -38,5 +38,10 @@ Check the scaffold itself with:
 ```sh
 python3 tests/runner-conformance/run.py \
   --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
-  --strict
+  --strict \
+  --agent-adapter
 ```
+
+For installed adapters, use `make runner-adapter-smoke` with
+`FBT_RUNNER_ADAPTER_SMOKE_MATRIX` to run conformance plus generated-project
+`doctor` and `plan` checks without adding provider SDKs to fbt core.

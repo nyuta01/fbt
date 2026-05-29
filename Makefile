@@ -70,6 +70,10 @@ practical-examples-smoke: ## Plan external-runner practical examples without pro
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
 
+.PHONY: runner-adapter-smoke
+runner-adapter-smoke: build ## Run opt-in smoke matrix against installed runner adapters.
+	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-runner-adapters.sh
+
 .PHONY: docs-site-build
 docs-site-build: ## Build the Astro/Starlight documentation site.
 	@cd apps/docs && npm ci --no-audit --fund=false && SITE="https://nyuta01.github.io" BASE="/fbt" npm run build

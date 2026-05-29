@@ -256,6 +256,18 @@ then verifies that:
 - a staging workspace was reported under `work.root` but outside `work.outputs`
 - the adapter reported fail-closed policy mapping
 
+For installed real adapters, use the opt-in matrix target:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```
+
+The matrix runs conformance, a generated-project `doctor`, and a generated
+project `plan` for each row. Add `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when
+you intentionally want the smoke to call the real provider or agent and commit a
+temporary artifact.
+
 ## 11. Discovery Packaging
 
 A runner can be referenced from project config, a plugin manifest, or a PATH
