@@ -155,6 +155,13 @@ structured harness, `FBT-SCHEMA-001` for generated project-config JSON Schema,
 `FBT-REL-005` for adapter release tags/checksums/signatures, and `FBT-SEC-001`
 for documented OS sandbox execution profiles.
 
+`FBT-PILOT-001` is done. `docs/pilots/2026-05-29-real-workflow-pilots.md`
+captures two temporary-copy pilots: daily QA operations with a day-two source
+addition, and an external evidence-quality report. The only concrete friction
+found was copied examples needing `FBT_SOURCE_ROOT` declared and set for
+repository-local demo wrappers; `examples/README.md` now documents that copied
+example path.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

@@ -65,6 +65,35 @@ Use stable source paths for the fbt project and keep windowing outside fbt:
 The detailed daily operations guide is
 [`docs/examples/daily-source-operations.md`](../docs/examples/daily-source-operations.md).
 
+## Copying Examples
+
+The checked-in examples are easiest to run from this repository checkout. Some
+demo wrappers use `go run` against repository-local adapter code so the examples
+stay small and do not vendor provider or runner binaries.
+
+If you copy an example to a temporary directory, declare and set
+`FBT_SOURCE_ROOT` for the copied runner config:
+
+```yaml
+runners:
+  - name: demo.llm
+    command: bin/fbt-demo-llm-runner
+    env:
+      - FBT_SOURCE_ROOT
+```
+
+Then run:
+
+```sh
+FBT_SOURCE_ROOT=/path/to/fbt fbt doctor --project-dir /tmp/daily_qa_ops
+FBT_SOURCE_ROOT=/path/to/fbt fbt build --project-dir /tmp/daily_qa_ops --select tag:daily_qa
+```
+
+Without that declared environment variable, a copied demo wrapper can fail
+before protocol initialization because it cannot find the repository `go.mod`.
+Real installed adapters such as `fbt-runner-openai` do not need
+`FBT_SOURCE_ROOT`.
+
 ## Common Commands
 
 ```sh

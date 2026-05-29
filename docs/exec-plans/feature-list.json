@@ -3546,7 +3546,7 @@
       "id": "FBT-PILOT-001",
       "title": "Run real-workflow pilots and capture user friction",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-015",
@@ -3565,12 +3565,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "pilot_workflow_notes": false,
-        "friction_backlog_created": false,
-        "docs_or_examples_updated_from_findings": false,
-        "make_verify": false
+        "pilot_workflow_notes": true,
+        "friction_backlog_created": true,
+        "docs_or_examples_updated_from_findings": true,
+        "make_verify": true
       },
-      "notes": "The core loop is strong enough for MVP; the next UX signal should come from real source directories. Run two or more realistic pilots, capture where users hesitate, and convert observed friction into concrete fixes instead of speculative feature growth."
+      "notes": "Completed real workflow pilots for daily QA operations and external evidence-quality reports. Added `docs/pilots/2026-05-29-real-workflow-pilots.md` with observed commands/results/friction, and updated `examples/README.md` so copied examples declare `FBT_SOURCE_ROOT` explicitly. `make verify` passed."
     },
     {
       "id": "FBT-CONF-002",
