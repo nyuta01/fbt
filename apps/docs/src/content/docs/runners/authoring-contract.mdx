@@ -44,6 +44,58 @@ python3 tests/runner-conformance/run.py \
   --agent-adapter
 ```
 
+Expected result:
+
+```text
+runner-conformance: ok
+```
+
 For installed adapters, use `make runner-adapter-smoke` with
 `FBT_RUNNER_ADAPTER_SMOKE_MATRIX` to run conformance plus generated-project
 `doctor` and `plan` checks without adding provider SDKs to fbt core.
+
+## Minimal output candidate
+
+During `fbt/runTransform`, the runner writes files under `work.outputs` and
+returns declared candidates:
+
+```json
+{
+  "name": "output",
+  "artifact_type": "markdown",
+  "path": "/repo/.fbt/work/run_001/outputs/output",
+  "declared_path": "target/artifacts/output.md"
+}
+```
+
+Core then computes descriptors, runs policy/eval checks, commits the official
+artifact version, and records lineage. The runner should not write directly to
+`target/artifacts`, `.fbt/state`, or source paths.
+
+## Use in a project
+
+Once the command passes conformance, reference it from project config:
+
+```yaml
+runners:
+  - name: company.agent
+    type: agent
+    protocol: stdio_jsonrpc
+    command: company-fbt-agent
+    args: ["--mode", "fbt"]
+    env:
+      - COMPANY_AGENT_TOKEN
+```
+
+Then transforms use only the logical runner name:
+
+```yaml
+transforms:
+  - name: weekly_support_insights
+    type: agent
+    runner: company.agent
+    outputs:
+      - name: weekly_support_insights
+        type: markdown
+        path: target/artifacts/support/weekly_insights.md
+```

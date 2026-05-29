@@ -18,6 +18,31 @@ export OPENAI_API_KEY=...
 The runner reads the key from the environment and does not store it in project
 state.
 
+## Install
+
+For a released or source checkout version, install the command outside fbt
+core:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@main
+```
+
+Use that command from `fs_project.yml`:
+
+```yaml
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-runner-openai
+    args: ["responses"]
+    env:
+      - OPENAI_API_KEY
+    config:
+      provider: openai
+      default_model: gpt-5
+```
+
 ## Practical examples
 
 The incident and support manual examples use project-local wrappers:
@@ -34,8 +59,53 @@ fbt doctor --project-dir examples/incident_response_runbook
 fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
 ```
 
+If `OPENAI_API_KEY` is missing, `doctor` stops before build:
+
+```text
+Runners
+  openai.responses
+    error RUNNER_ENV_MISSING: runner env OPENAI_API_KEY is not set
+    ok RUNNER_COMMAND_OK: runner command is executable: examples/incident_response_runbook/bin/fbt-runner-openai
+```
+
+With credentials, build produces:
+
+```text
+SUCCESS incident_response_runbook
+        output     incident_response_runbook -> target/artifacts/runbooks/incident_response_runbook.md
+        committed  incident_response_runbook@sha256:...
+        next       fbt artifact show incident_response_runbook --project-dir examples/incident_response_runbook
+```
+
 ## Verification model
 
 Default verification does not call the live provider. The runner has process
 tests with an HTTP test server, and the practical examples have parse/plan smoke
 coverage.
+
+For a protocol-only check of the OpenAI adapter, use the fake-response mode:
+
+```sh
+OPENAI_API_KEY=fake \
+FBT_OPENAI_ADAPTER_FAKE_RESPONSE='Generated from fake OpenAI runner.' \
+python3 tests/runner-conformance/run.py \
+  --runner-command 'go run ./adapters/openai/cmd/fbt-runner-openai responses' \
+  --transform-type llm \
+  --strict
+```
+
+Expected result:
+
+```text
+runner-conformance: ok
+```
+
+Use the installed-adapter smoke only when the command is installed on `PATH`:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```
+
+Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when you intentionally want the
+smoke target to call the real OpenAI API.

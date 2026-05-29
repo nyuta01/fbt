@@ -16,10 +16,43 @@ fbt records lineage locally as part of state. The model connects:
 
 ## Local commands
 
+Create a local fixture and build both transforms:
+
 ```sh
-fbt artifact show case_summaries
-fbt artifact history case_summaries
-fbt artifact explain weekly_support_insights
+fbt init /tmp/fbt-lineage-demo --template support
+fbt build --project-dir /tmp/fbt-lineage-demo --select case_summaries
+fbt build --project-dir /tmp/fbt-lineage-demo --select weekly_support_insights
+```
+
+The second artifact depends on the first. Inspect the receipt:
+
+```sh
+fbt artifact show weekly_support_insights --project-dir /tmp/fbt-lineage-demo
+fbt artifact history weekly_support_insights --project-dir /tmp/fbt-lineage-demo
+fbt artifact explain weekly_support_insights --project-dir /tmp/fbt-lineage-demo
+```
+
+Representative explain output:
+
+```text
+Artifact: weekly_support_insights
+Decision: SKIP
+  Reason  up to date; inspect the current artifact version
+
+Producer
+  Transform        weekly_support_insights
+  Current version  weekly_support_insights@sha256:49fdb22a332c
+  Confidence       structural
+
+Inputs
+  ok input   case_summaries       version=case_summaries@sha256:a5b4dfd91df7
+  ok asset   support_style_guide  path=assets/support_style_guide.md
+  ok policy  support_agent_scope
+  ok eval    required_agent_sections
+  ok runner  demo.agent
+
+Outputs
+  weekly_support_insights  target/artifacts/support/weekly_insights.md
 ```
 
 ## Standard exports
@@ -28,6 +61,27 @@ fbt does not require a custom visualization backend. Export lineage to standard
 formats instead:
 
 ```sh
-fbt export openlineage
-fbt export otel
+mkdir -p /tmp/fbt-lineage-demo/target/lineage /tmp/fbt-lineage-demo/target/telemetry
+fbt export openlineage \
+  --project-dir /tmp/fbt-lineage-demo \
+  --output /tmp/fbt-lineage-demo/target/lineage/openlineage.ndjson
+fbt export otel \
+  --project-dir /tmp/fbt-lineage-demo \
+  --output /tmp/fbt-lineage-demo/target/telemetry/otel.json
+```
+
+Expected summaries:
+
+```text
+Export: openlineage
+  Format  OpenLineage RunEvent NDJSON
+  Output  /tmp/fbt-lineage-demo/target/lineage/openlineage.ndjson
+  Events  2
+  Next    post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow
+
+Export: otel
+  Format  OpenTelemetry OTLP/JSON traces
+  Output  /tmp/fbt-lineage-demo/target/telemetry/otel.json
+  Spans   4
+  Next    post this JSON to an OTLP-compatible collector or store it as evidence
 ```

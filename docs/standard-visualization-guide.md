@@ -41,12 +41,31 @@ fbt export otel \
   --output /tmp/fbt-viz-knowledge/target/telemetry/otel.json
 ```
 
+Expected summaries for the support fixture:
+
+```text
+Export: openlineage
+  Format  OpenLineage RunEvent NDJSON
+  Output  /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
+  Events  2
+  Next    post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow
+
+Export: otel
+  Format  OpenTelemetry OTLP/JSON traces
+  Output  /tmp/fbt-viz-knowledge/target/telemetry/otel.json
+  Spans   4
+  Next    post this JSON to an OTLP-compatible collector or store it as evidence
+```
+
 Quick checks:
 
 ```sh
 wc -l /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
 python3 -m json.tool /tmp/fbt-viz-knowledge/target/telemetry/otel.json >/dev/null
 ```
+
+The OpenLineage file should contain one event per successful transform run in
+the fixture. The OTLP/JSON file should parse as JSON and include `resourceSpans`.
 
 The repository also provides an opt-in smoke target:
 

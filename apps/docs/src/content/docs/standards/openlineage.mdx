@@ -6,7 +6,19 @@ description: Export fbt runs as OpenLineage RunEvent NDJSON.
 `fbt export openlineage` emits OpenLineage RunEvent NDJSON.
 
 ```sh
-fbt export openlineage --project-dir knowledge_ops > openlineage.ndjson
+fbt export openlineage \
+  --project-dir /tmp/fbt-lineage-demo \
+  --output /tmp/fbt-lineage-demo/target/lineage/openlineage.ndjson
+```
+
+The command prints a short summary:
+
+```text
+Export: openlineage
+  Format  OpenLineage RunEvent NDJSON
+  Output  /tmp/fbt-lineage-demo/target/lineage/openlineage.ndjson
+  Events  2
+  Next    post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow
 ```
 
 The export includes fbt-specific facets for artifact versions and lineage

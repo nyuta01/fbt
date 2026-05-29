@@ -96,6 +96,11 @@ response/product evidence, prompt and format assets, runner wiring, output
 paths, expected artifact excerpts, and `artifact explain` receipt excerpts for
 both incident runbook and support manual examples.
 
+`FBT-DOCS-UX-013` is done. Runner, OpenAI adapter, runner authoring, lineage,
+standard export, visualization, and project-config docs now include runnable
+commands, minimal YAML snippets, expected conformance/doctor/export output,
+and concrete example file pointers.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

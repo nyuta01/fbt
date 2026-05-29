@@ -32,6 +32,22 @@ fbt export otel \
   --output /tmp/fbt-viz-knowledge/target/telemetry/otel.json
 ```
 
+Expected summaries:
+
+```text
+Export: openlineage
+  Format  OpenLineage RunEvent NDJSON
+  Output  /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
+  Events  2
+  Next    post or ingest this NDJSON with a Marquez/OpenMetadata-compatible workflow
+
+Export: otel
+  Format  OpenTelemetry OTLP/JSON traces
+  Output  /tmp/fbt-viz-knowledge/target/telemetry/otel.json
+  Spans   4
+  Next    post this JSON to an OTLP-compatible collector or store it as evidence
+```
+
 The automated opt-in fixture is:
 
 ```sh

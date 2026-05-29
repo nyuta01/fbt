@@ -35,6 +35,81 @@ A transform declares the runner it needs. fbt resolves runner commands from
 project config, plugin manifests, and `PATH`, then validates capabilities during
 doctor/build.
 
+Minimal project-level runner wiring:
+
+```yaml
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-runner-openai
+    args: ["responses"]
+    env:
+      - OPENAI_API_KEY
+    config:
+      provider: openai
+      default_model: gpt-5
+```
+
+A transform then refers to the logical runner name:
+
+```yaml
+transforms:
+  - name: incident_response_runbook
+    type: llm
+    runner: openai.responses
+    inputs:
+      - source: incident.event_logs
+      - source: incident.response_logs
+    outputs:
+      - name: incident_response_runbook
+        type: markdown
+        path: target/artifacts/runbooks/incident_response_runbook.md
+```
+
+Before a build, `doctor` verifies the command and required environment names.
+With a missing key, the failure is explicit and happens before any runner call:
+
+```text
+Doctor: error
+Project: examples/incident_response_runbook
+
+Runners
+  openai.responses
+    error RUNNER_ENV_MISSING: runner env OPENAI_API_KEY is not set
+    ok RUNNER_COMMAND_OK: runner command is executable: examples/incident_response_runbook/bin/fbt-runner-openai
+```
+
+With credentials set, the same project can be planned and built:
+
+```sh
+export OPENAI_API_KEY=...
+fbt doctor --project-dir examples/incident_response_runbook
+fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
+fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+```
+
+After build, fbt commits only the declared output candidates and records the
+runner fingerprint in the artifact receipt.
+
+## Conformance first
+
+Runner authors and package maintainers should prove protocol compatibility
+outside any real project:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
+  --strict \
+  --agent-adapter
+```
+
+Expected result:
+
+```text
+runner-conformance: ok
+```
+
 ## Opt-in smoke matrix
 
 Real provider and CLI-agent checks stay outside `make verify`. To validate

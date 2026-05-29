@@ -79,6 +79,12 @@ python3 tests/runner-conformance/run.py \
   --agent-adapter
 ```
 
+Expected result:
+
+```text
+runner-conformance: ok
+```
+
 The repository also keeps source-checkout adapter examples under
 `examples/runner_adapters/` and test-only protocol fixtures under
 `tests/runner_fixtures/`. There is intentionally no top-level `runners/`
@@ -327,6 +333,24 @@ Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` to also run a real build and inspect the
 committed artifact. Keep this explicit because it may call paid providers or
 local agents. Set `FBT_RUNNER_ADAPTER_SMOKE_TIMEOUT_SECONDS` when an installed
 adapter needs a longer conformance timeout.
+
+For a provider-free protocol check of the official OpenAI adapter source, use
+its fake-response mode:
+
+```sh
+OPENAI_API_KEY=fake \
+FBT_OPENAI_ADAPTER_FAKE_RESPONSE='Generated from fake OpenAI runner.' \
+python3 tests/runner-conformance/run.py \
+  --runner-command 'go run ./adapters/openai/cmd/fbt-runner-openai responses' \
+  --transform-type llm \
+  --strict
+```
+
+Expected result:
+
+```text
+runner-conformance: ok
+```
 
 ## 11. Conformance Checklist
 

@@ -56,6 +56,12 @@ python3 tests/runner-conformance/run.py \
   --agent-adapter
 ```
 
+Expected result:
+
+```text
+runner-conformance: ok
+```
+
 Keep stdout reserved for JSON-RPC messages. Put human debug logs on stderr, and
 write final candidates only under `params.work.outputs`.
 
@@ -285,6 +291,12 @@ The matrix runs conformance, a generated-project `doctor`, and a generated
 project `plan` for each row. Add `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when
 you intentionally want the smoke to call the real provider or agent and commit a
 temporary artifact.
+
+Expected successful conformance output is intentionally terse:
+
+```text
+runner-conformance: ok
+```
 
 ## 11. Discovery Packaging
 

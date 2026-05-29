@@ -3321,7 +3321,7 @@
       "id": "FBT-DOCS-UX-013",
       "title": "Strengthen runner and standards docs with runnable examples",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-DOCS-UX-011",
@@ -3343,12 +3343,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "runner_docs_command_examples_scan": false,
-        "standard_export_docs_output_examples_scan": false,
-        "docs_site_build": false,
-        "make_verify": false
+        "runner_docs_command_examples_scan": true,
+        "standard_export_docs_output_examples_scan": true,
+        "docs_site_build": true,
+        "make_verify": true
       },
-      "notes": "Several docs-site pages are accurate but thin. Add runnable command examples, minimal config snippets, expected output excerpts, and pointers to concrete files so users can understand external runners, lineage exports, and project config without jumping back to README."
+      "notes": "Runner, OpenAI adapter, authoring contract, lineage, standard export, visualization, and project-config docs now include runnable commands, minimal YAML snippets, conformance output, doctor diagnostics, export summaries, and concrete file pointers."
     },
     {
       "id": "FBT-PDCA-001",

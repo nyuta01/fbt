@@ -27,5 +27,89 @@ state:
 Resources under the configured paths declare sources, transforms, assets,
 policies, evals, and runners.
 
+## Minimal working shape
+
+A project is usually three layers:
+
+1. `fs_project.yml` chooses where to find declarations and how to call runners.
+2. `sources/*.yml` names the files fbt may read.
+3. `transforms/*.yml` names the artifact to build and the runner that builds it.
+
+For a manual-generation project, the runner section can be:
+
+```yaml
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: bin/fbt-runner-openai
+    args: ["responses"]
+    env:
+      - OPENAI_API_KEY
+    config:
+      provider: openai
+      default_model: gpt-5
+```
+
+The source file declares evidence paths:
+
+```yaml
+sources:
+  - name: incident
+    artifacts:
+      - name: event_logs
+        type: jsonl_directory
+        path: data/incidents/events/*.jsonl
+      - name: response_logs
+        type: markdown_directory
+        path: data/incidents/response_logs/
+```
+
+The transform connects source, instruction assets, runner, and artifact:
+
+```yaml
+transforms:
+  - name: incident_response_runbook
+    type: llm
+    runner: openai.responses
+    inputs:
+      - source: incident.event_logs
+      - source: incident.response_logs
+    outputs:
+      - name: incident_response_runbook
+        type: markdown
+        path: target/artifacts/runbooks/incident_response_runbook.md
+    assets:
+      - ref: incident_runbook_prompt
+      - ref: incident_runbook_format
+```
+
+Now the loop is:
+
+```sh
+fbt doctor --project-dir examples/incident_response_runbook
+fbt plan --project-dir examples/incident_response_runbook --select incident_response_runbook
+fbt build --project-dir examples/incident_response_runbook --select incident_response_runbook
+fbt artifact explain incident_response_runbook --project-dir examples/incident_response_runbook
+```
+
+Expected plan before the first build:
+
+```text
+RUN     incident_response_runbook
+        because  no previous successful run
+        because  output missing
+        output   incident_response_runbook
+        next     fbt build --select incident_response_runbook --project-dir examples/incident_response_runbook
+```
+
+Concrete files for this shape live in:
+
+```text
+examples/incident_response_runbook/fs_project.yml
+examples/incident_response_runbook/sources/incident.yml
+examples/incident_response_runbook/transforms/incident/runbook.yml
+```
+
 The full source-of-truth spec lives in `docs/project-config-spec.md` in the
 repository.
