@@ -10,6 +10,7 @@ fbt artifact path case_summaries
 fbt artifact show case_summaries
 fbt artifact history case_summaries
 fbt artifact explain weekly_support_insights
+fbt artifact retention
 fbt diff case_summaries --against previous
 ```
 
@@ -23,6 +24,17 @@ This reports why an artifact is dirty, clean, blocked, or skipped.
 It includes the producing transform, current version, previous run, source or
 upstream artifact inputs, changed fingerprints when available, dirty or blocked
 reasons, and the next command to run.
+
+## Inspect local retention
+
+```sh
+fbt artifact retention --project-dir knowledge_ops
+```
+
+This read-only report shows local state size, immutable artifact size, run
+records, current versions, historical versions, and missing storage references.
+fbt keeps all versions by default; archive `.fbt/state` and `.fbt/artifacts`
+together when an external retention process is needed.
 
 ## Inspect generated files
 

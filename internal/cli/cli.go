@@ -230,6 +230,7 @@ func newArtifactCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobr
 	cmd.AddCommand(newArtifactSubcommand("show", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
 	cmd.AddCommand(newArtifactSubcommand("explain", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
 	cmd.AddCommand(newArtifactSubcommand("history", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("retention", "", cobra.NoArgs, opts, stdout, stderr))
 	return cmd
 }
 
@@ -1272,6 +1273,12 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			return 2
 		}
 		return runArtifactHistory(ctx, versions, args[1], opts.JSON, stdout, stderr)
+	case "retention":
+		if err := expectAtMostArgs("artifact retention", args, 1); err != nil {
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return 2
+		}
+		return runArtifactRetention(ctx, opts.JSON, stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "unknown artifact command: %s\n", subcommand)
 		return 2
@@ -1370,6 +1377,20 @@ func runArtifactHistory(ctx projectContext, versions state.ArtifactVersionsIndex
 	for _, record := range records {
 		printArtifactRecord(stdout, record)
 	}
+	return 0
+}
+
+func runArtifactRetention(ctx projectContext, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+	report, err := state.BuildRetentionReport(ctx.ParseResult.ProjectDir, ctx.Store)
+	if err != nil {
+		printError("artifact retention", err, stderr, jsonOutput)
+		return 5
+	}
+	if jsonOutput {
+		writeJSON(stdout, map[string]any{"command": "artifact retention", "status": "success", "retention": report})
+		return 0
+	}
+	printRetentionReport(stdout, ctx.ParseResult.ProjectDir, report)
 	return 0
 }
 
@@ -1781,6 +1802,35 @@ func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 		printDisplayRows(stdout, "  ", []displayRow{{Label: "Material", Value: value}})
 	}
 	fmt.Fprintln(stdout)
+}
+
+func printRetentionReport(stdout io.Writer, projectDir string, report state.RetentionReport) {
+	fmt.Fprintln(stdout, "Artifact retention")
+	rows := []displayRow{
+		{Label: "Policy", Value: report.Policy},
+		{Label: "State dir", Value: projectRelativeOrOriginal(projectDir, report.StateDir)},
+		{Label: "Artifact dir", Value: projectRelativeOrOriginal(projectDir, report.ArtifactDir)},
+		{Label: "State bytes", Value: fmt.Sprintf("%d", report.StateBytes)},
+		{Label: "Artifact bytes", Value: fmt.Sprintf("%d", report.ArtifactBytes)},
+		{Label: "Run records", Value: fmt.Sprintf("%d", report.RunRecords)},
+		{Label: "Artifact versions", Value: fmt.Sprintf("%d", report.ArtifactVersions)},
+		{Label: "Current versions", Value: fmt.Sprintf("%d", report.CurrentVersions)},
+		{Label: "Historical versions", Value: fmt.Sprintf("%d", report.HistoricalVersions)},
+		{Label: "Missing storage", Value: fmt.Sprintf("%d", len(report.MissingStorage))},
+		{Label: "Action", Value: "no files removed; archive state and artifact dirs together"},
+	}
+	printDisplayRows(stdout, "  ", rows)
+	for _, versionID := range report.MissingStorage {
+		printDisplayRows(stdout, "  ", []displayRow{{Label: "Missing version", Value: versionID}})
+	}
+}
+
+func projectRelativeOrOriginal(projectDir, path string) string {
+	rel, err := filepath.Rel(projectDir, path)
+	if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) || filepath.IsAbs(rel) {
+		return path
+	}
+	return filepath.ToSlash(rel)
 }
 
 func compactJSON(value any) string {

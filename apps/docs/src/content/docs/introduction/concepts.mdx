@@ -20,6 +20,10 @@ An `artifact_version` is an immutable content snapshot identified by a digest.
 Versions are stored in local state and can be inspected with `fbt artifact
 history` and `fbt artifact show`.
 
+fbt keeps versions by default. Use `fbt artifact retention` to inspect local
+state and immutable artifact growth before archiving `.fbt/state` and
+`.fbt/artifacts` with external tools.
+
 ## Transform
 
 A `transform` turns source artifacts or upstream artifacts into output

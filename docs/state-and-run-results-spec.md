@@ -30,6 +30,33 @@ eval results, and policy decisions under `.fbt/state/`.
 | `evaluation_results.json` | Eval results by artifact version and run |
 | `policy_decisions.json` | Runtime policy decisions |
 
+## Retention Hygiene
+
+MVP retention policy is `keep_all`: fbt never deletes artifact versions, run
+results, eval results, or policy decisions automatically. This preserves local
+lineage and makes repeated builds inspectable.
+
+The read-only retention inspection command is:
+
+```sh
+fbt artifact retention
+```
+
+It reports state bytes, immutable artifact bytes, run-record count, artifact
+version count, current-version count, historical-version count, and missing
+storage references. The command removes no files.
+
+For high-volume projects, archive `.fbt/state/` and `.fbt/artifacts/` together
+before any external cleanup. Current logical artifacts under `artifact_path`
+can be regenerated from current pointers only when the referenced immutable
+storage still exists. Historical lineage requires the corresponding state
+records and immutable storage to remain available.
+
+fbt core intentionally does not expose a destructive prune command in MVP. If a
+future prune command is added, it must be explicit, default to dry-run, preserve
+current artifact pointers, record a cleanup receipt, and have conformance
+coverage before it can remove files.
+
 ## Current Artifact Pointer
 
 ```json

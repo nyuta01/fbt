@@ -125,6 +125,13 @@ then runs conformance, a generated-project `doctor`, and a generated-project
 real temporary build and artifact inspection. The target is intentionally not
 part of `make verify`.
 
+`FBT-STATE-002` defined local retention hygiene without adding a destructive
+cleanup surface. MVP policy is `keep_all`. `fbt artifact retention` is a
+read-only report for state bytes, immutable artifact bytes, run records,
+current versions, historical versions, and missing immutable storage. High
+volume projects should archive `.fbt/state/` and `.fbt/artifacts/` together
+with external tools; fbt core does not prune history in MVP.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
@@ -213,10 +220,9 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Define local state/artifact retention hygiene through `FBT-STATE-002`.
-2. Add opt-in standard backend visualization verification through
+1. Add opt-in standard backend visualization verification through
    `FBT-STD-007`.
-3. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

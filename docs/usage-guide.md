@@ -77,6 +77,7 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |
 | `fbt artifact history` | List versions for a logical artifact. |
 | `fbt artifact explain` | Explain why an artifact will run, skip, or block. |
+| `fbt artifact retention` | Inspect local state/artifact growth without deleting files. |
 | `fbt export openlineage` | Export artifact lineage as OpenLineage NDJSON. |
 | `fbt export otel` | Export local execution traces as OTLP/JSON. |
 
@@ -153,7 +154,33 @@ fbt build --select daily_qa_candidates --force
 Force is not a cache engine and does not bypass upstream, confidence, policy,
 or output-boundary checks.
 
-## 6. Existing Tool Composition
+## 6. Local Retention
+
+fbt keeps all artifact versions and run receipts by default. This is deliberate:
+lineage, diffs, and export records depend on immutable history.
+
+Inspect local growth with:
+
+```sh
+fbt artifact retention
+```
+
+The command is read-only. It reports state bytes, immutable artifact bytes, run
+records, current versions, historical versions, and missing storage references.
+
+For high-volume projects, archive these directories together:
+
+```text
+.fbt/state/
+.fbt/artifacts/
+```
+
+Use external tools such as `tar`, `rsync`, backup jobs, object storage, or CI
+artifacts for retention windows. fbt does not expose a destructive prune command
+in MVP because deleting history must preserve current pointers, lineage, eval
+results, policy decisions, and run receipts.
+
+## 7. Existing Tool Composition
 
 Use `type: command` transforms when an existing CLI already does the work.
 Examples include remark for Markdown normalization and Pandoc for document
@@ -179,7 +206,7 @@ fbt artifact explain data_tool_brief --project-dir examples/data_tool_interop
 dbt still owns warehouse transformation. DataChain still owns dataset
 materialization. fbt owns the generated file artifact receipt.
 
-## 7. Semantic Eval Boundary
+## 8. Semantic Eval Boundary
 
 fbt core runs deterministic evals such as required sections or required text.
 It does not call model judges.
@@ -200,7 +227,7 @@ tooling decide whether the report blocks release.
 `semantic` and `llm_judge` eval types are reserved config shapes in the MVP;
 build records them as skipped and grants no confidence from them.
 
-## 8. Review And Publishing Boundary
+## 9. Review And Publishing Boundary
 
 fbt deliberately does not implement `review`, `approve`, or `reject` commands.
 

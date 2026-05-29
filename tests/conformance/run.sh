@@ -155,6 +155,10 @@ printf '{"id":"T-secret","summary":"%s","impact":"redaction fixture"}\n' "$redac
 test -f "$happy/target/artifacts/support/case_summaries/index.md"
 "$FBT_BIN" artifact show case_summaries --project-dir "$happy" >"$tmpdir/artifact-show.txt"
 grep -q "Semantic descriptor  " "$tmpdir/artifact-show.txt"
+"$FBT_BIN" artifact retention --project-dir "$happy" >"$tmpdir/artifact-retention.txt"
+grep -q "Policy               keep_all" "$tmpdir/artifact-retention.txt"
+grep -q "Artifact versions    1" "$tmpdir/artifact-retention.txt"
+grep -q "Action               no files removed" "$tmpdir/artifact-retention.txt"
 test -f "$happy/.fbt/state/policy_decisions.json"
 grep -q '"status": "allowed"' "$happy/.fbt/state/policy_decisions.json"
 

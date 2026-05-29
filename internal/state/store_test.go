@@ -202,3 +202,80 @@ func TestPutPolicyDecision(t *testing.T) {
 		t.Fatalf("policy decision not stored: %+v", decisions.PolicyDecisions)
 	}
 }
+
+func TestBuildRetentionReportSummarizesLocalState(t *testing.T) {
+	root := t.TempDir()
+	store := Open(filepath.Join(root, ".fbt", "state"))
+	currentVersionID := "artifact_version.knowledge_ops.report.sha256_0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	historicalVersionID := "artifact_version.knowledge_ops.report.sha256_abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd"
+	writeFile(t, root, ".fbt/artifacts/current/content/index.md", "# Current\n")
+	if err := store.PutArtifactVersion(ArtifactVersion{
+		VersionID:   currentVersionID,
+		ArtifactID:  "artifact.knowledge_ops.report",
+		LogicalPath: "target/artifacts/report/",
+		StoragePath: ".fbt/artifacts/current/content",
+		Descriptor: artifact.Descriptor{
+			Digest:       "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			ArtifactType: "fbt.artifact.markdown_directory.v1",
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.PutArtifactVersion(ArtifactVersion{
+		VersionID:   historicalVersionID,
+		ArtifactID:  "artifact.knowledge_ops.report",
+		LogicalPath: "target/artifacts/report/",
+		StoragePath: ".fbt/artifacts/missing/content",
+		Descriptor: artifact.Descriptor{
+			Digest:       "sha256:abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+			ArtifactType: "fbt.artifact.markdown_directory.v1",
+		},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.WriteState(Snapshot{
+		CurrentArtifacts: map[string]ArtifactPointer{
+			"artifact.knowledge_ops.report": {
+				ArtifactID:       "artifact.knowledge_ops.report",
+				CurrentVersionID: currentVersionID,
+			},
+		},
+		LatestRuns: map[string]LatestRun{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.AppendRunResult(map[string]any{"record_type": "invocation_started"}); err != nil {
+		t.Fatal(err)
+	}
+
+	report, err := BuildRetentionReport(root, store)
+	if err != nil {
+		t.Fatalf("retention report: %v", err)
+	}
+	if report.Policy != "keep_all" {
+		t.Fatalf("unexpected policy: %s", report.Policy)
+	}
+	if report.ArtifactVersions != 2 || report.CurrentVersions != 1 || report.HistoricalVersions != 1 {
+		t.Fatalf("unexpected version counts: %+v", report)
+	}
+	if report.RunRecords != 1 {
+		t.Fatalf("unexpected run record count: %+v", report)
+	}
+	if len(report.MissingStorage) != 1 || report.MissingStorage[0] != historicalVersionID {
+		t.Fatalf("unexpected missing storage: %+v", report.MissingStorage)
+	}
+	if report.StateBytes == 0 || report.ArtifactBytes == 0 {
+		t.Fatalf("expected byte counts, got %+v", report)
+	}
+}
+
+func writeFile(t *testing.T, root, relative, content string) {
+	t.Helper()
+	path := filepath.Join(root, relative)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}

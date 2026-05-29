@@ -2430,7 +2430,7 @@
       "id": "FBT-STATE-002",
       "title": "Define local state and artifact retention hygiene",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-BUILD-002"
@@ -2445,10 +2445,10 @@
         "tests"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false,
-        "make_verify": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
       "notes": "Immutable history is valuable, but daily high-volume projects need a clear local retention and archive story. Define the smallest safe hygiene mechanism without adding a metadata database or remote artifact store."
     },

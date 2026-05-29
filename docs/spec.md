@@ -118,6 +118,12 @@ snapshot.
 Diff, lineage, eval results, and downstream dependencies are bound to artifact
 versions rather than bare paths.
 
+MVP retention policy is `keep_all`. fbt does not delete immutable artifact
+versions or run receipts automatically, and it does not expose a destructive
+prune command. Use `fbt artifact retention` to inspect local growth and archive
+`.fbt/state/` with `.fbt/artifacts/` together when using external retention
+tools.
+
 ## 6. Transform
 
 A transform is a contract, not the implementation.
@@ -327,6 +333,7 @@ fbt build
 fbt diff weekly_report --against previous
 fbt artifact show weekly_report
 fbt artifact history weekly_report
+fbt artifact retention
 fbt export openlineage
 fbt export otel
 ```
@@ -345,6 +352,9 @@ explicit write operations.
     artifact_versions.json
     evaluation_results.json
     policy_decisions.json
+  artifacts/
+    artifact_version.../
+      content
   cache/
   logs/
 ```

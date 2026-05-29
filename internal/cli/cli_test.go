@@ -342,6 +342,47 @@ func TestRunArtifactCommands(t *testing.T) {
 	}
 }
 
+func TestRunArtifactRetentionReportsReadOnlyHygiene(t *testing.T) {
+	root := writeCLIProject(t)
+	store, current := writeCLICurrentArtifact(t, root)
+	writeCLIArtifactVersion(t, store, root, "artifact_version.knowledge_ops.case_summaries.sha256_1111111111111111111111111111111111111111111111111111111111111111", ".fbt/artifacts/historical/content", "old")
+	if err := store.AppendRunResult(map[string]any{"record_type": "invocation_started", "invocation_id": "inv_cli"}); err != nil {
+		t.Fatal(err)
+	}
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"artifact", "retention", "--project-dir", root}, &stdout, &stderr); code != 0 {
+		t.Fatalf("artifact retention failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	out := stdout.String()
+	for _, expected := range []string{
+		"Artifact retention",
+		"Policy               keep_all",
+		"Artifact versions    2",
+		"Current versions     1",
+		"Historical versions  1",
+		"Run records          1",
+		"Action               no files removed",
+	} {
+		if !strings.Contains(out, expected) {
+			t.Fatalf("expected %q in retention output:\n%s", expected, out)
+		}
+	}
+
+	var jsonOut bytes.Buffer
+	var jsonErr bytes.Buffer
+	if code := Run([]string{"artifact", "retention", "--json", "--project-dir", root}, &jsonOut, &jsonErr); code != 0 {
+		t.Fatalf("artifact retention json failed: code=%d stderr=%q", code, jsonErr.String())
+	}
+	if !strings.Contains(jsonOut.String(), current.VersionID) {
+		t.Fatalf("expected current version context in json output: %s", jsonOut.String())
+	}
+	if !strings.Contains(jsonOut.String(), `"historical_versions": 1`) {
+		t.Fatalf("expected historical count in json output: %s", jsonOut.String())
+	}
+}
+
 func TestRunExportOpenLineage(t *testing.T) {
 	root := writeCLIProject(t)
 	store, version := writeCLICurrentArtifact(t, root)

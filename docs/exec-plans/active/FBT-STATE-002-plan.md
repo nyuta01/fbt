@@ -1,6 +1,6 @@
 # FBT-STATE-002 Define Local State And Artifact Retention Hygiene
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -24,12 +24,21 @@ inspectable. Any destructive cleanup must be explicit and receipt-aware.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
+MVP retention is now explicit and non-destructive. The policy is `keep_all`:
+fbt does not automatically delete artifact versions, run results, eval results,
+or policy decisions.
 
-- Decide whether the MVP needs only docs, a dry-run cleanup command, or a
-  state/archive export pattern.
-- Preserve current artifact pointers and lineage for retained versions.
-- Add conformance coverage before any destructive operation is exposed.
+Added read-only inspection through `fbt artifact retention`. It reports state
+bytes, immutable artifact bytes, run-record count, artifact-version count,
+current-version count, historical-version count, and missing immutable storage
+references. It removes no files.
+
+Added `state.BuildRetentionReport` with unit coverage and product conformance
+coverage for the CLI output. Docs now tell high-volume users to archive
+`.fbt/state/` and `.fbt/artifacts/` together with external tools. No destructive
+prune command is exposed in MVP; any future prune must default to dry-run,
+preserve current pointers, record cleanup receipts, and have conformance before
+it can remove files.
 
 ## Next Check
 
@@ -39,5 +48,6 @@ Run:
 make verify
 ```
 
-Expected result: high-volume users get a clear retention story without weakening
-artifact immutability.
+Latest targeted results: `go test ./internal/state ./internal/cli` and
+`make conformance` passed. Final gate: `make verify` passed with the read-only
+retention command.
