@@ -63,4 +63,6 @@ when:
 - an implementation choice changes risk
 
 Any domain scored `1` or `2` must name a next task in the `Next Task` column.
-
+Task IDs referenced from `Next Task` must point to open tasks; `make
+harness-check` fails if the quality score points at an unknown or already
+completed task.

@@ -3728,7 +3728,7 @@
       "id": "FBT-QUALITY-001",
       "title": "Guard quality score next-task references against completed tasks",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-PDCA-001"
@@ -3743,12 +3743,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "quality_next_task_scan": false,
-        "completed_task_reference_guard": false,
-        "quality_score_updated": false,
-        "make_verify": false
+        "quality_next_task_scan": true,
+        "completed_task_reference_guard": true,
+        "quality_score_updated": true,
+        "make_verify": true
       },
-      "notes": "`docs/QUALITY_SCORE.md` can drift by pointing `Next Task` at task IDs that are already done. Add a deterministic guard or docs check so quality signals remain actionable instead of becoming stale process noise."
+      "notes": "Added a `harness-check` guard that validates task IDs referenced from `docs/QUALITY_SCORE.md`, fails unknown task references, and fails references to completed tasks. Updated the quality-score methodology and current Harness PDCA row. `make verify` passed."
     },
     {
       "id": "FBT-LOCK-001",

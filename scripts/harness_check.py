@@ -175,6 +175,33 @@ def validate_tasks(tasks: list[dict]) -> None:
                     fail(f"{prefix}: done task has false verification gate {gate}")
 
 
+def validate_quality_score(tasks: list[dict]) -> None:
+    if not exists("docs/QUALITY_SCORE.md"):
+        return
+    tasks_by_id = {task.get("id"): task for task in tasks if isinstance(task.get("id"), str)}
+    for line_number, line in enumerate(read_text("docs/QUALITY_SCORE.md").splitlines(), start=1):
+        if not line.startswith("|") or line.startswith("|---") or "| Domain |" in line:
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) < 5:
+            continue
+        domain, score_text, _evidence, _weak_spot, next_task = cells[:5]
+        task_ids = re.findall(r"`(FBT-[A-Z0-9]+-\d+)`", next_task)
+        for task_id in task_ids:
+            task = tasks_by_id.get(task_id)
+            if task is None:
+                fail(f"QUALITY_SCORE.md:{line_number}: {domain} references unknown task {task_id}")
+            elif task.get("status") == "done":
+                fail(f"QUALITY_SCORE.md:{line_number}: {domain} references completed task {task_id}")
+        try:
+            score = int(score_text)
+        except ValueError:
+            fail(f"QUALITY_SCORE.md:{line_number}: {domain} score is not an integer: {score_text!r}")
+            continue
+        if score <= 2 and not task_ids:
+            fail(f"QUALITY_SCORE.md:{line_number}: {domain} score {score} must reference an open task")
+
+
 if feature_list is not None:
     if feature_list.get("schema_version") != 1:
         fail("feature-list.json schema_version must be 1")
@@ -183,6 +210,7 @@ if feature_list is not None:
         fail("feature-list.json tasks must be an array")
     else:
         validate_tasks(tasks)
+        validate_quality_score(tasks)
 
 
 if errors:

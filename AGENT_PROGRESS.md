@@ -195,6 +195,11 @@ references, `FBT-LOCK-001` for optional runner/adapter lockfile semantics,
 `FBT-EVAL-002` for making skipped semantic/LLM-judge evals visible in
 user-facing receipts and inspection.
 
+`FBT-QUALITY-001` is done. `scripts/harness_check.py` now validates
+`docs/QUALITY_SCORE.md` next-task references, rejects unknown task IDs, rejects
+references to tasks already marked `done`, and requires low scores to name an
+open task. The self-PDCA methodology documents the guard.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
