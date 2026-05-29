@@ -4291,19 +4291,29 @@
       "id": "FBT-SOURCE-001",
       "title": "Define source-window readiness and reprocessing contract",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-SOURCE-001-plan.md",
       "paths": [
         "examples/daily_qa_ops/",
         "docs/examples/daily-source-operations.md",
-        "scripts/smoke-daily-ops.sh"
+        "scripts/smoke-daily-ops.sh",
+        "docs/exec-plans/active/FBT-SOURCE-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Make new-items-only, cumulative, correction, deletion, and backfill patterns explicit through a small readiness manifest or documented handoff while keeping ingestion and date partitioning outside fbt."
+      "verification": {
+        "readiness_manifest": true,
+        "source_window_validator": true,
+        "reprocessing_modes_documented": true,
+        "daily_ops_smoke": true,
+        "make_verify": true
+      },
+      "notes": "The daily support example now treats `_READY` as a JSON source-window manifest with window ID, mode, source paths, and minimum file counts. The ops wrapper validates it before fbt runs, and docs cover new-items-only, cumulative, correction, deletion, and backfill semantics while keeping ingestion outside fbt."
     },
     {
       "id": "FBT-EVAL-003",

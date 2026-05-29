@@ -589,6 +589,13 @@ source-window readiness and reprocessing, `FBT-EVAL-003` for quality gates,
 and publishing, `FBT-SEC-003` for sandbox and credential profiles, and
 `FBT-CI-001` for CI-authoritative team operation.
 
+`FBT-SOURCE-001` is done. `examples/daily_qa_ops/data/qa/inbox/_READY` is now a
+JSON source-window manifest with a window ID, operation mode, source paths, and
+minimum file counts. `ops/check-source-window.py` validates the manifest before
+the daily wrapper calls fbt, and docs now distinguish `new_items_only`,
+`cumulative`, `correction`, `deletion`, and `backfill` without adding ingestion
+or date partitioning to fbt core.
+
 ## Verification
 
 Required gate before calling work done:
@@ -605,7 +612,7 @@ runner conformance, product conformance, and distribution smoke checks.
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-PROD-001`, `FBT-RUNNER-027`, `FBT-SOURCE-001`, and `FBT-EVAL-003`.
+   `FBT-EVAL-003`, `FBT-PROD-001`, and `FBT-RUNNER-027`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

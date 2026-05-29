@@ -38,8 +38,8 @@ The most production-shaped entrypoint is:
 examples/daily_qa_ops/ops/run-daily.sh
 ```
 
-It is a shell/CI wrapper around fbt, not a new fbt feature. It checks that the
-source window is ready, then writes a run bundle under `target/ops/`:
+It is a shell/CI wrapper around fbt, not a new fbt feature. It validates the
+source window manifest, then writes a run bundle under `target/ops/`:
 
 ```text
 target/ops/runs/<run-id>/
@@ -50,6 +50,7 @@ That bundle contains:
 
 | File | Why it exists |
 |---|---|
+| `source-window.txt` | Proves ingestion prepared the selected source window. |
 | `doctor.txt` | Proves the project, state, and runner setup were ready. |
 | `plan.txt` | Shows what would run, skip, or block before runner execution. |
 | `build.txt` | Shows committed artifact versions and output paths. |
@@ -161,11 +162,33 @@ Use source-readiness checks outside fbt as well. For example, have ingestion
 write a `_READY` marker, validate expected counts, or fail the external job
 before calling fbt. fbt's job starts after the files are ready.
 
-The checked-in production wrapper enforces that convention by requiring:
+The checked-in production wrapper enforces that convention by requiring a JSON
+readiness manifest:
 
 ```text
 data/qa/inbox/_READY
 ```
+
+The manifest names the current window and operation mode:
+
+```json
+{
+  "schema_version": 1,
+  "window_id": "2026-05-30",
+  "mode": "new_items_only",
+  "sources": [
+    {"name": "questions", "path": "data/qa/inbox/questions", "min_files": 2},
+    {"name": "answers", "path": "data/qa/inbox/answers", "min_files": 2}
+  ]
+}
+```
+
+Use `mode: new_items_only` when ingestion replaces the inbox with today's
+batch, `mode: cumulative` when it appends files, `mode: correction` or
+`deletion` when existing files are intentionally changed, and `mode: backfill`
+when a historical partition is staged into the same stable paths. fbt still
+reacts to the resulting file-set fingerprint; ingestion owns the meaning of the
+window.
 
 ## Day 2 Simulation
 

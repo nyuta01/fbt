@@ -31,16 +31,21 @@ examples/daily_qa_ops/target/ops/runs/<run-id>/
 examples/daily_qa_ops/target/ops/latest/
 ```
 
-The bundle contains the human command output, artifact inspection output,
-retention report, OpenLineage NDJSON, and OTLP/JSON traces.
+The bundle contains source-window validation, human command output, artifact
+inspection output, retention report, OpenLineage NDJSON, and OTLP/JSON traces.
 
 ## Source Readiness
 
-The script requires:
+The script requires a JSON readiness manifest:
 
 ```text
 data/qa/inbox/_READY
 ```
+
+The manifest declares the current processing window, operation mode, and
+minimum source counts. `ops/check-source-window.py` validates it before fbt
+runs, so an empty or half-prepared source window fails before any runner is
+called.
 
 Keep the fbt source paths stable and let ingestion decide what belongs in the
 current processing window:
@@ -53,6 +58,16 @@ data/qa/inbox/answers/
 For a new-items-only daily job, replace those directories before writing
 `_READY`. For a cumulative knowledge base, append files and rewrite `_READY`
 after ingestion checks counts, schema, and freshness.
+
+Supported modes are:
+
+| Mode | Meaning |
+|---|---|
+| `new_items_only` | The inbox contains only the current batch. |
+| `cumulative` | The inbox grows over time and fbt rebuilds from the full file set. |
+| `correction` | Existing source files were intentionally corrected. |
+| `deletion` | Existing source files were intentionally removed. |
+| `backfill` | A historical partition was staged into the stable inbox paths. |
 
 ## Production Runner Swap
 

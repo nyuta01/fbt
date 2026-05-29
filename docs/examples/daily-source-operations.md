@@ -70,15 +70,38 @@ publish the artifacts.
 The source and artifact sets are both plural. One daily run can create several
 candidate artifacts and one downstream manual update.
 
-The production wrapper also requires a readiness marker outside the declared
+The production wrapper also requires a readiness manifest outside the declared
 source directories:
 
 ```text
 data/qa/inbox/_READY
 ```
 
-Ingestion should write or replace this marker only after today's source window
-has passed its own count, freshness, schema, and completeness checks.
+Ingestion should write or replace this JSON manifest only after today's source
+window has passed its own count, freshness, schema, and completeness checks.
+
+```json
+{
+  "schema_version": 1,
+  "window_id": "2026-05-30",
+  "mode": "new_items_only",
+  "prepared_at": "2026-05-30T09:00:00Z",
+  "sources": [
+    {"name": "questions", "path": "data/qa/inbox/questions", "min_files": 2},
+    {"name": "answers", "path": "data/qa/inbox/answers", "min_files": 2}
+  ]
+}
+```
+
+Use the mode to make reprocessing intent explicit:
+
+| Mode | When to use it | fbt behavior |
+|---|---|---|
+| `new_items_only` | Ingestion replaces the inbox with the current batch. | fbt fingerprints the stable inbox paths and records a new version when content changes. |
+| `cumulative` | Ingestion appends to a growing evidence base. | fbt rebuilds when the resolved file set changes. |
+| `correction` | Existing files were intentionally edited. | fbt records a new artifact version from corrected evidence. |
+| `deletion` | Existing files were intentionally removed. | fbt records the changed source descriptor; deletion policy remains an ingestion decision. |
+| `backfill` | Historical files were staged into the same paths. | fbt treats the staged partition like any other prepared window. |
 
 ## Day 1
 

@@ -1,4 +1,26 @@
-ready_at: replace this marker after the ingestion job prepares the current source window
-expected_inputs:
-  - data/qa/inbox/questions/
-  - data/qa/inbox/answers/
+{
+  "schema_version": 1,
+  "window_id": "2026-05-30",
+  "mode": "new_items_only",
+  "prepared_at": "2026-05-30T09:00:00Z",
+  "reprocess_policy": "append_new_artifact_version",
+  "sources": [
+    {
+      "name": "questions",
+      "path": "data/qa/inbox/questions",
+      "min_files": 2
+    },
+    {
+      "name": "answers",
+      "path": "data/qa/inbox/answers",
+      "min_files": 2
+    }
+  ],
+  "operations": {
+    "new_items_only": "Replace the inbox with the current batch before writing this manifest.",
+    "cumulative": "Append files and update prepared_at after ingestion checks complete.",
+    "correction": "Change source files in place; fbt will record a new artifact version.",
+    "deletion": "Remove files intentionally; fbt will see the changed source descriptor.",
+    "backfill": "Prepare the selected historical partition in the same stable inbox paths."
+  }
+}

@@ -27,6 +27,7 @@ fi
 
 mkdir -p "$run_dir"
 
+"$script_dir/check-source-window.py" --project-dir "$project_dir" --ready-file "$ready_file" >"$run_dir/source-window.txt"
 run_fbt doctor >"$run_dir/doctor.txt"
 run_fbt plan --select "$selector" >"$run_dir/plan.txt"
 run_fbt build --select "$selector" >"$run_dir/build.txt"
@@ -54,6 +55,7 @@ cat >"$run_dir/summary.md" <<EOF
 
 ## Operational Evidence
 
+- source-window.txt: ingestion-owned window manifest validation
 - doctor.txt: local readiness and runner diagnostics
 - plan.txt: run, skip, and block decisions before runner execution
 - build.txt: committed artifact versions and next inspection commands
