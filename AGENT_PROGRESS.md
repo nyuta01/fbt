@@ -291,6 +291,13 @@ network-free conformance through `FBT_OPENAI_ADAPTER_FAKE_RESPONSE`.
 `examples/incident_response_runbook` and `examples/support_resolution_manual`
 wrappers now execute `go run ./adapters/openai/cmd/fbt-runner-openai`.
 
+`FBT-RUNNER-018` is done. `adapters/codex-cli` and
+`adapters/claude-code` are official nested modules that wrap `codex exec` and
+`claude -p` through staging workspaces, copy final content into `work.outputs`,
+and report fail-closed policy markers for `--agent-adapter` conformance. Their
+`testdata/*-fixture.sh` scripts are protocol test fixtures only, used to keep
+`make verify` deterministic without network, credentials, or paid model calls.
+
 ## Verification
 
 Required gate before calling work done:

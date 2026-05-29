@@ -2983,27 +2983,35 @@
       "id": "FBT-RUNNER-018",
       "title": "Add official Codex CLI and Claude Code adapter modules",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-015",
         "FBT-RUNNER-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-018-plan.md",
       "paths": [
         "adapters/codex-cli",
         "adapters/claude-code",
+        "go.work",
+        "Makefile",
         "docs/runner-adapters.md",
-        "examples"
+        "docs/exec-plans/active/FBT-RUNNER-018-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
       ],
       "verification": {
-        "go_test": false,
-        "runner_conformance": false,
-        "agent_adapter_conformance": false,
-        "runner_adapter_smoke": false,
-        "make_verify": false
+        "go_test": true,
+        "adapter_codex_cli_test": true,
+        "adapter_codex_cli_conformance": true,
+        "adapter_claude_code_test": true,
+        "adapter_claude_code_conformance": true,
+        "agent_adapter_conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Add safe CLI-agent adapters that wrap non-interactive Codex and Claude Code modes through staging workspaces and strict agent-adapter conformance."
+      "notes": "Adds official nested Codex CLI and Claude Code adapter modules with SDK-based protocol handling, staging workspaces, fail-closed agent safety markers, fixture CLI tests, and strict agent-adapter conformance."
     },
     {
       "id": "FBT-PDCA-001",

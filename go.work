@@ -2,7 +2,9 @@ go 1.23
 
 use (
 	.
+	./adapters/claude-code
 	./adapters/command
+	./adapters/codex-cli
 	./adapters/openai
 	./sdk/go
 )

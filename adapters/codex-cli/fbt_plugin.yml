@@ -1,0 +1,11 @@
+name: fbt-runner-codex-cli
+version: 0.1.0
+protocol: stdio_jsonrpc
+command: fbt-runner-codex-cli
+provides:
+  - runner: codex.cli
+    type: agent
+    transform_types: ["agent"]
+    artifact_types: ["markdown", "markdown_directory", "text", "directory"]
+env:
+  - CODEX_API_KEY

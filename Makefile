@@ -14,7 +14,7 @@ VERSION ?= 0.1.0
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 FBT_LDFLAGS := -X github.com/nyuta01/fbt/internal/version.Version=$(VERSION) -X github.com/nyuta01/fbt/internal/version.Commit=$(COMMIT) -X github.com/nyuta01/fbt/internal/version.BuildDate=$(BUILD_DATE)
-GOFMT_DIRS := cmd internal examples/runner_adapters tests/runner_fixtures sdk/go adapters/command adapters/openai
+GOFMT_DIRS := cmd internal examples/runner_adapters tests/runner_fixtures sdk/go adapters/command adapters/openai adapters/codex-cli adapters/claude-code
 
 .DEFAULT_GOAL := help
 
@@ -70,6 +70,22 @@ adapter-openai-test: ## Run official OpenAI adapter tests.
 adapter-openai-conformance: ## Run conformance against the official OpenAI adapter without a provider call.
 	@OPENAI_API_KEY=test FBT_OPENAI_ADAPTER_FAKE_RESPONSE="# OpenAI Adapter Conformance" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/openai/cmd/fbt-runner-openai' --transform-type llm --strict
 
+.PHONY: adapter-codex-cli-test
+adapter-codex-cli-test: ## Run official Codex CLI adapter tests.
+	@cd adapters/codex-cli && $(GO) test ./...
+
+.PHONY: adapter-codex-cli-conformance
+adapter-codex-cli-conformance: ## Run agent conformance against the official Codex CLI adapter with a fixture CLI.
+	@FBT_CODEX_CLI_COMMAND="$(CURDIR)/adapters/codex-cli/testdata/codex-cli-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/codex-cli/cmd/fbt-runner-codex-cli' --transform-type agent --strict --agent-adapter
+
+.PHONY: adapter-claude-code-test
+adapter-claude-code-test: ## Run official Claude Code adapter tests.
+	@cd adapters/claude-code && $(GO) test ./...
+
+.PHONY: adapter-claude-code-conformance
+adapter-claude-code-conformance: ## Run agent conformance against the official Claude Code adapter with a fixture CLI.
+	@FBT_CLAUDE_CODE_COMMAND="$(CURDIR)/adapters/claude-code/testdata/claude-code-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/claude-code/cmd/fbt-runner-claude-code' --transform-type agent --strict --agent-adapter
+
 .PHONY: build
 build: ## Build the fbt CLI into bin/fbt.
 	@mkdir -p bin
@@ -120,5 +136,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

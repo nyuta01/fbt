@@ -48,11 +48,13 @@ CLI dependencies. Future SDKs such as `sdk/python` or `sdk/typescript` are
 possible because the protocol is language-neutral JSON-RPC over stdio, but the
 protocol spec and conformance suite remain the source of truth.
 
-`adapters/command` and `adapters/openai` are the first official nested adapter
-modules. The command adapter executes a declared command transform argv and
-reports files written under `work.outputs` as output candidates. The OpenAI
-adapter calls the Responses API for `type: llm` transforms and keeps
-`OPENAI_API_KEY` outside fbt core.
+`adapters/command`, `adapters/openai`, `adapters/codex-cli`, and
+`adapters/claude-code` are the first official nested adapter modules. The
+command adapter executes a declared command transform argv and reports files
+written under `work.outputs` as output candidates. The OpenAI adapter calls the
+Responses API for `type: llm` transforms and keeps `OPENAI_API_KEY` outside fbt
+core. The Codex CLI and Claude Code adapters wrap existing CLI-agent
+executables through staging workspaces and fail-closed policy markers.
 
 ## 2. Minimal Scaffold
 
@@ -229,6 +231,12 @@ The `--agent-adapter` profile checks that protocol messages are redacted, the
 temporary source/logical artifact/state guard files are unchanged, the adapter
 reports a staging workspace under `work.root` but outside `work.outputs`, and
 policy mapping is explicitly fail-closed.
+
+Official CLI-agent adapter tests use small executable fixtures under
+`adapters/*/testdata/` so `make verify` can check protocol and safety behavior
+without network, credentials, or paid model calls. Those fixtures are not
+user-facing demos; normal projects invoke `codex exec` or `claude -p` through
+the adapter.
 
 ## 9. Versioning
 
