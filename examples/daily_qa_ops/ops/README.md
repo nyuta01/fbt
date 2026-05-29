@@ -60,6 +60,28 @@ run `fbt artifact explain`, `fbt diff`, `fbt export openlineage`, or
 artifacts or external storage; fbt still does not delete historical versions
 automatically.
 
+## Security Profile Handoff
+
+`ops/check-security-profile.py` records which external execution profile was
+used and scans run/publish handoff files for configured secret values:
+
+```text
+target/ops/runs/<run-id>/security-profile.txt
+```
+
+Set `FBT_SECURITY_PROFILE` to one of:
+
+| Profile | Use |
+|---|---|
+| `local-trusted` | Local development with trusted runners. |
+| `ci-sandbox` | Ephemeral CI checkout with scoped credentials. |
+| `container-readonly` | Container or similar profile with read-only source mounts. |
+| `network-denied` | Non-provider transforms where the host denies network access. |
+
+The script does not create an OS sandbox. It records and validates the selected
+external profile, then scans run and publish handoff files for values from
+common credential environment variables.
+
 ## Approval, Publishing, And Notification
 
 `ops/prepare-publish-handoff.sh` creates files for external workflows:

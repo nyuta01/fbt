@@ -31,6 +31,9 @@ def main() -> int:
         "--network=none",
         "Linux Namespace And Seccomp Wrapper",
         "macOS Local Isolation",
+        "Daily Ops Security Handoff",
+        "FBT_SECURITY_PROFILE",
+        "FBT_SECURITY_TEST_SECRET",
         "Provider SDKs and agent runtimes stay outside core",
         "target/",
         ".fbt/",
@@ -60,4 +63,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

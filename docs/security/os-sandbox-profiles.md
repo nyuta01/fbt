@@ -186,3 +186,22 @@ Before using fbt in a high-security workflow:
 - inspect `fbt artifact explain` and failed-run receipts
 - export OpenLineage or OTel only to approved destinations
 
+## Daily Ops Security Handoff
+
+`examples/daily_qa_ops/ops/check-security-profile.py` is the production example
+for recording the external security profile used by a daily fbt job. It accepts
+these profile names through `FBT_SECURITY_PROFILE`:
+
+```text
+local-trusted
+ci-sandbox
+container-readonly
+network-denied
+```
+
+The script writes `target/ops/runs/<run-id>/security-profile.txt` and scans the
+run/publish handoff files for values from common credential environment
+variables such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, and
+`FBT_SECURITY_TEST_SECRET`. This is a deterministic handoff check; it is not an
+OS sandbox. The actual sandbox remains the CI job, container, host policy, or
+runner adapter.

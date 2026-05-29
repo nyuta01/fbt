@@ -59,6 +59,8 @@ FBT_SOURCE_ROOT="$ROOT_DIR" \
   FBT_BIN="go run ./cmd/fbt" \
   FBT_PROJECT_DIR="$project" \
   FBT_RUN_ID="smoke-daily-ops" \
+  FBT_SECURITY_PROFILE="ci-sandbox" \
+  FBT_SECURITY_TEST_SECRET="smoke-secret-do-not-leak" \
   "$project/ops/run-daily.sh" >"$tmpdir/ops-run.txt"
 grep -q "fbt daily support knowledge run complete" "$tmpdir/ops-run.txt"
 test -f "$project/target/ops/runs/smoke-daily-ops/summary.md"
@@ -74,6 +76,7 @@ test -f "$project/target/ops/runs/smoke-daily-ops/quality-gates.txt"
 test -f "$project/target/ops/runs/smoke-daily-ops/quality-gates.json"
 test -f "$project/target/ops/runs/smoke-daily-ops/archive.txt"
 test -f "$project/target/ops/runs/smoke-daily-ops/publish-handoff.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/security-profile.txt"
 test -f "$project/target/ops/archives/smoke-daily-ops/fbt-evidence.tar.gz"
 test -f "$project/target/ops/archives/smoke-daily-ops/archive-manifest.json"
 test -f "$project/target/ops/publish/smoke-daily-ops/publish-manifest.json"
@@ -93,5 +96,8 @@ tar -tzf "$project/target/ops/archives/smoke-daily-ops/fbt-evidence.tar.gz" | gr
 tar -tzf "$project/target/ops/archives/smoke-daily-ops/fbt-evidence.tar.gz" | grep -q "target/ops/runs/smoke-daily-ops"
 grep -q "fbt stops at artifacts" "$project/target/ops/runs/smoke-daily-ops/publish-handoff.txt"
 grep -q "Review and publish outside fbt" "$project/target/ops/publish/smoke-daily-ops/notification.md"
+grep -q "profile   ci-sandbox" "$project/target/ops/runs/smoke-daily-ops/security-profile.txt"
+grep -q "result    pass" "$project/target/ops/runs/smoke-daily-ops/security-profile.txt"
+! grep -R "smoke-secret-do-not-leak" "$project/target/ops/runs/smoke-daily-ops" "$project/target/ops/publish/smoke-daily-ops"
 
 echo "daily-ops-smoke: ok"

@@ -630,6 +630,13 @@ notification draft under `target/ops/publish/<run-id>/`. The handoff files make
 review, merge, notification, and knowledge-base publishing explicit external
 workflow steps rather than fbt core behavior.
 
+`FBT-SEC-003` is done. The daily ops wrapper now calls
+`ops/check-security-profile.py`, records the selected external security profile,
+and scans run/publish handoff files for configured secret values. The security
+profile remains a CI/container/host/adapter responsibility; fbt core still does
+not manage OS sandboxing. `daily-ops-smoke` uses a synthetic secret marker to
+verify handoff files do not leak it.
+
 ## Verification
 
 Required gate before calling work done:
@@ -647,7 +654,7 @@ conformance, product conformance, and distribution smoke checks.
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-SEC-003` and `FBT-CI-001`.
+   `FBT-CI-001`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

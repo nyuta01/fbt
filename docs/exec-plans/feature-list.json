@@ -4433,22 +4433,32 @@
       "id": "FBT-SEC-003",
       "title": "Validate production sandbox and credential profiles",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-SEC-001",
         "FBT-RUNNER-022",
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-SEC-003-plan.md",
       "paths": [
         "docs/security/os-sandbox-profiles.md",
         "examples/daily_qa_ops/ops/",
         "tests/conformance/",
-        "scripts/"
+        "scripts/",
+        "docs/exec-plans/active/FBT-SEC-003-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Add production-oriented examples and checks for CI/container/network-denied profiles, credential scoping, secret redaction, and adapter fail-closed behavior in the daily support loop."
+      "verification": {
+        "security_profile_handoff": true,
+        "secret_marker_scan": true,
+        "daily_ops_smoke": true,
+        "security_profiles_check": true,
+        "make_verify": true
+      },
+      "notes": "The daily ops wrapper now records the selected external security profile and scans run/publish handoff files for configured secret values. Security docs and checks cover the handoff while keeping OS sandboxing in CI, containers, host policy, or runner adapters."
     },
     {
       "id": "FBT-CI-001",
