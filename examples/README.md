@@ -62,6 +62,9 @@ Use stable source paths for the fbt project and keep windowing outside fbt:
 | Cumulative evidence base | The same source directories | Append new files and let fbt detect the changed file set. |
 | Date/service/customer partitions | The currently selected source directory | Use cron, CI, Airflow, Dagster, or another orchestrator to prepare that directory. |
 
+The detailed daily operations guide is
+[`docs/examples/daily-source-operations.md`](../docs/examples/daily-source-operations.md).
+
 ## Common Commands
 
 ```sh

@@ -127,3 +127,49 @@ versions remain in `.fbt/artifacts/`.
 Use source-readiness checks outside fbt as well. For example, have ingestion
 write a `_READY` marker, validate expected counts, or fail the external job
 before calling fbt. fbt's job starts after the files are ready.
+
+## Day 2 Simulation
+
+Add one new question and one answer:
+
+```sh
+cat >examples/daily_qa_ops/data/qa/inbox/questions/Q-1044.md <<'MD'
+# Q-1044: Admin export timezone
+
+Customer asks whether scheduled admin exports use the workspace timezone or UTC.
+MD
+
+cat >examples/daily_qa_ops/data/qa/inbox/answers/A-1044.md <<'MD'
+# A-1044
+
+Scheduled exports use the workspace timezone unless the export job explicitly
+sets UTC in the admin settings.
+MD
+```
+
+Then preview the daily candidate transform:
+
+```sh
+fbt plan --project-dir examples/daily_qa_ops --select daily_qa_candidates
+```
+
+Expected reason:
+
+```text
+RUN     daily_qa_candidates
+        because  source descriptor changed
+```
+
+Build again and inspect history:
+
+```sh
+fbt build --project-dir examples/daily_qa_ops --select daily_qa_candidates
+fbt artifact history faq_candidates --project-dir examples/daily_qa_ops
+fbt artifact retention --project-dir examples/daily_qa_ops
+```
+
+The logical output path remains `target/artifacts/qa/latest/faq_candidates.md`,
+while previous versions remain under `.fbt/artifacts/`.
+
+For the full operating model, read
+`docs/examples/daily-source-operations.md`.

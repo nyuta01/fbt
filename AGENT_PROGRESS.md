@@ -124,6 +124,12 @@ without live provider calls. Runner docs now describe the adapter verification
 ladder: fixture/fake smoke, clean VCS install smoke, installed command smoke,
 and opt-in live build smoke.
 
+`FBT-OPS-001` is done. `docs/examples/daily-source-operations.md` and
+`examples/daily_qa_ops` now describe daily operation with stable source windows,
+multiple source directories, multiple artifact outputs, external scheduling,
+day-two source additions, and retention inspection. `make verify` includes
+`daily-ops-smoke`.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

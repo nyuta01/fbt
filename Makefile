@@ -113,6 +113,10 @@ practical-examples-smoke: ## Plan external-runner practical examples without pro
 own-files-smoke: ## Verify the first own-files user path.
 	@bash scripts/smoke-own-files.sh
 
+.PHONY: daily-ops-smoke
+daily-ops-smoke: ## Verify daily growing-source operations with multiple artifacts.
+	@bash scripts/smoke-daily-ops.sh
+
 .PHONY: real-llm-smoke
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
@@ -150,5 +154,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

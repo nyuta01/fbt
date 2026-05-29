@@ -3418,7 +3418,7 @@
       "id": "FBT-OPS-001",
       "title": "Document daily high-volume source operations patterns",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-015",
@@ -3427,21 +3427,24 @@
       "plan_url": "docs/exec-plans/active/FBT-OPS-001-plan.md",
       "paths": [
         "README.md",
+        "docs/examples/daily-source-operations.md",
         "docs/examples/",
         "examples/",
         "apps/docs/src/content/docs/get-started/",
+        "Makefile",
+        "scripts/smoke-daily-ops.sh",
         "docs/exec-plans/active/FBT-OPS-001-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "daily_ops_docs_scan": false,
-        "high_volume_example_smoke": false,
-        "docs_site_build": false,
-        "make_verify": false
+        "daily_ops_docs_scan": true,
+        "high_volume_example_smoke": true,
+        "docs_site_build": true,
+        "make_verify": true
       },
-      "notes": "Show how to combine simple source directory conventions, selectors, external schedulers, and artifact partitioning for daily growing sources without adding a scheduler, metadata DB, or ingestion service to fbt core."
+      "notes": "Added daily source operations guide and `daily-ops-smoke` to prove stable source windows, multiple source directories, multiple artifacts, day-two source descriptor changes, and external scheduler boundaries."
     },
     {
       "id": "FBT-EVAL-001",

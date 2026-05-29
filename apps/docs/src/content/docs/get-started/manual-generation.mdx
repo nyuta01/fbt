@@ -20,6 +20,11 @@ replace `data/support/tickets/*.jsonl` plus `assets/support_style_guide.md`.
 That path proves the local loop with `demo.llm` before you wire a real runner.
 The repository guide is `docs/examples/first-own-files-success-path.md`.
 
+For daily operation, keep fbt source paths stable and let cron, CI, Airflow,
+Dagster, or another upstream step prepare the current files. The
+`examples/daily_qa_ops` project and `docs/examples/daily-source-operations.md`
+show multiple source directories producing multiple artifacts in one daily run.
+
 ## Incident response runbook
 
 The source checkout includes a practical example that turns one incident's
