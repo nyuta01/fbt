@@ -3293,7 +3293,7 @@
       "id": "FBT-DOCS-UX-012",
       "title": "Make manual-generation docs show concrete source-to-artifact evidence",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-DOCS-UX-011"
@@ -3310,12 +3310,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "manual_docs_source_instruction_runner_artifact_scan": false,
-        "practical_examples_smoke": false,
-        "docs_site_build": false,
-        "make_verify": false
+        "manual_docs_source_instruction_runner_artifact_scan": true,
+        "practical_examples_smoke": true,
+        "docs_site_build": true,
+        "make_verify": true
       },
-      "notes": "Manual-generation docs and practical example READMEs should be as concrete as README: show representative source contents, the format/prompt assets, the configured runner, the generated artifact path, an artifact excerpt, and the inspection commands/results that prove lineage."
+      "notes": "Manual-generation docs, practical example READMEs, and the reference examples now show representative source contents, prompt/format assets, the configured runner, generated artifact paths, expected artifact excerpts, and artifact explain receipts."
     },
     {
       "id": "FBT-DOCS-UX-013",

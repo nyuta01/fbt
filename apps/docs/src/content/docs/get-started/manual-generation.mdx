@@ -17,7 +17,51 @@ your knowledge-base workflow.
 
 ## Incident response runbook
 
-The source checkout includes a practical example:
+The source checkout includes a practical example that turns one incident's
+evidence into an operational runbook:
+
+| Role | File | What the runner must use |
+|---|---|---|
+| Source | `data/incidents/events/INC-2026-0421.jsonl` | Pager, metrics, mitigation, and resolution events. |
+| Source | `data/incidents/response_logs/INC-2026-0421-response.md` | What responders actually did and what gaps remained. |
+| Source | `data/incidents/postmortems/INC-2026-0421-postmortem.md` | Root cause and corrective actions. |
+| Instruction | `assets/incident_runbook_prompt.md` | Do not invent owners, tooling, thresholds, or system behavior. |
+| Format | `assets/incident_runbook_format.md` | Required runbook sections. |
+| Runner | `openai.responses` | External OpenAI runner called over the runner protocol. |
+| Artifact | `target/artifacts/runbooks/incident_response_runbook.md` | The generated runbook. |
+
+Representative source evidence:
+
+```json
+{"incident_id":"INC-2026-0421","source":"pager","event":"p95_latency_ms above 2400 for 10 minutes","customer_impact":"elevated checkout timeouts for a subset of customers"}
+{"incident_id":"INC-2026-0421","source":"incident_command","event":"traffic shifted away from us-east-1 read replica","result":"checkout timeout rate decreased from 7.8% to 1.1%"}
+```
+
+That evidence is paired with a response note saying support should verify
+payment status before asking customers to retry, and a postmortem saying the
+root cause was extra read load from a maintenance task. The generated runbook
+should therefore contain procedure sections such as:
+
+```md
+## Detection
+- Treat sustained checkout latency and timeout-rate alerts as incident signals.
+- Confirm database connection pool saturation before mitigation.
+
+## Mitigation
+- Shift read traffic away from the affected read replica when evidence matches
+  the documented saturation pattern.
+
+## Customer Communication
+- Acknowledge elevated checkout latency.
+- Ask support to verify payment status before recommending a retry.
+
+## Source Evidence
+- INC-2026-0421 event log
+- INC-2026-0421 response log
+- INC-2026-0421 postmortem
+```
+
+Preview the work before spending runner time:
 
 ```sh
 fbt doctor --project-dir examples/incident_response_runbook
@@ -59,12 +103,78 @@ The artifact path is:
 examples/incident_response_runbook/target/artifacts/runbooks/incident_response_runbook.md
 ```
 
-The runbook format is not implicit. It is declared in
-`examples/incident_response_runbook/assets/incident_runbook_format.md`, and
-the deterministic eval checks that the required sections exist before the
+`artifact explain` shows the exact source, asset, policy, eval, and runner
+fingerprints that will produce or already produced the runbook:
+
+```text
+Artifact: incident_response_runbook
+Producer
+  Transform        incident_response_runbook
+
+Inputs
+  ok input   incident.event_logs          path=data/incidents/events/*.jsonl
+  ok input   incident.response_logs       path=data/incidents/response_logs
+  ok input   incident.postmortems         path=data/incidents/postmortems
+  ok asset   incident_runbook_format      path=assets/incident_runbook_format.md
+  ok asset   incident_runbook_prompt      path=assets/incident_runbook_prompt.md
+  ok runner  openai.responses
+
+Outputs
+  incident_response_runbook  target/artifacts/runbooks/incident_response_runbook.md
+```
+
+The deterministic eval checks that the required sections exist before the
 artifact is committed.
 
 ## Support resolution manual
+
+The support example turns accumulated tickets and answer logs into a reusable
+support procedure:
+
+| Role | File | What the runner must use |
+|---|---|---|
+| Source | `data/support/tickets/2026-05-12-login-and-billing.jsonl` | Customer issues, topics, impact, and status. |
+| Source | `data/support/response_logs/login-domain-change.md` | Agent handling steps and approved phrasing from real responses. |
+| Source | `data/reference/product_docs/account-access.md` | Product rules that constrain the procedure. |
+| Instruction | `assets/support_resolution_prompt.md` | Do not invent product capabilities, refund rules, SLAs, or owners. |
+| Format | `assets/support_resolution_manual_format.md` | Required support manual sections. |
+| Runner | `openai.responses` | External OpenAI runner called over the runner protocol. |
+| Artifact | `target/artifacts/support/support_resolution_manual.md` | The generated support manual. |
+
+Representative source evidence:
+
+```json
+{"ticket_id":"SUP-10422","topic":"login","summary":"Customer cannot receive password reset email after changing company domain","customer_impact":"blocked from accessing admin console","resolution_status":"resolved"}
+{"ticket_id":"SUP-10437","topic":"billing","summary":"Customer asks why seat count increased after SSO group sync","customer_impact":"unexpected invoice estimate","resolution_status":"resolved"}
+```
+
+The login response note includes this approved customer-facing explanation:
+
+```text
+Your workspace admin needs to update the email on your user profile before the
+reset link can be delivered to the new address.
+```
+
+The generated manual should turn those scattered records into sections such as:
+
+```md
+## Intake Checklist
+- Confirm the affected workspace, user email, identity provider status, and
+  whether the admin can edit the user profile.
+
+## Resolution Procedure
+- For domain-change login issues, ask the workspace admin to update the user
+  profile email before resending reset links.
+
+## Customer Response Templates
+- Explain that reset links are sent to the email currently stored on the user
+  profile.
+
+## Source Evidence
+- SUP-10422
+- login-domain-change response log
+- account-access product documentation
+```
 
 ```sh
 fbt doctor --project-dir examples/support_resolution_manual
@@ -100,8 +210,24 @@ The artifact path is:
 examples/support_resolution_manual/target/artifacts/support/support_resolution_manual.md
 ```
 
-The required format is declared in
-`examples/support_resolution_manual/assets/support_resolution_manual_format.md`.
+`artifact explain` gives the same provenance proof:
+
+```text
+Artifact: support_resolution_manual
+Producer
+  Transform        support_resolution_manual
+
+Inputs
+  ok input   support.inquiry_tickets        path=data/support/tickets/*.jsonl
+  ok input   support.response_logs          path=data/support/response_logs
+  ok input   reference.product_docs         path=data/reference/product_docs
+  ok asset   support_resolution_manual_format
+  ok asset   support_resolution_prompt
+  ok runner  openai.responses
+
+Outputs
+  support_resolution_manual  target/artifacts/support/support_resolution_manual.md
+```
 
 ## What Makes These Usable
 

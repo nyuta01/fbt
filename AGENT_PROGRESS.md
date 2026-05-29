@@ -90,6 +90,12 @@ runner/standards/reference docs examples.
 gates`, and `scripts/harness_drift.py` now scans public docs assets for stale
 current-state review/approval phrases.
 
+`FBT-DOCS-UX-012` is done. The manual-generation docs, practical example
+READMEs, and reference example guide now show concrete source records,
+response/product evidence, prompt and format assets, runner wiring, output
+paths, expected artifact excerpts, and `artifact explain` receipt excerpts for
+both incident runbook and support manual examples.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
