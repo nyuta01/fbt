@@ -258,6 +258,13 @@ packaging, protocol fixtures, and conformance checks are documented under
 `tests/runner-conformance/`. Installed adapter checks use
 `make runner-adapter-smoke` with explicit matrix rows and optional real builds.
 
+Official runner package design research is captured in
+`docs/research/official-runner-adapter-design-report.md` (`FBT-RUNNER-013`).
+The recommendation is to keep official runners as external adapter packages,
+not core code: first `fbt-runner-command`, then `fbt-runner-openai`, followed
+by Codex CLI and Claude Code wrappers after the provider-free runner SDK and
+adapter maintenance contract are in place.
+
 ## Verification
 
 Required gate before calling work done:

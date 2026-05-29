@@ -30,6 +30,9 @@ An adapter package is responsible for:
 fbt core is responsible only for discovery, invocation, capability validation,
 state, policy/eval checks, descriptors, and official commits.
 
+For the research-backed official adapter package design and maintenance model,
+see [Official Runner Adapter Design Report](research/official-runner-adapter-design-report.md).
+
 ## 2. Minimal Scaffold
 
 Adapter is the authoring/package word for a runner command plus its dependency
