@@ -57,6 +57,11 @@ def array_of(item: dict[str, Any]) -> dict[str, Any]:
 STRING = {"type": "string"}
 STRING_ARRAY = array_of(STRING)
 FREE_OBJECT = {"type": "object", "additionalProperties": True}
+CONTRACT_OBJECT = {
+    "type": "object",
+    "additionalProperties": True,
+    "description": "Free-form metadata passed through manifests and runner protocol; fbt core does not validate arbitrary contract semantics.",
+}
 
 
 def named_resource(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -215,7 +220,7 @@ def build_resource_schema() -> dict[str, Any]:
         {
             "type": artifact_type,
             "path": STRING,
-            "contract": FREE_OBJECT,
+            "contract": CONTRACT_OBJECT,
             "owner": STRING,
             "tags": STRING_ARRAY,
             "meta": FREE_OBJECT,
@@ -247,7 +252,7 @@ def build_resource_schema() -> dict[str, Any]:
         {
             "type": artifact_type,
             "path": STRING,
-            "contract": FREE_OBJECT,
+            "contract": CONTRACT_OBJECT,
         },
         required=["name", "type", "path"],
     )
@@ -271,7 +276,7 @@ def build_resource_schema() -> dict[str, Any]:
             "tools": STRING_ARRAY,
             "policy": STRING,
             "evals": STRING_ARRAY,
-            "contract": FREE_OBJECT,
+            "contract": CONTRACT_OBJECT,
             "tags": STRING_ARRAY,
             "meta": FREE_OBJECT,
         },

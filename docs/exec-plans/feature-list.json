@@ -3960,7 +3960,7 @@
       "id": "FBT-CONTRACT-001",
       "title": "Clarify artifact contract and eval relationship",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-EVAL-002",
@@ -3983,12 +3983,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "contract_spec_boundary": false,
-        "schema_and_parser_alignment": false,
-        "deterministic_contract_examples": false,
-        "make_verify": false
+        "contract_spec_boundary": true,
+        "schema_and_parser_alignment": true,
+        "deterministic_contract_examples": true,
+        "make_verify": true
       },
-      "notes": "Clarify which artifact contract fields core understands, which checks are deterministic evals, and which validation belongs to external runner or judge-report artifacts so fbt does not become a document validator or model judge."
+      "notes": "Artifact and output contracts are now explicit free-form metadata: parser and schemas accept arbitrary contract objects, manifest transform outputs preserve them, runner protocol inputs and outputs carry contract context, and docs/examples clarify that deterministic evals remain core-local while schema-specific validation and model judging belong to external runner report artifacts."
     },
     {
       "id": "FBT-OPS-002",

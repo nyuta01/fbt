@@ -694,11 +694,15 @@ func firstFailedCheck(decision policy.Decision) string {
 func protocolOutputs(transform manifest.TransformResource) []any {
 	outputs := make([]any, 0, len(transform.Outputs))
 	for _, output := range transform.Outputs {
-		outputs = append(outputs, map[string]any{
+		record := map[string]any{
 			"name":          output.Name,
 			"artifact_type": output.ArtifactType,
 			"declared_path": output.DeclaredPath,
-		})
+		}
+		if len(output.Contract) > 0 {
+			record["contract"] = output.Contract
+		}
+		outputs = append(outputs, record)
 	}
 	return outputs
 }

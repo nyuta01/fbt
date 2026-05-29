@@ -184,12 +184,17 @@ artifacts:
     type: markdown_directory
     path: target/artifacts/support/case_summaries/
     contract:
+      format: support_case_summary_v1
       required_sections:
         - Summary
         - Customer Impact
     owner: support_ops
     tags: ["support", "knowledge"]
 ```
+
+`contract` is free-form artifact metadata. fbt preserves it in the manifest and
+passes artifact contracts to runners, but core does not interpret arbitrary
+schemas, rubrics, document formats, or model-judge rules.
 
 ## 6. Transform Assets
 
@@ -229,6 +234,9 @@ transforms:
       - name: case_summaries
         type: markdown_directory
         path: target/artifacts/support/case_summaries/
+        contract:
+          format: support_case_summary_v1
+          required_sections: ["Summary", "Customer Impact"]
     assets:
       - ref: case_summary_prompt
       - ref: support_style_guide
@@ -253,7 +261,7 @@ Transform fields:
 | `tools` | no | Agent tools |
 | `policy` | no | Policy reference |
 | `evals` | no | Eval references |
-| `contract` | no | Output contract |
+| `contract` | no | Free-form transform metadata for runners; prefer output `contract` for artifact shape |
 | `tags` | no | Selection and docs metadata |
 | `meta` | no | Arbitrary metadata |
 
@@ -283,6 +291,35 @@ inputs:
 
 `ref` can require confidence and eval results. Human approval state is not part
 of the fbt project config.
+
+### Artifact Contracts, Evals, And External Validation
+
+Artifact and output `contract` fields describe the expected artifact shape for
+runners and downstream tools:
+
+```yaml
+outputs:
+  - name: support_manual
+    type: markdown
+    path: target/artifacts/support/manual.md
+    contract:
+      format: support_manual_v1
+      required_sections:
+        - Overview
+        - Escalation
+        - Troubleshooting
+```
+
+Core treats that object as metadata. It is included in manifest fingerprints,
+stored on artifact resources and transform outputs, and sent to runner protocol
+requests as `inputs[].contract` and `outputs[].contract`.
+
+Use deterministic evals for checks fbt can run locally over produced text, such
+as required headings or required phrases. Use a separate runner-backed
+transform for semantic or evidence-quality validation, producing a normal report
+artifact. This keeps fbt as the build/control plane while document
+interpretation, schema-specific validation, and model judging remain runner
+responsibilities.
 
 ## 8. Policies
 

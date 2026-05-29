@@ -149,6 +149,9 @@ transforms:
       - name: contract_summaries
         type: markdown_directory
         path: target/artifacts/contracts/summaries/
+        contract:
+          format: contract_summary_v1
+          required_sections: ["Summary", "Risk", "Action"]
     evals:
       - required_sections
 ```
@@ -164,6 +167,15 @@ Initial transform types:
 
 `llm` and `agent` are top-priority transform types. The type is a contract with
 the runner; core does not implement the transform logic.
+
+Artifact and output `contract` objects are declarative metadata, not a core
+document validator. fbt preserves contracts in the manifest, includes them in
+dirty-state fingerprints, and passes them to runners on artifact inputs and
+declared outputs. Core only enforces generic build-tool rules it can prove
+locally: path containment, output boundaries, artifact descriptors, policies,
+and deterministic evals. Format-specific checks, rubric interpretation,
+evidence-quality scoring, and model judging belong in external runner
+transforms that produce normal artifacts.
 
 ## 7. Inputs
 

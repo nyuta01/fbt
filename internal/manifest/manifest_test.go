@@ -39,6 +39,14 @@ func TestBuildCreatesResourceIDsAndGraphMaps(t *testing.T) {
 	if !slices.Contains(m.ChildMap[transformID], artifactID) {
 		t.Fatalf("expected transform to have output child artifact, got %v", m.ChildMap[transformID])
 	}
+	artifact := m.Artifacts[artifactID]
+	if artifact.Contract["format"] != "support_case_summary_v1" {
+		t.Fatalf("expected artifact contract to be preserved, got %+v", artifact.Contract)
+	}
+	output := m.Transforms[transformID].Outputs[0]
+	if output.Contract["format"] != "support_case_summary_v1" {
+		t.Fatalf("expected transform output contract to be preserved, got %+v", output.Contract)
+	}
 }
 
 func TestManifestJSONIsDeterministic(t *testing.T) {
@@ -182,6 +190,9 @@ selectors:
       - name: case_summaries
         type: markdown_directory
         path: target/artifacts/support/case_summaries/
+        contract:
+          format: support_case_summary_v1
+          required_sections: ["Summary"]
     assets:
       - ref: case_summary_prompt
     policy: support_agent_scope

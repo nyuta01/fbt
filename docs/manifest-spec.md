@@ -152,6 +152,10 @@ runner.knowledge_ops.demo.llm
   "name": "case_summaries",
   "artifact_type": "markdown_directory",
   "logical_path": "target/artifacts/support/case_summaries/",
+  "contract": {
+    "format": "support_case_summary_v1",
+    "required_sections": ["Summary", "Customer Impact"]
+  },
   "current": {
     "digest": "sha256:current...",
     "version_id": "artifact_version.knowledge_ops.case_summaries.sha256_current",
@@ -211,7 +215,11 @@ digests are advisory only; core computes authoritative descriptors.
       "unique_id": "artifact.knowledge_ops.case_summaries",
       "name": "case_summaries",
       "artifact_type": "markdown_directory",
-      "declared_path": "target/artifacts/support/case_summaries/"
+      "declared_path": "target/artifacts/support/case_summaries/",
+      "contract": {
+        "format": "support_case_summary_v1",
+        "required_sections": ["Summary", "Customer Impact"]
+      }
     }
   ],
   "assets": [
@@ -233,6 +241,10 @@ digests are advisory only; core computes authoritative descriptors.
   }
 }
 ```
+
+`contract` on artifacts and transform outputs is free-form metadata. It is part
+of the parsed graph and runner context; arbitrary document semantics are not
+validated by the manifest builder.
 
 Effective fingerprint:
 

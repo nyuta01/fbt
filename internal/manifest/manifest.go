@@ -112,10 +112,11 @@ type TransformInput struct {
 }
 
 type TransformOutput struct {
-	UniqueID     string `json:"unique_id"`
-	Name         string `json:"name"`
-	ArtifactType string `json:"artifact_type"`
-	DeclaredPath string `json:"declared_path"`
+	UniqueID     string         `json:"unique_id"`
+	Name         string         `json:"name"`
+	ArtifactType string         `json:"artifact_type"`
+	DeclaredPath string         `json:"declared_path"`
+	Contract     map[string]any `json:"contract,omitempty"`
 }
 
 type TransformAssetResource struct {
@@ -457,6 +458,7 @@ func (b *manifestBuilder) addTransform(transform parser.Transform) {
 			Name:         output.Name,
 			ArtifactType: output.Type,
 			DeclaredPath: slashPath(output.Path),
+			Contract:     output.Contract,
 		})
 		b.addEdge(id, artifactID)
 	}

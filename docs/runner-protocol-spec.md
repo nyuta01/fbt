@@ -248,7 +248,7 @@ Request includes:
 - trace context
 - transform identity and config
 - resolved inputs
-- declared outputs
+- declared outputs and output contracts
 - transform assets
 - model parameters
 - tools
@@ -298,6 +298,9 @@ Skeleton:
           "storage_path": ".fbt/artifacts/artifact_version.../content",
           "descriptor": {},
           "semantic_descriptor": {}
+        },
+        "contract": {
+          "format": "contract_summary_v1"
         }
       }
     ],
@@ -305,7 +308,11 @@ Skeleton:
       {
         "name": "contract_summaries",
         "artifact_type": "markdown_directory",
-        "declared_path": "target/artifacts/contracts/summaries/"
+        "declared_path": "target/artifacts/contracts/summaries/",
+        "contract": {
+          "format": "contract_summary_v1",
+          "required_sections": ["Summary", "Risk", "Action"]
+        }
       }
     ],
     "assets": [

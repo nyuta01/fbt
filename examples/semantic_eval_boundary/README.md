@@ -62,6 +62,23 @@ Inputs
 
 The external command owns the quality logic. fbt records the receipt.
 
+## Artifact Contract
+
+The generated manual declares the expected artifact shape as runner metadata:
+
+```yaml
+outputs:
+  - name: manual_update
+    type: markdown
+    path: target/artifacts/manual/manual_update.md
+    contract:
+      format: support_manual_update_v1
+      required_sections: ["Summary", "Procedure", "Rollback"]
+```
+
+fbt stores this contract in the manifest and passes it to runners. It does not
+decide whether `support_manual_update_v1` is a good manual format.
+
 ## Core Eval
 
 Use deterministic checks for facts fbt can verify locally:

@@ -515,6 +515,9 @@ func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
       - name: weekly_report
         type: markdown
         path: target/artifacts/support/weekly_report.md
+        contract:
+          format: weekly_support_report_v1
+          required_sections: ["Highlights"]
     assets:
       - ref: case_summary_prompt
     tags: ["support"]
@@ -550,6 +553,19 @@ func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
 	currentVersion := refInput["current_version"].(map[string]any)
 	if refInput["kind"] != "ref" || currentVersion["version_id"] == "" || currentVersion["descriptor"] == nil || currentVersion["semantic_descriptor"] == nil {
 		t.Fatalf("expected current artifact version context, got %+v", refInput)
+	}
+	refContract := refInput["contract"].(map[string]any)
+	if refContract["format"] != "support_case_summary_v1" {
+		t.Fatalf("expected ref artifact contract context, got %+v", refInput)
+	}
+	outputs := params["outputs"].([]any)
+	if len(outputs) != 1 {
+		t.Fatalf("expected one output, got %+v", outputs)
+	}
+	output := outputs[0].(map[string]any)
+	outputContract := output["contract"].(map[string]any)
+	if outputContract["format"] != "weekly_support_report_v1" {
+		t.Fatalf("expected output contract context, got %+v", output)
 	}
 	assets := params["assets"].([]any)
 	if len(assets) != 1 {
@@ -631,6 +647,9 @@ runners:
       - name: case_summaries
         type: markdown_directory
         path: target/artifacts/support/case_summaries/
+        contract:
+          format: support_case_summary_v1
+          required_sections: ["Summary"]
     assets:
       - ref: case_summary_prompt
     policy: support_agent_scope

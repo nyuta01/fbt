@@ -9,5 +9,8 @@ transforms:
       - name: manual_update
         type: markdown
         path: target/artifacts/manual/manual_update.md
+        contract:
+          format: support_manual_update_v1
+          required_sections: ["Summary", "Procedure", "Rollback"]
     policy: manual_update_scope
     tags: ["quality_boundary", "manual"]

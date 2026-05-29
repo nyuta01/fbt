@@ -521,6 +521,13 @@ resolve recorded versions and mark undeclared records as `no (orphaned)`, JSON
 includes `declared` and `orphaned`, and OpenLineage export emits orphaned
 artifact-version events instead of dropping historical lineage.
 
+`FBT-CONTRACT-001` is done. Artifact and output `contract` values are explicit
+free-form metadata: parser/schema accept arbitrary contract objects, manifest
+transform outputs preserve them, runner protocol input/output payloads carry
+them, and docs/examples clarify that deterministic evals are core-local while
+schema-specific validation and model judging belong to external runner report
+artifacts.
+
 ## Verification
 
 Required gate before calling work done:
@@ -535,12 +542,10 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
-   with deterministic evals and runner-owned judge reports.
-2. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
-3. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
+1. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
+2. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
    any destructive cleanup command exists.
-4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+3. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

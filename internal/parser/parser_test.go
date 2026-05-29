@@ -28,6 +28,50 @@ func TestParseProjectValidResources(t *testing.T) {
 	}
 }
 
+func TestParseProjectKeepsFreeFormContracts(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "transforms/case.yml", `transforms:
+  - name: case_summaries
+    type: llm
+    runner: openai.responses
+    contract:
+      runner_prompt: summarize_support_cases_v1
+      model_preferences:
+        temperature: 0.2
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+        contract:
+          format: support_case_summary_v1
+          required_sections:
+            - Summary
+            - Next actions
+    assets:
+      - ref: case_summary_prompt
+    policy: support_agent_scope
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err != nil {
+		t.Fatalf("parse project: %v\n%+v", err, result.Diagnostics)
+	}
+	transform := result.Transforms[0]
+	if transform.Contract["runner_prompt"] != "summarize_support_cases_v1" {
+		t.Fatalf("expected transform contract to remain free-form, got %+v", transform.Contract)
+	}
+	outputContract := transform.Outputs[0].Contract
+	if outputContract["format"] != "support_case_summary_v1" {
+		t.Fatalf("expected output contract to remain free-form, got %+v", outputContract)
+	}
+	sections := outputContract["required_sections"].([]any)
+	if len(sections) != 2 || sections[0] != "Summary" {
+		t.Fatalf("expected nested output contract values, got %+v", outputContract)
+	}
+}
+
 func TestParseProjectRequiresConfigVersion(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "fs_project.yml", "name: demo\n")

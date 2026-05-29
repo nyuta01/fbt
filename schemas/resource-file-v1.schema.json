@@ -89,6 +89,7 @@
         "properties": {
           "contract": {
             "additionalProperties": true,
+            "description": "Free-form metadata passed through manifests and runner protocol; fbt core does not validate arbitrary contract semantics.",
             "type": "object"
           },
           "meta": {
@@ -419,6 +420,7 @@
           },
           "contract": {
             "additionalProperties": true,
+            "description": "Free-form metadata passed through manifests and runner protocol; fbt core does not validate arbitrary contract semantics.",
             "type": "object"
           },
           "evals": {
@@ -472,6 +474,7 @@
               "properties": {
                 "contract": {
                   "additionalProperties": true,
+                  "description": "Free-form metadata passed through manifests and runner protocol; fbt core does not validate arbitrary contract semantics.",
                   "type": "object"
                 },
                 "name": {
