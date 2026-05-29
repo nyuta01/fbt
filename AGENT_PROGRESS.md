@@ -172,6 +172,12 @@ with fbt's value, maps user questions to commands, shows project anatomy, runs
 an offline success loop before the real runner example, and routes deeper
 reading by goal while staying within the compact README guard.
 
+README concrete mapping (`FBT-DOCS-UX-010`) is done: the offline support loop
+and real incident runbook example now name the actual source files, instruction
+assets, transform recipes, runner commands, artifact paths, checks, and receipt
+locations so users can see what source/instruction/runner produces which
+artifact.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
