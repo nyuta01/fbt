@@ -19,7 +19,10 @@ import (
 	"github.com/nyuta01/fbt/sdk/go/stdiojsonrpc"
 )
 
-const version = "0.1.0"
+const (
+	version             = "0.1.0"
+	stagedInputMaxBytes = 2 * 1024 * 1024
+)
 
 type runParams struct {
 	Mode           string                    `json:"mode"`
@@ -381,6 +384,13 @@ func copyTextDirectory(src, dest string) error {
 }
 
 func copyFile(src, dest string) error {
+	info, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	if info.Size() > stagedInputMaxBytes {
+		return fmt.Errorf("staged input %q is %d bytes, exceeds adapter staging limit of %d bytes", src, info.Size(), stagedInputMaxBytes)
+	}
 	in, err := os.Open(src)
 	if err != nil {
 		return err
@@ -394,7 +404,7 @@ func copyFile(src, dest string) error {
 		return err
 	}
 	defer out.Close()
-	_, err = io.Copy(out, io.LimitReader(in, 2*1024*1024))
+	_, err = io.Copy(out, in)
 	return err
 }
 

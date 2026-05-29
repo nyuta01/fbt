@@ -230,6 +230,8 @@ external agent CLI. They must follow the safe adapter contract:
 - fbt policy is mapped to the agent's permission, sandbox, network, tool,
   timeout, and turn controls where available
 - execution fails closed when policy cannot be enforced safely
+- staged source and asset files are either copied completely within the
+  adapter's explicit size limit or rejected before external CLI execution
 - final files are copied under `work.outputs`
 - structured events and tool-call payloads are redacted
 - official artifact paths and `.fbt/state` are not modified directly
@@ -261,10 +263,12 @@ Official adapter policy mapping is intentionally conservative:
   --sandbox read-only`, applies fbt timeout as a process timeout, and fails
   closed for denied network, tool allow/deny lists, max tool calls, or max cost
   because those controls are not represented by the wrapped CLI invocation.
+  Staged source and asset files above 2 MiB are rejected before Codex starts.
 - Claude Code adapter: maps read/write/search/shell tool allow and deny lists
   to Claude Code tool flags, applies fbt timeout as a process timeout, maps
   `max_cost_usd` to `--max-budget-usd`, and fails closed for denied network,
-  unknown tools, or max tool calls.
+  unknown tools, or max tool calls. Staged source and asset files above 2 MiB
+  are rejected before Claude Code starts.
 
 Official CLI-agent adapter tests use small executable fixtures under
 `adapters/*/testdata/` so `make verify` can check protocol and safety behavior

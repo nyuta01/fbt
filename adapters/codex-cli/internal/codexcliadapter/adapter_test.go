@@ -57,6 +57,46 @@ func TestCodexCLIAdapterFailsClosedWhenNetworkDenied(t *testing.T) {
 	}
 }
 
+func TestCodexCLIAdapterFailsBeforeCLIWhenStagedFileExceedsLimit(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		sourceBytes []byte
+		assetBytes  []byte
+		wantPath    string
+	}{
+		{name: "source", sourceBytes: largeFixtureContent(), wantPath: "source.md"},
+		{name: "asset", assetBytes: largeFixtureContent(), wantPath: "prompt.md"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			temp := t.TempDir()
+			invoked := filepath.Join(temp, "invoked")
+			fixture := filepath.Join(temp, "codex-cli-fixture.sh")
+			if err := os.WriteFile(fixture, []byte("#!/bin/sh\ntouch \"$FBT_INVOKED\"\nprintf '# should not run\\n'\n"), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("FBT_CODEX_CLI_COMMAND", fixture)
+			t.Setenv("FBT_INVOKED", invoked)
+
+			response, _ := runFixtureWithOptions(t, fixtureOptions{
+				policy:      map[string]any{"network": true},
+				sourceBytes: tc.sourceBytes,
+				assetBytes:  tc.assetBytes,
+			})
+			errObj, ok := response["error"].(map[string]any)
+			if !ok {
+				t.Fatalf("expected staging error, got %+v", response)
+			}
+			message := errObj["message"].(string)
+			if !strings.Contains(message, "staging limit") || !strings.Contains(message, tc.wantPath) {
+				t.Fatalf("expected actionable staging error, got %q", message)
+			}
+			if _, err := os.Stat(invoked); !os.IsNotExist(err) {
+				t.Fatalf("external CLI should not be invoked, stat err=%v", err)
+			}
+		})
+	}
+}
+
 func runFixture(t *testing.T) (map[string]any, string) {
 	return runFixtureWithPolicy(t, map[string]any{
 		"network": true,
@@ -65,14 +105,32 @@ func runFixture(t *testing.T) (map[string]any, string) {
 }
 
 func runFixtureWithPolicy(t *testing.T, policy map[string]any) (map[string]any, string) {
+	return runFixtureWithOptions(t, fixtureOptions{policy: policy})
+}
+
+type fixtureOptions struct {
+	policy      map[string]any
+	sourceBytes []byte
+	assetBytes  []byte
+}
+
+func runFixtureWithOptions(t *testing.T, options fixtureOptions) (map[string]any, string) {
 	t.Helper()
 	root := t.TempDir()
 	source := filepath.Join(root, "source.md")
 	asset := filepath.Join(root, "prompt.md")
-	if err := os.WriteFile(source, []byte("# Source\n"), 0o644); err != nil {
+	sourceBytes := options.sourceBytes
+	if sourceBytes == nil {
+		sourceBytes = []byte("# Source\n")
+	}
+	assetBytes := options.assetBytes
+	if assetBytes == nil {
+		assetBytes = []byte("# Prompt\n")
+	}
+	if err := os.WriteFile(source, sourceBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(asset, []byte("# Prompt\n"), 0o644); err != nil {
+	if err := os.WriteFile(asset, assetBytes, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	workRoot := filepath.Join(root, ".fbt", "work", "test")
@@ -89,7 +147,7 @@ func runFixtureWithPolicy(t *testing.T, policy map[string]any) (map[string]any, 
 			"assets":           []any{map[string]any{"name": "prompt", "absolute_path": asset}},
 			"outputs":          []any{map[string]any{"name": "output", "artifact_type": "markdown"}},
 			"model":            map[string]any{"provider": "conformance", "name": "fixture"},
-			"policy":           policy,
+			"policy":           options.policy,
 			"work":             map[string]any{"root": workRoot, "temp": filepath.Join(workRoot, "tmp"), "outputs": workOutputs},
 		},
 	}
@@ -111,6 +169,10 @@ func runFixtureWithPolicy(t *testing.T, policy map[string]any) (map[string]any, 
 		t.Fatal(err)
 	}
 	return response, workOutputs
+}
+
+func largeFixtureContent() []byte {
+	return bytes.Repeat([]byte("x"), stagedInputMaxBytes+1)
 }
 
 func readFile(t *testing.T, path string) string {

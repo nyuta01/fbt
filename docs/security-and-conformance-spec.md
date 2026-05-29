@@ -81,6 +81,8 @@ Safe adapters must:
 - map network, shell/tool, timeout, turn, and cost limits to the external
   tool's controls where available
 - refuse execution when the requested policy cannot be enforced or represented
+- refuse execution when staged source or asset files exceed the adapter's
+  explicit staging limit instead of silently truncating evidence
 - place final candidate files under the assigned `work.outputs` directory
 - emit only redacted structured events and declared output candidates
 
@@ -154,6 +156,7 @@ scenario classes.
 | `CONF-ADAPTER-002` | runner adapter | CLI-agent adapter receives guarded source, logical artifact, and `.fbt/state` files | strict runner conformance fails if the adapter modifies any guarded file directly |
 | `CONF-ADAPTER-003` | redaction | CLI-agent adapter receives source and asset files containing a marker secret | strict runner conformance fails if protocol responses or events leak the marker |
 | `CONF-ADAPTER-004` | runner adapter | CLI-agent adapter receives an fbt policy it cannot enforce | strict runner conformance fails before invoking the external CLI and returns a structured policy error |
+| `CONF-ADAPTER-005` | runner adapter | CLI-agent adapter receives a staged input file above its explicit size limit | adapter tests fail before invoking the external CLI and return an actionable error naming the oversized file and limit |
 
 ## 10. Verification Target
 
@@ -183,6 +186,9 @@ Current executable coverage:
   require staging-workspace and fail-closed policy markers
 - Codex CLI and Claude Code adapter conformance includes a negative policy case
   proving unsupported network-denial policy fails before external CLI execution
+- Codex CLI and Claude Code adapter tests cover oversized source and asset
+  files, proving the adapters fail before external CLI execution instead of
+  staging truncated evidence
 
 LLM and agent scenarios should use fake runners for conformance. Real provider
 smoke tests belong behind explicit opt-in commands and must not be required for

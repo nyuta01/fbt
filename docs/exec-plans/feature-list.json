@@ -3203,7 +3203,7 @@
       "id": "FBT-RUNNER-024",
       "title": "Fail visibly on CLI-agent staged input truncation",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-018"
@@ -3222,12 +3222,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "adapter_codex_cli_large_input_test": false,
-        "adapter_claude_code_large_input_test": false,
-        "agent_adapter_conformance": false,
-        "make_verify": false
+        "adapter_codex_cli_large_input_test": true,
+        "adapter_claude_code_large_input_test": true,
+        "agent_adapter_conformance": true,
+        "make_verify": true
       },
-      "notes": "CLI-agent adapters currently copy at most 2 MiB per staged file without surfacing truncation. Large evidence files should either be fully staged within an explicit limit or fail with an actionable error before generation."
+      "notes": "Codex CLI and Claude Code adapters now copy staged source and asset files completely when within the explicit 2 MiB per-file limit, and fail before external CLI invocation with an actionable oversized-file error when the limit is exceeded."
     },
     {
       "id": "FBT-RUNNER-025",
