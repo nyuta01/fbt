@@ -16,6 +16,11 @@ locate the resource in YAML, resource name, and an actionable hint for common
 fixes. `fbt doctor`, `fbt plan`, and `fbt build` all parse the project before
 doing their main work.
 
+Project and resource YAML is strict. Unknown fields fail with
+`YAML_FIELD_UNKNOWN` unless they are inside a documented free-form object such
+as `meta`, `contract`, runner `config`, policy `tools`, policy `limits`, eval
+`config`, or model parameters.
+
 ## 2. Standard Layout
 
 ```text
@@ -364,6 +369,7 @@ Initial selector methods:
 Project parsing validates at least:
 
 - Unique resource names
+- Unknown or removed YAML fields
 - Resolvable `source` and `ref` references
 - Output paths under the configured artifact path
 - Resolvable runner, policy, and eval references

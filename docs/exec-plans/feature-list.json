@@ -2354,7 +2354,7 @@
       "id": "FBT-CONFIG-002",
       "title": "Reject unknown YAML fields with actionable diagnostics",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-CONFIG-001"
@@ -2369,12 +2369,12 @@
         "tests"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false,
-        "make_verify": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Project and resource YAML should fail fast on misspelled or legacy fields. Review removal has a one-off diagnostic; the parser needs a general strict-field contract with file, line, resource, and hint."
+      "notes": "Project and resource YAML now reject unknown fields with YAML_FIELD_UNKNOWN diagnostics that include file, line, resource when available, and a hint. Conformance covers misspelled top-level, runner, source, transform, policy, and eval fields while preserving documented project aliases and free-form meta/config/contract objects."
     },
     {
       "id": "FBT-RUNNER-009",

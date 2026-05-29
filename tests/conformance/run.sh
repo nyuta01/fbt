@@ -44,6 +44,102 @@ if [[ "$schema_unsupported_code" -ne 2 ]]; then
 fi
 grep -q "CONFIG_VERSION_UNSUPPORTED" "$tmpdir/schema-unsupported.err"
 
+expect_yaml_unknown() {
+  local project="$1"
+  local name="$2"
+  set +e
+  "$FBT_BIN" plan --project-dir "$project" >"$tmpdir/$name.out" 2>"$tmpdir/$name.err"
+  local code=$?
+  set -e
+  if [[ "$code" -ne 2 ]]; then
+    echo "expected YAML_FIELD_UNKNOWN for $name to exit 2, got $code" >&2
+    cat "$tmpdir/$name.out" >&2
+    cat "$tmpdir/$name.err" >&2
+    exit 1
+  fi
+  grep -q "YAML_FIELD_UNKNOWN" "$tmpdir/$name.err"
+}
+
+unknown_project="$tmpdir/unknown-project"
+mkdir -p "$unknown_project"
+cat >"$unknown_project/fs_project.yml" <<'YAML'
+name: unknown_project
+config_version: 1
+sorce_paths: ["sources"]
+YAML
+expect_yaml_unknown "$unknown_project" "unknown-project"
+
+unknown_runner="$tmpdir/unknown-runner"
+"$FBT_BIN" init "$unknown_runner" --template support >"$tmpdir/init-unknown-runner.txt"
+cat >"$unknown_runner/fs_project.yml" <<'YAML'
+name: unknown_runner
+config_version: 1
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+runners:
+  - name: demo.llm
+    type: llm
+    protocol: stdio_jsonrpc
+    cmd: bin/fbt-demo-llm-runner
+YAML
+expect_yaml_unknown "$unknown_runner" "unknown-runner"
+
+unknown_source="$tmpdir/unknown-source"
+"$FBT_BIN" init "$unknown_source" --template support >"$tmpdir/init-unknown-source.txt"
+cat >"$unknown_source/sources/support.yml" <<'YAML'
+sources:
+  - name: support
+    artifacts:
+      - name: raw_tickets
+        type: jsonl_directory
+        pth: data/support/tickets/*.jsonl
+YAML
+expect_yaml_unknown "$unknown_source" "unknown-source"
+
+unknown_transform="$tmpdir/unknown-transform"
+"$FBT_BIN" init "$unknown_transform" --template support >"$tmpdir/init-unknown-transform.txt"
+cat >"$unknown_transform/transforms/support/case_summaries.yml" <<'YAML'
+transforms:
+  - name: case_summaries
+    type: llm
+    runner: demo.llm
+    modle:
+      provider: demo
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+YAML
+expect_yaml_unknown "$unknown_transform" "unknown-transform"
+
+unknown_policy="$tmpdir/unknown-policy"
+"$FBT_BIN" init "$unknown_policy" --template support >"$tmpdir/init-unknown-policy.txt"
+cat >"$unknown_policy/policies/support.yml" <<'YAML'
+policies:
+  - name: support_agent_scope
+    read: ["data/support/"]
+    write: [".fbt/work/", "target/artifacts/support/"]
+    netwrok: true
+YAML
+expect_yaml_unknown "$unknown_policy" "unknown-policy"
+
+unknown_eval="$tmpdir/unknown-eval"
+"$FBT_BIN" init "$unknown_eval" --template support >"$tmpdir/init-unknown-eval.txt"
+cat >"$unknown_eval/evals/support.yml" <<'YAML'
+evals:
+  - name: required_case_sections
+    type: deterministic
+    grant_confidence: structural
+    config:
+      sections: ["Fake Output"]
+YAML
+expect_yaml_unknown "$unknown_eval" "unknown-eval"
+
 happy="$tmpdir/happy"
 "$FBT_BIN" init "$happy" --template support >"$tmpdir/init-happy.txt"
 dag="$tmpdir/dag"

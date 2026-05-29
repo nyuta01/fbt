@@ -70,8 +70,8 @@ visualization; those remain outside core. The new high-priority tasks focus on
 build-tool reliability: one-invocation dependency-ordered builds
 (`FBT-BUILD-001`, now done), failed-run receipts (`FBT-BUILD-002`, now done),
 inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
-(`FBT-CONFIG-002`), CLI-agent adapter safety (`FBT-RUNNER-010`), and stale
-current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
+(`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`), and
+stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform
@@ -95,6 +95,13 @@ current artifact pointers, and OTel exports include failed spans plus
 `CONFIG_FIELD_RESERVED`, line/resource diagnostics, and a hint. Examples and
 the project-config spec no longer advertise hidden cache/default/parallel
 controls.
+
+`FBT-CONFIG-002` made project YAML strict. Unknown fields in `fs_project.yml`
+and resource files now fail with `YAML_FIELD_UNKNOWN`, including file, line,
+resource name when available, and a hint. Conformance covers misspelled
+top-level, runner, source, transform, policy, and eval fields. Documented
+project aliases and free-form `meta`, `contract`, runner `config`, policy
+`tools`/`limits`, eval `config`, and model parameter objects remain allowed.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
@@ -181,11 +188,9 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Implement `FBT-CONFIG-002` so misspelled or unknown YAML fields fail fast
-   across project and resource files.
-2. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
+1. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
    SDKs and agent runtimes outside base core.
-3. Define local state/artifact retention hygiene through `FBT-STATE-002`.
+2. Define local state/artifact retention hygiene through `FBT-STATE-002`.
 4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 

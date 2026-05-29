@@ -286,6 +286,9 @@ typos.
 Command and subcommand argument validation now rejects unknown flags and extra
 positionals. Selectors that match no transforms now fail. Build selection uses
 the same selector semantics as plan, and CLI tests cover the typo cases.
+`FBT-CONFIG-002` extended the same fail-fast rule to project/resource YAML with
+`YAML_FIELD_UNKNOWN` diagnostics and conformance fixtures for misspelled
+project, runner, source, transform, policy, and eval fields.
 
 ## F-015 Debug commands stayed public after the product boundary changed
 

@@ -71,6 +71,14 @@ func ParseProject(options Options) (Result, error) {
 	for _, field := range projectUnsupported {
 		result.addUnsupportedField(prj.ConfigPath, field)
 	}
+	projectUnknown, err := unknownProjectFields(prj.ConfigPath)
+	if err != nil {
+		result.addError("CONFIG_READ_FAILED", err.Error(), prj.ConfigPath, "")
+		return result, DiagnosticsError{Diagnostics: result.Diagnostics}
+	}
+	for _, field := range projectUnknown {
+		result.addUnsupportedField(prj.ConfigPath, field)
+	}
 
 	switch projectFile.VersionStatus {
 	case config.VersionMissing:
@@ -194,7 +202,8 @@ func loadResourceFile(path string) (resourceFile, map[string]int, []unsupportedF
 	if err := yaml.Unmarshal(data, &loaded); err != nil {
 		return resourceFile{}, nil, nil, err
 	}
-	return loaded, resourceLineIndex(data), unsupportedResourceFields(data), nil
+	unsupported := append(unsupportedResourceFields(data), unknownResourceFields(data)...)
+	return loaded, resourceLineIndex(data), unsupported, nil
 }
 
 func (r *Result) appendResources(file string, loaded resourceFile, lines map[string]int) {
@@ -303,9 +312,51 @@ func unsupportedProjectFields(path string) ([]unsupportedField, error) {
 		}
 	}
 	if defaults := mappingNode(root, "defaults"); defaults != nil {
+		if len(defaults.Content) == 0 {
+			fields = append(fields, reservedConfigField("defaults", "project", defaults.Line))
+		}
 		for _, key := range []string{"cache", "confidence"} {
 			if field := mappingNode(defaults, key); field != nil {
 				fields = append(fields, reservedConfigField("defaults."+key, "project", field.Line))
+			}
+		}
+	}
+	return fields, nil
+}
+
+func unknownProjectFields(path string) ([]unsupportedField, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return nil, err
+	}
+	root := doc.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil, nil
+	}
+	var fields []unsupportedField
+	fields = append(fields, unknownFields(root, allowedProjectFields(), "project", "")...)
+	if state := mappingNode(root, "state"); state != nil {
+		fields = append(fields, unknownFields(state, stringSet("backend", "path"), "project", "state")...)
+	}
+	if execution := mappingNode(root, "execution"); execution != nil {
+		fields = append(fields, unknownFields(execution, stringSet("mode", "max_workers", "fail_fast"), "project", "execution")...)
+	}
+	if defaults := mappingNode(root, "defaults"); defaults != nil {
+		fields = append(fields, unknownFields(defaults, stringSet("cache", "confidence"), "project", "defaults")...)
+	}
+	if runners := mappingNode(root, "runners"); runners != nil {
+		fields = append(fields, unknownSequenceFields(runners, allowedRunnerFields(), "runner", "runners[]")...)
+	}
+	if selectors := mappingNode(root, "selectors"); selectors != nil && selectors.Kind == yaml.SequenceNode {
+		for _, item := range selectors.Content {
+			resource, _ := mappingScalar(item, "name")
+			fields = append(fields, unknownFields(item, stringSet("name", "definition"), resource, "selectors[]")...)
+			if definition := mappingNode(item, "definition"); definition != nil {
+				fields = append(fields, unknownSelectorDefinitionFields(definition, resource, "selectors[].definition")...)
 			}
 		}
 	}
@@ -362,6 +413,166 @@ func unsupportedResourceFields(data []byte) []unsupportedField {
 		}
 	}
 	return fields
+}
+
+func unknownResourceFields(data []byte) []unsupportedField {
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return nil
+	}
+	root := doc.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil
+	}
+	var fields []unsupportedField
+	fields = append(fields, unknownFields(root, allowedResourceTopLevelFields(), "", "")...)
+	for i := 0; i+1 < len(root.Content); i += 2 {
+		key := root.Content[i]
+		value := root.Content[i+1]
+		if value.Kind != yaml.SequenceNode {
+			continue
+		}
+		switch key.Value {
+		case "sources":
+			for _, item := range value.Content {
+				sourceName, _ := mappingScalar(item, "name")
+				fields = append(fields, unknownFields(item, stringSet("name", "description", "artifacts"), sourceName, "sources[]")...)
+				artifacts := mappingNode(item, "artifacts")
+				if artifacts == nil || artifacts.Kind != yaml.SequenceNode {
+					continue
+				}
+				for _, artifact := range artifacts.Content {
+					artifactName, _ := mappingScalar(artifact, "name")
+					resource := sourceName
+					if artifactName != "" {
+						resource = sourceName + "." + artifactName
+					}
+					fields = append(fields, unknownFields(artifact, stringSet("name", "type", "path", "description", "tags", "tests", "meta"), resource, "sources[].artifacts[]")...)
+				}
+			}
+		case "artifacts":
+			fields = append(fields, unknownSequenceFields(value, stringSet("name", "type", "path", "contract", "owner", "tags", "meta"), "", "artifacts[]")...)
+		case "assets":
+			fields = append(fields, unknownSequenceFields(value, stringSet("name", "type", "path", "variables", "meta"), "", "assets[]")...)
+		case "transforms":
+			for _, item := range value.Content {
+				resource, _ := mappingScalar(item, "name")
+				fields = append(fields, unknownFields(item, allowedTransformFields(), resource, "transforms[]")...)
+				fields = append(fields, unknownSequenceFields(mappingNode(item, "inputs"), stringSet("source", "ref", "require"), resource, "transforms[].inputs[]")...)
+				if inputs := mappingNode(item, "inputs"); inputs != nil && inputs.Kind == yaml.SequenceNode {
+					for _, input := range inputs.Content {
+						if require := mappingNode(input, "require"); require != nil {
+							fields = append(fields, unknownFields(require, stringSet("confidence", "evals", "review"), resource, "transforms[].inputs[].require")...)
+						}
+					}
+				}
+				fields = append(fields, unknownSequenceFields(mappingNode(item, "outputs"), stringSet("name", "type", "path", "contract"), resource, "transforms[].outputs[]")...)
+				fields = append(fields, unknownSequenceFields(mappingNode(item, "assets"), stringSet("ref", "type", "path"), resource, "transforms[].assets[]")...)
+			}
+		case "policies":
+			fields = append(fields, unknownSequenceFields(value, stringSet("name", "read", "write", "network", "tools", "limits", "review"), "", "policies[]")...)
+		case "evals":
+			fields = append(fields, unknownSequenceFields(value, stringSet("name", "type", "runner", "config", "grants_confidence"), "", "evals[]")...)
+		case "runners":
+			fields = append(fields, unknownSequenceFields(value, allowedRunnerFields(), "", "runners[]")...)
+		}
+	}
+	return fields
+}
+
+func unknownSelectorDefinitionFields(node *yaml.Node, resource, path string) []unsupportedField {
+	if node == nil || node.Kind != yaml.MappingNode {
+		return nil
+	}
+	var fields []unsupportedField
+	fields = append(fields, unknownFields(node, stringSet("method", "value", "union"), resource, path)...)
+	if union := mappingNode(node, "union"); union != nil && union.Kind == yaml.SequenceNode {
+		for _, item := range union.Content {
+			fields = append(fields, unknownSelectorDefinitionFields(item, resource, path+".union[]")...)
+		}
+	}
+	return fields
+}
+
+func unknownSequenceFields(sequence *yaml.Node, allowed map[string]struct{}, fallbackResource, path string) []unsupportedField {
+	if sequence == nil || sequence.Kind != yaml.SequenceNode {
+		return nil
+	}
+	var fields []unsupportedField
+	for _, item := range sequence.Content {
+		resource, _ := mappingScalar(item, "name")
+		if resource == "" {
+			resource = fallbackResource
+		}
+		fields = append(fields, unknownFields(item, allowed, resource, path)...)
+	}
+	return fields
+}
+
+func unknownFields(node *yaml.Node, allowed map[string]struct{}, resource, path string) []unsupportedField {
+	if node == nil || node.Kind != yaml.MappingNode {
+		return nil
+	}
+	var fields []unsupportedField
+	for i := 0; i+1 < len(node.Content); i += 2 {
+		key := node.Content[i]
+		if _, ok := allowed[key.Value]; ok {
+			continue
+		}
+		fields = append(fields, unknownYAMLField(fieldPath(path, key.Value), resource, key.Line))
+	}
+	return fields
+}
+
+func allowedProjectFields() map[string]struct{} {
+	return stringSet(
+		"name", "config_version", "config-version", "version",
+		"source_paths", "source-paths", "transform_paths", "transform-paths",
+		"asset_paths", "asset-paths", "policy_paths", "policy-paths",
+		"eval_paths", "eval-paths", "target_path", "target-path",
+		"artifact_path", "artifact-path", "state", "execution", "defaults",
+		"runners", "selectors", "vars",
+	)
+}
+
+func allowedResourceTopLevelFields() map[string]struct{} {
+	return stringSet("sources", "artifacts", "assets", "transforms", "policies", "evals", "runners")
+}
+
+func allowedRunnerFields() map[string]struct{} {
+	return stringSet("name", "type", "protocol", "command", "args", "cwd", "env", "config", "capabilities")
+}
+
+func allowedTransformFields() map[string]struct{} {
+	return stringSet(
+		"name", "type", "runner", "command", "model", "agent", "inputs",
+		"outputs", "assets", "tools", "policy", "evals", "cache", "review",
+		"contract", "tags", "meta",
+	)
+}
+
+func unknownYAMLField(path, resource string, line int) unsupportedField {
+	return unsupportedField{
+		code:     "YAML_FIELD_UNKNOWN",
+		message:  fmt.Sprintf("unknown YAML field `%s`", path),
+		resource: resource,
+		line:     line,
+	}
+}
+
+func fieldPath(prefix, key string) string {
+	if prefix == "" {
+		return key
+	}
+	return prefix + "." + key
+}
+
+func stringSet(values ...string) map[string]struct{} {
+	out := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		out[value] = struct{}{}
+	}
+	return out
 }
 
 func reservedConfigField(path, resource string, line int) unsupportedField {
@@ -755,6 +966,8 @@ func diagnosticHint(code string) string {
 		return "Remove the review field. Use Git, PRs, CI, release tooling, or your publishing workflow for human approval."
 	case "CONFIG_FIELD_RESERVED":
 		return "Remove this field. fbt uses file fingerprints, explicit ref confidence requirements, and `build --force` instead of hidden cache/default controls."
+	case "YAML_FIELD_UNKNOWN":
+		return "Remove the field, fix the spelling, or put custom resource data under `meta` when that resource supports it."
 	case "PROJECT_NAME_REQUIRED":
 		return "Add a non-empty `name` to fs_project.yml."
 	case "PROJECT_NAME_INVALID", "SOURCE_NAME_INVALID", "SOURCE_ARTIFACT_NAME_INVALID", "ARTIFACT_NAME_INVALID", "ASSET_NAME_INVALID", "POLICY_NAME_INVALID", "EVAL_NAME_INVALID", "TRANSFORM_NAME_INVALID":

@@ -1,6 +1,6 @@
 # FBT-CONFIG-002 Reject Unknown YAML Fields With Actionable Diagnostics
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -24,12 +24,14 @@ inert fields.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
-
-- Add unknown-field detection for `fs_project.yml` and resource files.
-- Preserve compatibility only for explicitly documented aliases.
-- Add conformance fixtures for misspelled top-level, transform, source, policy,
-  eval, and runner fields.
+- Added unknown-field detection for `fs_project.yml` and resource files with
+  stable `YAML_FIELD_UNKNOWN` diagnostics.
+- Diagnostics include file, line, resource name when available, and an
+  actionable hint.
+- Preserved draft-period project aliases already normalized by config decoding,
+  while keeping generated/project-owned schemas canonical.
+- Added conformance fixtures for misspelled top-level, runner, source,
+  transform, policy, and eval fields.
 
 ## Next Check
 
@@ -41,3 +43,5 @@ make verify
 
 Expected result: YAML typos fail with stable diagnostic codes instead of being
 ignored.
+
+Latest result: passed.

@@ -48,6 +48,10 @@ MVP rules:
   ambiguity.
 - Generated manifests and standard exports must use canonical `snake_case`
   field names where fbt owns the schema.
+- Unknown project/resource YAML fields fail with `YAML_FIELD_UNKNOWN` unless
+  they are under documented free-form objects such as `meta`, `contract`,
+  runner `config`, policy `tools`, policy `limits`, eval `config`, or model
+  parameters.
 
 ## 4. JSON Schema Versioning
 

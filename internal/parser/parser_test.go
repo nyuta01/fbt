@@ -227,6 +227,130 @@ func TestParseProjectRejectsReservedTransformCache(t *testing.T) {
 	}
 }
 
+func TestParseProjectRejectsUnknownYAMLFields(t *testing.T) {
+	cases := []struct {
+		name     string
+		mutate   func(t *testing.T, root string)
+		resource string
+	}{
+		{
+			name: "project top-level typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "fs_project.yml", `name: knowledge_ops
+config_version: 1
+sorce_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-openai-runner
+`)
+			},
+			resource: "project",
+		},
+		{
+			name: "runner field typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "fs_project.yml", `name: knowledge_ops
+config_version: 1
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    cmd: fbt-openai-runner
+`)
+			},
+			resource: "openai.responses",
+		},
+		{
+			name: "source artifact field typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "sources/support.yml", `sources:
+  - name: support
+    artifacts:
+      - name: raw_tickets
+        type: jsonl_directory
+        pth: data/support/tickets/*.jsonl
+`)
+			},
+			resource: "support.raw_tickets",
+		},
+		{
+			name: "transform field typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "transforms/case.yml", `transforms:
+  - name: case_summaries
+    type: llm
+    runner: openai.responses
+    modle:
+      provider: openai
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+    policy: support_agent_scope
+`)
+			},
+			resource: "case_summaries",
+		},
+		{
+			name: "policy field typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "policies/support.yml", `policies:
+  - name: support_agent_scope
+    read:
+      - data/support/
+    write:
+      - .fbt/work/
+      - target/artifacts/support/
+    netwrok: true
+`)
+			},
+			resource: "support_agent_scope",
+		},
+		{
+			name: "eval field typo",
+			mutate: func(t *testing.T, root string) {
+				writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    grant_confidence: structural
+    config:
+      sections:
+        - Summary
+`)
+			},
+			resource: "required_case_sections",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			root := writeValidProject(t)
+			tc.mutate(t, root)
+
+			result, err := ParseProject(Options{ProjectDir: root})
+			if err == nil {
+				t.Fatal("expected parse error")
+			}
+			diagnostic := findDiagnostic(t, result.Diagnostics, "YAML_FIELD_UNKNOWN")
+			if diagnostic.Resource != tc.resource || diagnostic.Line == 0 || diagnostic.Hint == "" {
+				t.Fatalf("expected unknown field diagnostic for %q, got %+v", tc.resource, diagnostic)
+			}
+		})
+	}
+}
+
 func writeValidProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
