@@ -100,6 +100,13 @@ Expected result:
 runner-conformance: ok
 ```
 
+For source-checkout users, the aggregate official-adapter smoke includes this
+OpenAI fake-response check:
+
+```sh
+make official-adapter-smoke
+```
+
 Use the installed-adapter smoke only when the command is installed on `PATH`:
 
 ```sh
@@ -108,4 +115,11 @@ make runner-adapter-smoke
 ```
 
 Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when you intentionally want the
-smoke target to call the real OpenAI API.
+smoke target to call the real OpenAI API and commit a temporary artifact:
+
+```sh
+export OPENAI_API_KEY=...
+FBT_RUNNER_ADAPTER_SMOKE_BUILD=1 \
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```

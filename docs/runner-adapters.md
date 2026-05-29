@@ -150,6 +150,76 @@ runner SDK. The user-facing install command still uses the module version:
 go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
 ```
 
+## 4.1 Official Adapter Verification Ladder
+
+Use the same ladder for official and third-party adapters:
+
+| Level | Purpose | Calls real provider or agent? | Command |
+|---|---|---:|---|
+| Fixture/fake protocol smoke | Prove the adapter speaks the protocol and enforces safety behavior. | No | `make official-adapter-smoke` |
+| Clean install smoke | Prove official Go adapter modules install from VCS without `go.work` or local `replace`. | No | `make adapter-install-smoke` |
+| Installed command smoke | Prove an installed adapter command can initialize in a generated fbt project. | No by default | `make runner-adapter-smoke` |
+| Live build smoke | Prove the installed command can call the real provider or CLI agent and commit a temporary artifact. | Yes | `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1 make runner-adapter-smoke` |
+
+The fixture/fake smoke is safe for normal development:
+
+```sh
+make official-adapter-smoke
+```
+
+Expected output:
+
+```text
+runner-conformance: ok
+runner-conformance: ok
+runner-conformance: ok
+runner-conformance: ok
+runner-conformance: ok
+runner-conformance: ok
+official-adapter-smoke: ok
+```
+
+Use install smoke before telling users an official adapter is installable:
+
+```sh
+make adapter-install-smoke
+```
+
+Expected output:
+
+```text
+adapter-install-smoke: ok
+```
+
+That target requires a clean committed working tree because it creates a
+temporary bare VCS remote for the current commit and runs `go install` against
+that remote. It verifies:
+
+```text
+github.com/nyuta01/fbt/adapters/command/cmd/fbt-runner-command
+github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai
+github.com/nyuta01/fbt/adapters/codex-cli/cmd/fbt-runner-codex-cli
+github.com/nyuta01/fbt/adapters/claude-code/cmd/fbt-runner-claude-code
+```
+
+Installed command smoke remains opt-in because it depends on local PATH,
+credentials, and installed provider or agent CLIs:
+
+```sh
+export OPENAI_API_KEY=...
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```
+
+Set `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when you intentionally want to call
+the real provider or agent:
+
+```sh
+FBT_RUNNER_ADAPTER_SMOKE_BUILD=1 \
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```
+
 ## 5. Project Config
 
 Projects may reference an adapter directly:

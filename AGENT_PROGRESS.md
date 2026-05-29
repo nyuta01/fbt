@@ -118,6 +118,12 @@ user's own files, proving the loop with demo runners, inspecting receipts, and
 then switching to an external runner. `make verify` includes
 `own-files-smoke`.
 
+`FBT-RUNNER-026` is done. `make official-adapter-smoke` now runs fixture/fake
+checks for the official command, OpenAI, Codex CLI, and Claude Code adapters
+without live provider calls. Runner docs now describe the adapter verification
+ladder: fixture/fake smoke, clean VCS install smoke, installed command smoke,
+and opt-in live build smoke.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

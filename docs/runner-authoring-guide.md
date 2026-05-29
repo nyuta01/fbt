@@ -298,6 +298,11 @@ Expected successful conformance output is intentionally terse:
 runner-conformance: ok
 ```
 
+For official adapters in this repository, `make official-adapter-smoke` runs
+the fixture/fake conformance set without live provider calls. `make
+adapter-install-smoke` verifies clean `go install` behavior from a temporary
+VCS remote and requires a clean committed working tree.
+
 ## 11. Discovery Packaging
 
 A runner can be referenced from project config, a plugin manifest, or a PATH

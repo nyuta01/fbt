@@ -88,6 +88,10 @@ adapter-claude-code-conformance: ## Run agent conformance against the official C
 	@FBT_CLAUDE_CODE_COMMAND="$(CURDIR)/adapters/claude-code/testdata/claude-code-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/claude-code/cmd/fbt-runner-claude-code' --transform-type agent --strict --agent-adapter
 	@FBT_CLAUDE_CODE_COMMAND="$(CURDIR)/adapters/claude-code/testdata/claude-code-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/claude-code/cmd/fbt-runner-claude-code' --transform-type agent --strict --agent-adapter --expect-policy-failure
 
+.PHONY: official-adapter-smoke
+official-adapter-smoke: adapter-command-conformance adapter-openai-conformance adapter-codex-cli-conformance adapter-claude-code-conformance ## Verify official adapters with fixtures/fake responses and no live provider calls.
+	@echo "official-adapter-smoke: ok"
+
 .PHONY: build
 build: ## Build the fbt CLI into bin/fbt.
 	@mkdir -p bin

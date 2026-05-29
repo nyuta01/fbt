@@ -3386,7 +3386,7 @@
       "id": "FBT-RUNNER-026",
       "title": "Harden official adapter install and live verification UX",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-025",
@@ -3407,12 +3407,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "official_adapter_install_docs_scan": false,
-        "adapter_install_smoke": false,
-        "opt_in_live_adapter_smoke_documented": false,
-        "make_verify": false
+        "official_adapter_install_docs_scan": true,
+        "adapter_install_smoke": true,
+        "opt_in_live_adapter_smoke_documented": true,
+        "make_verify": true
       },
-      "notes": "The runner boundary is correct, but fbt's real usefulness depends on official adapters feeling installable, versioned, diagnosable, and live-verifiable without making core provider-dependent."
+      "notes": "Added `make official-adapter-smoke` for fixture/fake official adapter checks and documented a three-level path: fixture/fake protocol smoke, clean adapter install smoke, and opt-in installed/live adapter smoke."
     },
     {
       "id": "FBT-OPS-001",

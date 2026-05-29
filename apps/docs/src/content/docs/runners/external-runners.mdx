@@ -110,6 +110,40 @@ Expected result:
 runner-conformance: ok
 ```
 
+## Official adapter checks
+
+For the adapters maintained in this repository, use three levels of checks:
+
+| Check | Calls a real provider? | Command |
+|---|---:|---|
+| Fixture/fake protocol smoke | No | `make official-adapter-smoke` |
+| Clean install from VCS module paths | No | `make adapter-install-smoke` |
+| Installed command plus real credentials | Optional | `make runner-adapter-smoke` |
+
+The source-checkout smoke uses fake responses or fixture CLIs for
+`fbt-runner-command`, `fbt-runner-openai`, `fbt-runner-codex-cli`, and
+`fbt-runner-claude-code`:
+
+```sh
+make official-adapter-smoke
+```
+
+Expected result:
+
+```text
+official-adapter-smoke: ok
+```
+
+Use clean install smoke when you need to prove that nested adapter modules can
+be installed without the repository's `go.work` file or local replace rules:
+
+```sh
+make adapter-install-smoke
+```
+
+That target requires a clean committed working tree because it installs from
+the current commit through a temporary bare VCS remote.
+
 ## Opt-in smoke matrix
 
 Real provider and CLI-agent checks stay outside `make verify`. To validate
