@@ -5,6 +5,7 @@ Use these examples in this order.
 | Example | Use it for | Runner | Best first command |
 |---|---|---|---|
 | [`knowledge_ops`](knowledge_ops/) | Verify the local fbt control plane end to end. | Demo runners, no credentials. | `fbt init knowledge_ops --template support` |
+| first own-files path | Replace sample support data with your files and build one receipt-backed artifact. | Demo first, external runner later. | `docs/examples/first-own-files-success-path.md` |
 | [`daily_qa_ops`](daily_qa_ops/) | See a daily batch workflow with Markdown sources and multiple outputs. | Demo runners, no credentials. | `fbt plan --project-dir examples/daily_qa_ops --select tag:daily_qa` |
 | [`markdown_toolchain`](markdown_toolchain/) | See fbt wrap remark/Pandoc-style CLI tools without owning document processing. | Command runner, no credentials. | `fbt plan --project-dir examples/markdown_toolchain --select tag:document_toolchain` |
 | [`data_tool_interop`](data_tool_interop/) | See fbt consume dbt/DataChain output files and turn them into a versioned human brief. | Command runner, no credentials. | `fbt plan --project-dir examples/data_tool_interop --select data_tool_brief` |

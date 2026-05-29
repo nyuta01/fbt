@@ -111,6 +111,13 @@ core scope:
 - `FBT-REL-004`: simplify end-user install path for core and adapters.
 - `FBT-STATE-003`: validate retention guidance with a high-volume fixture.
 
+`FBT-UX-015` is done. README, docs-site quickstart/manual-generation pages,
+examples index, and `docs/examples/first-own-files-success-path.md` now show a
+copy-paste path for replacing template source files and instructions with a
+user's own files, proving the loop with demo runners, inspecting receipts, and
+then switching to an external runner. `make verify` includes
+`own-files-smoke`.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

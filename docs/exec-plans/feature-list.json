@@ -3354,7 +3354,7 @@
       "id": "FBT-UX-015",
       "title": "Make the first own-files success path self-service",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-DOCS-UX-012",
@@ -3365,20 +3365,22 @@
         "README.md",
         "apps/docs/src/content/docs/get-started/quickstart.mdx",
         "apps/docs/src/content/docs/get-started/manual-generation.mdx",
+        "docs/examples/first-own-files-success-path.md",
         "examples/",
         "scripts/",
+        "Makefile",
         "docs/exec-plans/active/FBT-UX-015-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "first_user_own_files_docs_scan": false,
-        "own_files_template_or_example_smoke": false,
-        "docs_site_build": false,
-        "make_verify": false
+        "first_user_own_files_docs_scan": true,
+        "own_files_template_or_example_smoke": true,
+        "docs_site_build": true,
+        "make_verify": true
       },
-      "notes": "A first-time user should be able to replace the sample sources with their own directory, configure sources/instructions/runner, build one artifact, and inspect the receipt without inferring hidden context from examples."
+      "notes": "README, docs-site quickstart/manual-generation docs, and the first own-files guide now show how to replace sample source files and instructions, prove the loop with demo runners, inspect receipts, and switch to an external runner. `make verify` now includes `own-files-smoke`."
     },
     {
       "id": "FBT-RUNNER-026",

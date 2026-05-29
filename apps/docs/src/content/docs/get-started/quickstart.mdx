@@ -242,6 +242,51 @@ knowledge_ops/target/lineage/openlineage.ndjson
 knowledge_ops/target/telemetry/otel.json
 ```
 
+## 6. Try Your Own Files
+
+The quickest custom project is the same support template with your own files
+copied into the declared source path:
+
+```sh
+fbt init my_support_manual --template support
+rm my_support_manual/data/support/tickets/*.jsonl
+
+cat >my_support_manual/data/support/tickets/2026-05-29-login.jsonl <<'JSONL'
+{"id":"MY-101","summary":"Admin cannot receive password reset email after company domain change","impact":"Workspace admin blocked from console","resolution_status":"resolved"}
+JSONL
+
+cat >my_support_manual/assets/support_style_guide.md <<'MD'
+# Support Style Guide
+
+- Separate facts from assumptions.
+- Include the customer impact and next action.
+- Keep generated notes short enough to review in a pull request.
+MD
+
+fbt plan --project-dir my_support_manual --select case_summaries
+fbt build --project-dir my_support_manual --select case_summaries
+fbt artifact explain case_summaries --project-dir my_support_manual
+```
+
+`artifact explain` should show your source glob, instruction asset, runner, and
+output path:
+
+```text
+Artifact: case_summaries
+
+Inputs
+  ok input   support.raw_tickets     path=data/support/tickets/*.jsonl
+  ok asset   support_style_guide     path=assets/support_style_guide.md
+  ok runner  demo.llm
+
+Outputs
+  case_summaries  target/artifacts/support/case_summaries
+```
+
+Keep `demo.llm` for the local proof. When the loop works, replace the runner in
+`fs_project.yml` and `transforms/support/case_summaries.yml` with an external
+runner command.
+
 ## What to Replace for Real Work
 
 The quickstart runners are named `demo.llm` and `demo.agent`. Their output is
