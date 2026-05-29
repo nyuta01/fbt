@@ -6,7 +6,10 @@ Audience: fbt maintainers, runner authors, and future official adapter owners
 ## 1. Conclusion
 
 Official fbt runners should be maintained as external adapter packages, not as
-implementation code inside fbt core.
+implementation code inside fbt core. For now, those packages should live in
+the same Git repository as fbt as nested modules. This keeps development and
+release management simple while preserving a clean boundary for future
+repository split-out.
 
 The recommended product shape is:
 
@@ -23,6 +26,56 @@ This matches the direction already documented in fbt: the runner is an external
 command that speaks the fbt runner protocol. The important change is operational:
 official adapters must be treated as first-class maintained packages, with
 versioning, checksums, conformance, security policy, docs, and release cadence.
+Their location in the source tree does not make them part of fbt core.
+
+The target repository shape is:
+
+```text
+fbt/
+  go.mod                    # fbt core only
+  go.work                   # local development across nested modules
+  cmd/fbt/
+  internal/
+  docs/
+  examples/
+  tests/
+
+  sdk/
+    go/                     # first official SDK, provider-free
+      go.mod
+      protocol/
+      stdiojsonrpc/
+      redaction/
+      conformance/
+    python/                 # possible future SDK
+    typescript/             # possible future SDK
+
+  adapters/
+    command/
+      go.mod
+      cmd/fbt-runner-command/
+      internal/
+      fbt_plugin.yml
+      README.md
+    openai/
+      go.mod
+      cmd/fbt-runner-openai/
+      internal/
+      fbt_plugin.yml
+      README.md
+    codex-cli/
+      go.mod
+      cmd/fbt-runner-codex-cli/
+      internal/
+      fbt_plugin.yml
+      README.md
+    claude-code/
+      go.mod
+      cmd/fbt-runner-claude-code/
+      internal/
+      fbt_plugin.yml
+      README.md
+```
 
 The first official packages should be:
 
@@ -67,15 +120,18 @@ officially supported adapter package with a clear maintenance contract.
 
 ## 4. Design Decision
 
-### Adopt External Official Adapter Packages
+### Adopt Monorepo Nested Adapter Modules
 
-Official adapters should live in separate repositories or separate Go modules
-that do not participate in fbt core's `go test ./...` dependency graph.
+Official adapters should live under `adapters/<name>/` as nested modules in
+this repository. Each adapter has its own `go.mod`, dependency tree, CI target,
+release artifact, documentation, and security notes. Root fbt core keeps its
+own `go.mod` and must not import adapter implementation packages.
 
-Preferred repository shape:
+Preferred adapter module shape:
 
 ```text
-github.com/nyuta01/fbt-runner-openai
+adapters/openai/
+  go.mod
   cmd/fbt-runner-openai/
   internal/openaiadapter/
   internal/fbtprotocol/
@@ -86,20 +142,25 @@ github.com/nyuta01/fbt-runner-openai
   SECURITY.md
 ```
 
-If the project temporarily keeps official adapters in the same Git repository,
-each adapter must still be a nested module with its own `go.mod`, dependency
-tree, CI, release artifacts, and docs. It should not appear as a top-level
-`runners/` directory in fbt core.
+This is a monorepo, not a single Go module. `go.work` exists only for local
+development convenience. The root `make verify` remains service-free and core
+focused; adapter-specific checks should have explicit Make targets or CI jobs.
+
+Do not reintroduce a top-level `runners/` directory. `runners/` describes a
+runtime role from fbt core's perspective. `adapters/` describes maintained
+packages that adapt external providers, CLIs, or tools to the fbt runner
+protocol.
 
 ### Add a Tiny Public Runner SDK
 
 Official adapters need shared protocol types and helper code, but they must not
 import fbt `internal/` packages.
 
-Recommended follow-up:
+Recommended first SDK module:
 
 ```text
-github.com/nyuta01/fbt-runner-sdk-go
+sdk/go/
+  go.mod
   protocol types
   JSON-RPC JSONL stdio server helpers
   output-candidate helpers
@@ -111,16 +172,42 @@ This package must stay provider-free. It is not a plugin runtime and must not
 implement transform logic. It only lowers the cost of writing conformant
 external commands.
 
-An alternative is `github.com/nyuta01/fbt/pkg/runnerprotocol`, but a separate
-module better preserves the provider-free core dependency graph and release
-independence.
+The SDK should not be the source of truth. The runner protocol spec, JSON
+Schema, and conformance suite remain authoritative. The SDK is a convenience
+implementation of that contract.
+
+### Keep Other SDK Languages Possible
+
+The protocol is JSON-RPC over stdio, so SDKs can be implemented in any language
+that can read stdin, write stdout, and parse JSON. Go should be first because
+fbt core and the first official adapters are Go, but the repository layout
+should not make Go the only possible SDK.
+
+Acceptable future SDK modules:
+
+```text
+sdk/python/
+  pyproject.toml
+  src/fbt_runner_sdk/
+
+sdk/typescript/
+  package.json
+  src/
+
+sdk/rust/
+  Cargo.toml
+  src/
+```
+
+Do not add another official SDK until the protocol is stable enough to avoid
+maintaining incompatible abstractions in multiple languages.
 
 ### Defer Package Installation in Core
 
 Keep MVP installation out-of-band:
 
 ```sh
-go install github.com/nyuta01/fbt-runner-openai/cmd/fbt-runner-openai@v0.1.0
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
 ```
 
 or:
@@ -248,11 +335,14 @@ Implementation notes:
 
 Deliverables:
 
-- `fbt-runner-sdk-go` or equivalent public runner protocol module
-- adapter repository template
+- `sdk/go` nested module for the public provider-free runner protocol SDK
+- `adapters/README.md` and official adapter template
+- `go.work` for local development across core, SDK, and adapters
 - official adapter acceptance checklist
 - CI workflow that runs:
   - Go formatting/tests
+  - root core verification
+  - adapter module verification
   - runner conformance
   - agent-adapter conformance where applicable
   - docs link checks

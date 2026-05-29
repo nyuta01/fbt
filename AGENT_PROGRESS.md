@@ -164,8 +164,7 @@ command UX (`FBT-STD-008`) is done: `--output` summaries now name the standard
 format, output path, record count, and backend handoff while stdout remains raw
 for piping. Grouped doctor diagnostics (`FBT-UX-014`) is done: human `doctor`
 output now separates Project, State, and Runners with per-runner nesting while
-`--json` keeps the flat diagnostics array for automation. The structured
-backlog now has no unfinished tasks.
+`--json` keeps the flat diagnostics array for automation.
 
 README first-user journey (`FBT-DOCS-UX-009`) is done: the README now leads
 with fbt's value, maps user questions to commands, shows project anatomy, runs
@@ -260,10 +259,18 @@ packaging, protocol fixtures, and conformance checks are documented under
 
 Official runner package design research is captured in
 `docs/research/official-runner-adapter-design-report.md` (`FBT-RUNNER-013`).
-The recommendation is to keep official runners as external adapter packages,
-not core code: first `fbt-runner-command`, then `fbt-runner-openai`, followed
-by Codex CLI and Claude Code wrappers after the provider-free runner SDK and
-adapter maintenance contract are in place.
+The agreed repository strategy is monorepo nested modules (`FBT-RUNNER-014`):
+root `go.mod` remains fbt core only, provider-free SDK code starts under
+`sdk/go`, official adapters start under `adapters/<name>`, and `go.work` may be
+used for local development across modules. Future `sdk/python` or
+`sdk/typescript` modules remain possible because the protocol is JSON-RPC over
+stdio; the protocol spec and conformance suite remain the source of truth.
+
+The structured backlog now includes the official adapter implementation path:
+`FBT-RUNNER-015` for `sdk/go`, `FBT-RUNNER-016` for the command adapter,
+`FBT-RUNNER-017` for the OpenAI adapter, and `FBT-RUNNER-018` for Codex CLI and
+Claude Code adapters. Provider SDKs and agent runtimes must stay out of fbt
+core while those tasks are implemented.
 
 ## Verification
 

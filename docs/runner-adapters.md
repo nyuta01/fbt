@@ -33,6 +33,21 @@ state, policy/eval checks, descriptors, and official commits.
 For the research-backed official adapter package design and maintenance model,
 see [Official Runner Adapter Design Report](research/official-runner-adapter-design-report.md).
 
+The agreed repository strategy is monorepo with nested modules:
+
+```text
+sdk/go/                provider-free runner SDK
+adapters/command/      official command adapter
+adapters/openai/       official OpenAI adapter
+adapters/codex-cli/    official Codex CLI adapter
+adapters/claude-code/  official Claude Code adapter
+```
+
+The root `go.mod` remains fbt core only. Adapter modules own their provider or
+CLI dependencies. Future SDKs such as `sdk/python` or `sdk/typescript` are
+possible because the protocol is language-neutral JSON-RPC over stdio, but the
+protocol spec and conformance suite remain the source of truth.
+
 ## 2. Minimal Scaffold
 
 Adapter is the authoring/package word for a runner command plus its dependency
@@ -60,7 +75,8 @@ The repository also keeps source-checkout adapter examples under
 `examples/runner_adapters/` and test-only protocol fixtures under
 `tests/runner_fixtures/`. There is intentionally no top-level `runners/`
 directory, because runner implementations are external commands, not fbt core
-packages.
+packages. Official maintained adapters should live under `adapters/`, while
+examples remain under `examples/`.
 
 ## 3. Package Naming
 

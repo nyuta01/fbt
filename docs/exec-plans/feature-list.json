@@ -2858,6 +2858,128 @@
       "notes": "Research report recommends official runners as external adapter packages with conformance, checksums, docs, security policy, and version compatibility, while keeping provider SDKs and agent runtimes out of fbt core."
     },
     {
+      "id": "FBT-RUNNER-014",
+      "title": "Adopt monorepo adapter module strategy",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-013"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-014-plan.md",
+      "paths": [
+        "docs/research/official-runner-adapter-design-report.md",
+        "docs/runner-adapters.md",
+        "docs/exec-plans/active/FBT-RUNNER-014-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Official adapters will start in this repository as nested modules under adapters/, with provider-free SDK code under sdk/ and the root go.mod kept core-only."
+    },
+    {
+      "id": "FBT-RUNNER-015",
+      "title": "Create provider-free Go runner SDK module",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-014"
+      ],
+      "plan_url": null,
+      "paths": [
+        "sdk/go",
+        "go.work",
+        "Makefile",
+        "docs/runner-adapters.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "runner_conformance": false,
+        "make_verify": false
+      },
+      "notes": "Create a provider-free nested Go module for runner protocol types, JSON-RPC JSONL stdio helpers, output-candidate helpers, redaction helpers, and adapter test helpers."
+    },
+    {
+      "id": "FBT-RUNNER-016",
+      "title": "Promote command runner into official adapter module",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-015"
+      ],
+      "plan_url": null,
+      "paths": [
+        "adapters/command",
+        "examples/runner_adapters/command",
+        "Makefile",
+        "docs/runner-adapters.md"
+      ],
+      "verification": {
+        "go_test": false,
+        "runner_conformance": false,
+        "make_verify": false
+      },
+      "notes": "Move from source-checkout command example to an official nested adapter package with its own go.mod, manifest, docs, tests, and conformance target."
+    },
+    {
+      "id": "FBT-RUNNER-017",
+      "title": "Promote OpenAI runner into official adapter module",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-015",
+        "FBT-RUNNER-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "adapters/openai",
+        "examples/runner_adapters/openai",
+        "docs/runner-adapters.md",
+        "examples/incident_response_runbook",
+        "examples/support_resolution_manual"
+      ],
+      "verification": {
+        "go_test": false,
+        "runner_conformance": false,
+        "runner_adapter_smoke": false,
+        "make_verify": false
+      },
+      "notes": "Package the OpenAI Responses adapter as an official nested module while keeping live provider calls opt-in through environment-gated smoke tests."
+    },
+    {
+      "id": "FBT-RUNNER-018",
+      "title": "Add official Codex CLI and Claude Code adapter modules",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-015",
+        "FBT-RUNNER-016"
+      ],
+      "plan_url": null,
+      "paths": [
+        "adapters/codex-cli",
+        "adapters/claude-code",
+        "docs/runner-adapters.md",
+        "examples"
+      ],
+      "verification": {
+        "go_test": false,
+        "runner_conformance": false,
+        "agent_adapter_conformance": false,
+        "runner_adapter_smoke": false,
+        "make_verify": false
+      },
+      "notes": "Add safe CLI-agent adapters that wrap non-interactive Codex and Claude Code modes through staging workspaces and strict agent-adapter conformance."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
