@@ -6,6 +6,9 @@ The source docs now correctly say review and approval are outside fbt core, but
 the public docs OG image still contains `review gates`. This is visible
 stale-current-state language in a public asset, not only a historical note.
 
+Follow-up observation: the existing drift guard checked Markdown/source docs
+but did not scan public docs assets such as SVGs.
+
 ## Decision
 
 Treat generated/static docs assets as part of the docs source of truth. Remove
@@ -21,4 +24,5 @@ current-state approval phrasing.
 
 ## Next Check
 
-Run the stale-language scan, docs-site build, and `make verify`.
+Done. The stale asset language is removed, public docs assets are covered by
+the drift check, docs-site build passes, and `make verify` passes.

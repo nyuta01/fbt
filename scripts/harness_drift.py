@@ -161,6 +161,38 @@ def validate_core_boundary_drift() -> None:
             fail(f"{relative}: stale core-boundary phrase {phrase!r}; {hint}")
 
 
+def validate_public_docs_asset_drift() -> None:
+    """Reject stale current-state claims in public docs assets."""
+    asset_roots = [
+        ROOT / "apps" / "docs" / "public",
+        ROOT / "apps" / "docs" / "src" / "assets",
+    ]
+    forbidden_phrases = {
+        "review gates": "human approval/review is outside fbt core",
+        "approval facets": "approval facets were removed from standard exports",
+        "approval state": "approval state is outside fbt core",
+        "human_review": "human_review evals were removed from core",
+        "fbt review": "fbt review is not a public command",
+    }
+    text_suffixes = {".svg", ".txt", ".md", ".html", ".css", ".js", ".json"}
+
+    for root in asset_roots:
+        if not root.exists():
+            continue
+        for path in sorted(root.rglob("*")):
+            if not path.is_file() or path.suffix not in text_suffixes:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            lower = text.lower()
+            relative = path.relative_to(ROOT)
+            for phrase, hint in forbidden_phrases.items():
+                if phrase in lower:
+                    fail(f"{relative}: stale public-docs asset phrase {phrase!r}; {hint}")
+
+
 try:
     feature_list = json.loads(read_text("docs/exec-plans/feature-list.json"))
 except FileNotFoundError:
@@ -215,6 +247,7 @@ if isinstance(feature_list.get("tasks"), list):
     validate_failure_log(tasks)
 
 validate_core_boundary_drift()
+validate_public_docs_asset_drift()
 
 if errors:
     print("drift-check: errors found", file=sys.stderr)

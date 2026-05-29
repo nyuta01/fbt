@@ -334,7 +334,7 @@ CLI commands, while allowing clearly historical exec-plan and failure-log notes.
 
 ## F-017 Public docs asset kept stale review-gates language
 
-- **Status**: `observing`
+- **Status**: `fixed`
 - **Task**: `FBT-DOCS-DRIFT-002`
 - **Plan**: `docs/exec-plans/active/FBT-DOCS-DRIFT-002-plan.md`
 
@@ -347,9 +347,10 @@ Markdown specs and README.
 
 ### Permanent fix
 
-Pending. `FBT-DOCS-DRIFT-002` should remove the stale asset language and extend
-the drift check so public docs assets cannot reintroduce current-state review or
-approval claims.
+The OG image wording now matches the current product boundary. The drift check
+scans public docs assets and docs source assets for stale current-state review
+or approval phrases such as `review gates`, `approval facets`, `approval
+state`, `human_review`, and `fbt review`.
 
 ## Entry Template
 

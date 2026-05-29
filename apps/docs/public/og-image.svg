@@ -6,5 +6,5 @@
   <text x="238" y="188" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">fbt</text>
   <text x="132" y="290" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="700">File build tool</text>
   <text x="132" y="360" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="31">Local-first control plane for filesystem knowledge artifacts.</text>
-  <text x="132" y="430" fill="#0f766e" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700">Lineage · runners · evals · review gates · standard exports</text>
+  <text x="132" y="430" fill="#0f766e" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="700">Lineage · runners · evals · local receipts · standard exports</text>
 </svg>

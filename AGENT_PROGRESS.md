@@ -86,6 +86,10 @@ contains stale `review gates` language. The new docs backlog is
 manual-generation example concreteness, and `FBT-DOCS-UX-013` for runnable
 runner/standards/reference docs examples.
 
+`FBT-DOCS-DRIFT-002` is done. The public OG image no longer says `review
+gates`, and `scripts/harness_drift.py` now scans public docs assets for stale
+current-state review/approval phrases.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
