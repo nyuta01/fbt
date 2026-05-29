@@ -238,14 +238,15 @@ fbt artifact retention
 `artifact path` prints the logical output path and immutable storage path for
 the current or selected version. `artifact show` includes artifact version,
 logical path, immutable storage path, digest, runner/model, confidence,
-generating run, and semantic descriptors when available. `artifact history`
-lists prior versions for the same logical artifact. `artifact explain` is the
-primary command for plan reasoning: it shows the producing transform, current
-version, previous run, decision, input/source fingerprints, upstream artifact
-requirements, dirty or blocked reasons, and exact next commands.
-`artifact retention` is read-only and reports local state/artifact growth,
-current and historical version counts, run-record count, and missing immutable
-storage references. It does not remove files.
+generating run, and a semantic summary when available; use `--json` for the
+full descriptor structure. `artifact history` lists prior versions for the same
+logical artifact. `artifact explain` is the primary command for plan reasoning:
+it shows the producing transform, current version, previous run, decision,
+input/source fingerprints, upstream artifact requirements, dirty or blocked
+reasons, and exact next commands. `artifact retention` is read-only and reports
+human-readable local state/artifact sizes, current and historical version
+counts, run-record count, and missing immutable storage references. It does not
+remove files.
 
 ### 5.6 fbt doctor
 

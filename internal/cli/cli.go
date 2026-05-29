@@ -1890,7 +1890,7 @@ func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 		detailRows = append(detailRows, displayRow{Label: "Immutable path", Value: record.StoragePath})
 	}
 	if len(record.SemanticDescriptor) > 0 {
-		detailRows = append(detailRows, displayRow{Label: "Semantic descriptor", Value: compactJSON(record.SemanticDescriptor)})
+		detailRows = append(detailRows, displayRow{Label: "Semantic summary", Value: semanticDescriptorSummary(record.SemanticDescriptor)})
 	}
 	printDisplayRows(stdout, "  ", detailRows)
 	for _, material := range record.Materials {
@@ -1912,8 +1912,8 @@ func printRetentionReport(stdout io.Writer, projectDir string, report state.Rete
 		{Label: "Policy", Value: report.Policy},
 		{Label: "State dir", Value: projectRelativeOrOriginal(projectDir, report.StateDir)},
 		{Label: "Artifact dir", Value: projectRelativeOrOriginal(projectDir, report.ArtifactDir)},
-		{Label: "State bytes", Value: fmt.Sprintf("%d", report.StateBytes)},
-		{Label: "Artifact bytes", Value: fmt.Sprintf("%d", report.ArtifactBytes)},
+		{Label: "State size", Value: humanBytes(report.StateBytes)},
+		{Label: "Artifact size", Value: humanBytes(report.ArtifactBytes)},
 		{Label: "Run records", Value: fmt.Sprintf("%d", report.RunRecords)},
 		{Label: "Artifact versions", Value: fmt.Sprintf("%d", report.ArtifactVersions)},
 		{Label: "Current versions", Value: fmt.Sprintf("%d", report.CurrentVersions)},
@@ -1941,6 +1941,88 @@ func compactJSON(value any) string {
 		return fmt.Sprintf("%v", value)
 	}
 	return string(data)
+}
+
+func semanticDescriptorSummary(descriptor map[string]any) string {
+	var parts []string
+	if text, ok := mapValue(descriptor, "text_normalized_v1"); ok {
+		values := []string{}
+		if lines, ok := numberValue(text, "line_count"); ok {
+			values = append(values, fmt.Sprintf("lines=%d", lines))
+		}
+		if words, ok := numberValue(text, "word_count"); ok {
+			values = append(values, fmt.Sprintf("words=%d", words))
+		}
+		if chars, ok := numberValue(text, "char_count"); ok {
+			values = append(values, fmt.Sprintf("chars=%d", chars))
+		}
+		if digest, ok := stringFromAnyMap(text, "digest"); ok {
+			values = append(values, "digest="+shortDigest(digest))
+		}
+		if len(values) > 0 {
+			parts = append(parts, "text "+strings.Join(values, " "))
+		}
+	}
+	if markdown, ok := mapValue(descriptor, "markdown_ast_v1"); ok {
+		values := []string{}
+		if headings, ok := numberValue(markdown, "heading_count"); ok {
+			values = append(values, fmt.Sprintf("headings=%d", headings))
+		}
+		if codeBlocks, ok := numberValue(markdown, "code_block_count"); ok {
+			values = append(values, fmt.Sprintf("code_blocks=%d", codeBlocks))
+		}
+		if digest, ok := stringFromAnyMap(markdown, "digest"); ok {
+			values = append(values, "digest="+shortDigest(digest))
+		}
+		if len(values) > 0 {
+			parts = append(parts, "markdown "+strings.Join(values, " "))
+		}
+	}
+	if len(parts) == 0 {
+		return fmt.Sprintf("%d descriptor(s)", len(descriptor))
+	}
+	return strings.Join(parts, "; ")
+}
+
+func mapValue(values map[string]any, key string) (map[string]any, bool) {
+	value, ok := values[key]
+	if !ok {
+		return nil, false
+	}
+	mapped, ok := value.(map[string]any)
+	return mapped, ok
+}
+
+func numberValue(values map[string]any, key string) (int64, bool) {
+	value, ok := values[key]
+	if !ok {
+		return 0, false
+	}
+	switch typed := value.(type) {
+	case int:
+		return int64(typed), true
+	case int64:
+		return typed, true
+	case float64:
+		return int64(typed), true
+	default:
+		return 0, false
+	}
+}
+
+func humanBytes(size int64) string {
+	if size < 1024 {
+		return fmt.Sprintf("%d B", size)
+	}
+	units := []string{"KiB", "MiB", "GiB", "TiB"}
+	value := float64(size)
+	for _, unit := range units {
+		value = value / 1024
+		if value < 1024 {
+			return fmt.Sprintf("%.1f %s", value, unit)
+		}
+	}
+	return fmt.Sprintf("%.1f PiB", value/1024)
 }
 
 func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation) {

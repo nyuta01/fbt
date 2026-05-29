@@ -150,10 +150,12 @@ strict errors plus short `Hint:` lines. Copy-paste-safe next commands
 (`FBT-UX-011`) is done: `plan`, `build`, and `artifact explain` preserve
 `--project-dir` and `--state-dir` in printed next steps. Showing build output
 paths (`FBT-UX-012`) is done: successful builds now print each committed
-artifact path, version, and contextual `artifact show` command. The remaining
-backlog focuses on scannable artifact/retention output (`FBT-UX-013`), state/artifact directory
-semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`), standard
-export command UX (`FBT-STD-008`), and grouped doctor diagnostics
+artifact path, version, and contextual `artifact show` command. Scannable
+artifact/retention output (`FBT-UX-013`) is done: human output summarizes
+semantic descriptors and reports retention sizes with human-readable units
+while JSON remains complete. The remaining backlog focuses on state/artifact
+directory semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`),
+standard export command UX (`FBT-STD-008`), and grouped doctor diagnostics
 (`FBT-UX-014`). These are polish tasks on the existing Unix-style core, not new
 core surfaces.
 

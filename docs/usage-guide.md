@@ -74,7 +74,7 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt plan` | Show run/skip/block decisions before a runner is called; does not write state. |
 | `fbt build` | Produce selected artifacts, run checks, commit versions, and write receipts. |
 | `fbt diff --against previous` | Compare generated versions. |
-| `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |
+| `fbt artifact show` | Inspect path, digest, runner, model, confidence, and semantic summary. |
 | `fbt artifact history` | List versions for a logical artifact. |
 | `fbt artifact explain` | Explain why an artifact will run, skip, or block. |
 | `fbt artifact retention` | Report `.fbt/state` and `.fbt/artifacts` growth without deleting files. |

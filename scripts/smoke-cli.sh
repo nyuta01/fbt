@@ -106,7 +106,7 @@ grep -q "committed  " "$tmpdir/build.txt"
 test -f "$project/.fbt/state/manifest.json"
 test -f "$project/target/artifacts/support/case_summaries/index.md"
 go run ./cmd/fbt artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
-grep -q "Semantic descriptor  " "$tmpdir/artifact-show.txt"
+grep -q "Semantic summary  " "$tmpdir/artifact-show.txt"
 
 go run ./cmd/fbt export openlineage --project-dir "$project" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 grep -q "OpenLineage events written" "$tmpdir/export-openlineage.txt"

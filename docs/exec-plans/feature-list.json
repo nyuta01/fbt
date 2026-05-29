@@ -2609,14 +2609,14 @@
       "id": "FBT-UX-013",
       "title": "Make human artifact details scannable",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-003",
         "FBT-STATE-002",
         "FBT-ARTIFACT-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-013-plan.md",
       "paths": [
         "internal/cli",
         "internal/artifact",
@@ -2629,7 +2629,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Keep --json complete, but summarize dense semantic descriptors in human output and show retention sizes in human-readable units while preserving exact byte counts for JSON automation."
+      "notes": "Human artifact show now summarizes semantic descriptors instead of printing dense one-line JSON, and retention shows human-readable state/artifact sizes while preserving exact byte counts for JSON automation."
     },
     {
       "id": "FBT-CONFIG-003",

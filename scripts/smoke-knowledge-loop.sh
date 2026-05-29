@@ -61,7 +61,7 @@ grep -q "Logical path    target/artifacts/support/case_summaries" "$tmpdir/artif
 grep -q "Immutable path  .fbt/artifacts/" "$tmpdir/artifact-path.txt"
 "$fbt_bin" artifact show case_summaries --project-dir "$project" >"$tmpdir/artifact-show.txt"
 grep -q "Run        transform_run.run_" "$tmpdir/artifact-show.txt"
-grep -q "Semantic descriptor  " "$tmpdir/artifact-show.txt"
+grep -q "Semantic summary  " "$tmpdir/artifact-show.txt"
 "$fbt_bin" artifact history case_summaries --project-dir "$project" >"$tmpdir/artifact-history.txt"
 grep -Eq "artifact_version\\..*\\.case_summaries\\.sha256_" "$tmpdir/artifact-history.txt"
 

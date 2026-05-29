@@ -468,6 +468,19 @@ func TestRunArtifactCommands(t *testing.T) {
 			Size:         &size,
 			ArtifactType: "fbt.artifact.markdown_document.v1",
 		},
+		SemanticDescriptor: map[string]any{
+			"text_normalized_v1": map[string]any{
+				"digest":     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+				"char_count": 64,
+				"word_count": 8,
+				"line_count": 3,
+			},
+			"markdown_ast_v1": map[string]any{
+				"digest":           "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+				"heading_count":    1,
+				"code_block_count": 0,
+			},
+		},
 	}
 	if err := store.PutArtifactVersion(version); err != nil {
 		t.Fatal(err)
@@ -489,6 +502,9 @@ func TestRunArtifactCommands(t *testing.T) {
 	}
 	if !strings.Contains(showOut.String(), "Run        transform_run.run_1") || !strings.Contains(showOut.String(), "Runner     openai.responses") {
 		t.Fatalf("unexpected artifact show output: %q", showOut.String())
+	}
+	if !strings.Contains(showOut.String(), "Semantic summary") || !strings.Contains(showOut.String(), "text lines=3 words=8 chars=64") || strings.Contains(showOut.String(), "markdown_ast_v1") {
+		t.Fatalf("expected summarized semantic descriptor, got %q", showOut.String())
 	}
 
 	var historyOut bytes.Buffer
@@ -527,6 +543,8 @@ func TestRunArtifactRetentionReportsReadOnlyHygiene(t *testing.T) {
 	for _, expected := range []string{
 		"Artifact retention",
 		"Policy               keep_all",
+		"State size",
+		"Artifact size",
 		"Artifact versions    2",
 		"Current versions     1",
 		"Historical versions  1",
