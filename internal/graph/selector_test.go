@@ -11,6 +11,7 @@ import (
 	"github.com/nyuta01/fbt/internal/config"
 	"github.com/nyuta01/fbt/internal/manifest"
 	"github.com/nyuta01/fbt/internal/parser"
+	"github.com/nyuta01/fbt/internal/state"
 )
 
 func TestSelectByResourceTypeTagAndPath(t *testing.T) {
@@ -98,6 +99,32 @@ func TestSelectTransformsGraphOperators(t *testing.T) {
 	}
 	assertMapContains(t, both, caseID)
 	assertMapContains(t, both, weeklyID)
+}
+
+func TestSelectTransformsByLatestRunState(t *testing.T) {
+	m := selectorManifest(t)
+	caseID := manifest.TransformID("knowledge_ops", "case_summaries")
+	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
+	snapshot := state.Snapshot{
+		LatestRuns: map[string]state.LatestRun{
+			caseID:   {LatestStatus: "success"},
+			weeklyID: {LatestStatus: "eval_failed"},
+		},
+	}
+
+	failed, err := SelectTransformsWithState(m, snapshot, "state:failed")
+	if err != nil {
+		t.Fatalf("select failed state: %v", err)
+	}
+	assertMapContains(t, failed, weeklyID)
+	assertMapNotContains(t, failed, caseID)
+
+	success, err := SelectTransformsWithState(m, snapshot, "state:success")
+	if err != nil {
+		t.Fatalf("select success state: %v", err)
+	}
+	assertMapContains(t, success, caseID)
+	assertMapNotContains(t, success, weeklyID)
 }
 
 func TestSelectTransformsRejectsAmbiguousName(t *testing.T) {

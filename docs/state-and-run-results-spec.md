@@ -147,6 +147,13 @@ Common kinds are `runner_capability_incompatible`,
 events, usage, and provenance when those were available before failure. They
 must not move current artifact pointers or write artifact versions.
 
+The latest transform status in `state.json` is the recovery index for local and
+CI usage. `fbt plan --failed` and `fbt build --failed` select transforms whose
+latest status is not `success`, add `latest run failed` as the explicit run
+reason, and append new receipts for the retry. Older failed receipts remain in
+`run_results.jsonl`; fbt does not rewrite, hide, or garbage-collect them during
+recovery.
+
 Example failed receipt:
 
 ```json

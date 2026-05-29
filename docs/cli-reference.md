@@ -83,6 +83,7 @@ For `build`, the same safe diagnostic is written to failed run receipts under
 | `tag:support` | Tag selector |
 | `path:transforms/support/` | Path selector |
 | `resource_type:transform` | Resource type selector |
+| `state:failed` | Transforms whose latest recorded run is not `success` |
 | `selector:support_daily` | Named project selector |
 | `+weekly_support_insights` | Selected transform plus upstream transforms |
 | `case_summaries+` | Selected transform plus downstream transforms |
@@ -99,6 +100,7 @@ fbt build --select case_summaries
 fbt plan --select +weekly_support_insights
 fbt build --select case_summaries+
 fbt build --select selector:support_daily
+fbt plan --select state:failed
 ```
 
 ## 5. Commands
@@ -141,7 +143,7 @@ Compare current project definitions and state to show what will run. `plan` is
 read-only: it does not start runners, commit artifacts, or write fbt state.
 
 ```sh
-fbt plan [--select EXPR] [--force]
+fbt plan [--select EXPR] [--force] [--failed]
 ```
 
 Shows selected transforms, skipped transforms, dirty reasons, source-file
@@ -153,6 +155,10 @@ next commands include the same context so they can be copied directly.
 
 `--force` is read-only for `plan`: it previews selected clean transforms as
 `RUN` with `because  forced rebuild`.
+
+`--failed` is also read-only for `plan`: it filters to transforms whose latest
+run failed and shows `because  latest run failed`, which is the copyable preview
+for `fbt build --failed`.
 
 Example:
 
@@ -182,7 +188,7 @@ RUN     weekly_support_insights
 Produce selected artifacts and write the build receipt.
 
 ```sh
-fbt build [--select EXPR] [--force]
+fbt build [--select EXPR] [--force] [--failed]
 ```
 
 The command is called `build` because fbt treats generated files as build
@@ -213,6 +219,21 @@ an invocation has started, `build` still appends failed receipts to
 `.fbt/state/run_results.jsonl`. The failed receipt records a safe error kind
 and message, but official artifact pointers and artifact versions are not
 advanced.
+
+Failure recovery is explicit and one-shot:
+
+```sh
+fbt plan --failed
+fbt build --failed
+```
+
+`--failed` filters to transforms whose latest recorded run failed, was
+cancelled, hit policy/eval/output validation, or otherwise did not finish as
+`success`. It also treats `latest run failed` as a run reason, so a failed
+retry is visible even when an older successful artifact version still exists.
+Combine it with `--select EXPR` to retry failed work under a narrower selector.
+This does not create a retry loop, queue, scheduler, or background worker; each
+command is still a single local invocation and receipts remain append-only.
 
 When selected transforms depend on each other, `build` runs them in dependency
 order within the same invocation. A downstream selected transform waits for the

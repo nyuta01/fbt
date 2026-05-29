@@ -24,6 +24,7 @@ type Inputs struct {
 	State            state.Snapshot
 	Selected         map[string]struct{}
 	Force            bool
+	RetryFailed      bool
 }
 
 type Plan struct {
@@ -183,6 +184,11 @@ func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs
 	if inputs.Force {
 		reasons["forced rebuild"] = struct{}{}
 	}
+	if inputs.RetryFailed {
+		if latest, ok := inputs.State.LatestRuns[id]; ok && state.IsFailedLatestStatus(latest.LatestStatus) {
+			reasons["latest run failed"] = struct{}{}
+		}
+	}
 	for _, input := range transform.Inputs {
 		if input.Kind != "ref" {
 			continue
@@ -214,7 +220,7 @@ func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs
 func selectedTransformSet(m manifest.Manifest, selected map[string]struct{}) map[string]struct{} {
 	out := map[string]struct{}{}
 	for id := range m.Transforms {
-		if len(selected) > 0 {
+		if selected != nil {
 			if _, ok := selected[id]; !ok {
 				continue
 			}

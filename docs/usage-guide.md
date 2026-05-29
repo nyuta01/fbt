@@ -73,6 +73,7 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt doctor` | Check project config, local state, and runner readiness. |
 | `fbt plan` | Show run/skip/block decisions before a runner is called; does not write state. |
 | `fbt build` | Produce selected artifacts, run checks, commit versions, and write receipts. |
+| `fbt plan --failed` / `fbt build --failed` | Inspect and rerun only transforms whose latest receipt failed. |
 | `fbt diff --against previous` | Compare generated versions. |
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and semantic summary. |
 | `fbt artifact history` | List versions for a logical artifact. |

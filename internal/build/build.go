@@ -30,6 +30,7 @@ type Options struct {
 	StateDir   string
 	Select     string
 	Force      bool
+	FailedOnly bool
 	FBTVersion string
 }
 
@@ -135,7 +136,7 @@ func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 		}
 	}()
 
-	selected, err := selectedTransformIDs(currentManifest, options.Select)
+	selected, err := selectedTransformIDs(currentManifest, snapshot, options.Select, options.FailedOnly)
 	if err != nil {
 		return result, err
 	}
@@ -143,7 +144,7 @@ func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 	if err != nil {
 		return result, err
 	}
-	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: options.Force})
+	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: options.Force, RetryFailed: options.FailedOnly || selectsFailedState(options.Select)})
 	result.Plan = plan
 
 	for i := range result.Plan.Nodes {
@@ -936,8 +937,40 @@ func decodeOutputCandidates(outcome protocol.RunOutcome) ([]outputCandidate, err
 	return candidates, nil
 }
 
-func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}, error) {
-	return graph.SelectTransforms(m, expr)
+func selectedTransformIDs(m manifest.Manifest, snapshot state.Snapshot, expr string, failedOnly bool) (map[string]struct{}, error) {
+	if !failedOnly {
+		return graph.SelectTransformsWithState(m, snapshot, expr)
+	}
+	var base map[string]struct{}
+	if strings.TrimSpace(expr) != "" {
+		selected, err := graph.SelectTransformsWithState(m, snapshot, expr)
+		if err != nil {
+			return nil, err
+		}
+		base = selected
+	}
+	out := map[string]struct{}{}
+	for id := range m.Transforms {
+		if base != nil {
+			if _, ok := base[id]; !ok {
+				continue
+			}
+		}
+		if latest, ok := snapshot.LatestRuns[id]; ok && state.IsFailedLatestStatus(latest.LatestStatus) {
+			out[id] = struct{}{}
+		}
+	}
+	return out, nil
+}
+
+func selectsFailedState(expr string) bool {
+	expr = strings.TrimSpace(expr)
+	if expr == "" {
+		return false
+	}
+	expr = strings.TrimPrefix(expr, "+")
+	expr = strings.TrimSuffix(expr, "+")
+	return expr == "state:failed"
 }
 
 func maxConfidence(left, right string) string {

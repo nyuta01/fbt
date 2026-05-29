@@ -7,6 +7,7 @@ import (
 
 	"github.com/nyuta01/fbt/internal/config"
 	"github.com/nyuta01/fbt/internal/manifest"
+	"github.com/nyuta01/fbt/internal/state"
 )
 
 type Selector struct {
@@ -15,6 +16,10 @@ type Selector struct {
 }
 
 func SelectTransforms(m manifest.Manifest, expr string) (map[string]struct{}, error) {
+	return SelectTransformsWithState(m, state.Snapshot{}, expr)
+}
+
+func SelectTransformsWithState(m manifest.Manifest, snapshot state.Snapshot, expr string) (map[string]struct{}, error) {
 	expr = strings.TrimSpace(expr)
 	if expr == "" {
 		return nil, nil
@@ -23,7 +28,7 @@ func SelectTransforms(m manifest.Manifest, expr string) (map[string]struct{}, er
 	if err != nil {
 		return nil, err
 	}
-	ids, err := selectBase(m, selection.Base)
+	ids, err := selectBaseWithState(m, snapshot, selection.Base)
 	if err != nil {
 		return nil, err
 	}
@@ -76,6 +81,10 @@ func parseTransformSelection(expr string) (transformSelection, error) {
 }
 
 func selectBase(m manifest.Manifest, expr string) ([]string, error) {
+	return selectBaseWithState(m, state.Snapshot{}, expr)
+}
+
+func selectBaseWithState(m manifest.Manifest, snapshot state.Snapshot, expr string) ([]string, error) {
 	switch {
 	case strings.HasPrefix(expr, "selector:"):
 		name := strings.TrimPrefix(expr, "selector:")
@@ -83,15 +92,17 @@ func selectBase(m manifest.Manifest, expr string) ([]string, error) {
 		if !ok {
 			return nil, fmt.Errorf("unknown selector: %s", name)
 		}
-		return SelectDefinition(m, definition)
+		return SelectDefinitionWithState(m, snapshot, definition)
 	case strings.HasPrefix(expr, "tag:"):
-		return Select(m, Selector{Method: "tag", Value: strings.TrimPrefix(expr, "tag:")})
+		return SelectWithState(m, snapshot, Selector{Method: "tag", Value: strings.TrimPrefix(expr, "tag:")})
 	case strings.HasPrefix(expr, "path:"):
-		return Select(m, Selector{Method: "path", Value: strings.TrimPrefix(expr, "path:")})
+		return SelectWithState(m, snapshot, Selector{Method: "path", Value: strings.TrimPrefix(expr, "path:")})
 	case strings.HasPrefix(expr, "resource_type:"):
-		return Select(m, Selector{Method: "resource_type", Value: strings.TrimPrefix(expr, "resource_type:")})
+		return SelectWithState(m, snapshot, Selector{Method: "resource_type", Value: strings.TrimPrefix(expr, "resource_type:")})
+	case strings.HasPrefix(expr, "state:"):
+		return SelectWithState(m, snapshot, Selector{Method: "state", Value: strings.TrimPrefix(expr, "state:")})
 	default:
-		return Select(m, Selector{Method: "name", Value: expr})
+		return SelectWithState(m, snapshot, Selector{Method: "name", Value: expr})
 	}
 }
 
@@ -118,6 +129,10 @@ func addRelatedTransforms(m manifest.Manifest, seeds []string, relationMap map[s
 }
 
 func Select(m manifest.Manifest, selector Selector) ([]string, error) {
+	return SelectWithState(m, state.Snapshot{}, selector)
+}
+
+func SelectWithState(m manifest.Manifest, snapshot state.Snapshot, selector Selector) ([]string, error) {
 	switch selector.Method {
 	case "name":
 		return selectByName(m, selector.Value), nil
@@ -131,16 +146,22 @@ func Select(m manifest.Manifest, selector Selector) ([]string, error) {
 		return selectRelations(m, selector.Value, m.ParentMap), nil
 	case "child":
 		return selectRelations(m, selector.Value, m.ChildMap), nil
+	case "state":
+		return selectByState(m, snapshot, selector.Value), nil
 	default:
 		return nil, fmt.Errorf("unsupported selector method %q", selector.Method)
 	}
 }
 
 func SelectDefinition(m manifest.Manifest, definition config.SelectorDefinition) ([]string, error) {
+	return SelectDefinitionWithState(m, state.Snapshot{}, definition)
+}
+
+func SelectDefinitionWithState(m manifest.Manifest, snapshot state.Snapshot, definition config.SelectorDefinition) ([]string, error) {
 	if len(definition.Union) > 0 {
 		seen := map[string]struct{}{}
 		for _, child := range definition.Union {
-			selected, err := SelectDefinition(m, child)
+			selected, err := SelectDefinitionWithState(m, snapshot, child)
 			if err != nil {
 				return nil, err
 			}
@@ -150,7 +171,7 @@ func SelectDefinition(m manifest.Manifest, definition config.SelectorDefinition)
 		}
 		return sortedIDs(seen), nil
 	}
-	return Select(m, Selector{Method: definition.Method, Value: definition.Value})
+	return SelectWithState(m, snapshot, Selector{Method: definition.Method, Value: definition.Value})
 }
 
 func selectByName(m manifest.Manifest, value string) []string {
@@ -191,6 +212,26 @@ func selectByResourceType(m manifest.Manifest, value string) []string {
 	seen := map[string]struct{}{}
 	for id, summary := range m.ResourceSummaries() {
 		if summary.ResourceType == value {
+			seen[id] = struct{}{}
+		}
+	}
+	return sortedIDs(seen)
+}
+
+func selectByState(m manifest.Manifest, snapshot state.Snapshot, value string) []string {
+	seen := map[string]struct{}{}
+	for id := range m.Transforms {
+		latest, ok := snapshot.LatestRuns[id]
+		if !ok {
+			continue
+		}
+		if value == "failed" {
+			if state.IsFailedLatestStatus(latest.LatestStatus) {
+				seen[id] = struct{}{}
+			}
+			continue
+		}
+		if latest.LatestStatus == value {
 			seen[id] = struct{}{}
 		}
 	}

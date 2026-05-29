@@ -297,6 +297,40 @@ exec go run "{ROOT_DIR}/tests/runner_fixtures/fake" "$@"
     assert_contains(run_results, '"kind":"runner_contract_violation"', "candidate run results")
 
 
+def scenario_failed_recovery_selection(ctx: Context) -> None:
+    project = ctx.tmpdir / "failed-recovery"
+    init_project(project)
+    runner = project / "bin" / "fbt-demo-llm-runner"
+    original_runner = runner.read_text(encoding="utf-8")
+
+    fbt(["build", "--project-dir", str(project), "--select", "case_summaries"])
+    write(
+        runner,
+        """#!/usr/bin/env sh
+echo retry me >&2
+exit 42
+""",
+    )
+    runner.chmod(0o755)
+
+    failed = fbt(["build", "--force", "--project-dir", str(project), "--select", "case_summaries"], expect=None)
+    check(failed.returncode != 0, "expected forced build to fail")
+    assert_contains(failed.stderr, "fbt plan --failed", "failed recovery hint")
+
+    plan = fbt(["plan", "--failed", "--project-dir", str(project)])
+    assert_contains(plan.stdout, "RUN     case_summaries", "failed plan stdout")
+    assert_contains(plan.stdout, "latest run failed", "failed plan stdout")
+
+    write(runner, original_runner)
+    runner.chmod(0o755)
+    before = (project / ".fbt" / "state" / "run_results.jsonl").read_text(encoding="utf-8").count("\n")
+    retry = fbt(["build", "--failed", "--project-dir", str(project)])
+    assert_contains(retry.stdout, "SUCCESS case_summaries", "failed retry stdout")
+    run_results = (project / ".fbt" / "state" / "run_results.jsonl").read_text(encoding="utf-8")
+    check(run_results.count("\n") > before, "expected retry to append run receipts")
+    assert_contains(run_results, '"status":"failed"', "failed retry run results")
+
+
 def write_runner_lock(project: Path, *, llm_command: str = "bin/fbt-demo-llm-runner", pin: str = "one") -> None:
     write(
         project / "fbt.lock.json",
@@ -509,6 +543,7 @@ SCENARIOS = [
     Scenario("strict YAML diagnostics", scenario_strict_yaml),
     Scenario("standard exports and dirty planning", scenario_standard_exports),
     Scenario("runner failure receipts", scenario_runner_failures),
+    Scenario("failed recovery selection", scenario_failed_recovery_selection),
     Scenario("runner lockfile diagnostics", scenario_runner_lockfile),
     Scenario("orphaned artifact history", scenario_orphaned_artifact_history),
     Scenario("policy denied receipts", scenario_policy_denied),

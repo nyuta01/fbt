@@ -187,6 +187,7 @@ func newDoctorCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.
 
 func newPlanCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
 	var force bool
+	var failed bool
 	cmd := &cobra.Command{
 		Use:   "plan",
 		Short: "Preview run, skip, and blocked transforms",
@@ -196,15 +197,17 @@ func newPlanCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Co
 			"each selected transform will run, skip, or block.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return exitCode(runPlan(*opts, boolFlagArgs("force", force), stdout, stderr))
+			return exitCode(runPlan(*opts, boolFlagArgsFromMap(map[string]bool{"force": force, "failed": failed}), stdout, stderr))
 		},
 	}
 	cmd.Flags().BoolVar(&force, "force", false, "Preview a deliberate rebuild")
+	cmd.Flags().BoolVar(&failed, "failed", false, "Preview only transforms whose latest run failed")
 	return cmd
 }
 
 func newBuildCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
 	var force bool
+	var failed bool
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build selected artifacts and write receipts",
@@ -214,10 +217,11 @@ func newBuildCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.C
 			"and records run receipts under .fbt/state.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return exitCode(runBuild(*opts, boolFlagArgs("force", force), stdout, stderr))
+			return exitCode(runBuild(*opts, boolFlagArgsFromMap(map[string]bool{"force": force, "failed": failed}), stdout, stderr))
 		},
 	}
 	cmd.Flags().BoolVar(&force, "force", false, "Run selected clean transforms too")
+	cmd.Flags().BoolVar(&failed, "failed", false, "Run only transforms whose latest run failed")
 	return cmd
 }
 
@@ -333,6 +337,16 @@ func boolFlagArgs(name string, value bool) []string {
 		return nil
 	}
 	return []string{"--" + name}
+}
+
+func boolFlagArgsFromMap(values map[string]bool) []string {
+	var args []string
+	for _, name := range []string{"force", "failed"} {
+		if values[name] {
+			args = append(args, "--"+name)
+		}
+	}
+	return args
 }
 
 func expectNoArgs(command string, args []string) error {
@@ -763,6 +777,7 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		StateDir:   opts.StateDir,
 		Select:     opts.Select,
 		Force:      buildOpts.Force,
+		FailedOnly: buildOpts.Failed,
 		FBTVersion: versioninfo.Version,
 	})
 	if err != nil {
@@ -825,7 +840,8 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 }
 
 type buildOptions struct {
-	Force bool
+	Force  bool
+	Failed bool
 }
 
 func parseBuildArgs(args []string) (buildOptions, error) {
@@ -834,6 +850,8 @@ func parseBuildArgs(args []string) (buildOptions, error) {
 		switch arg {
 		case "--force":
 			opts.Force = true
+		case "--failed":
+			opts.Failed = true
 		default:
 			if strings.HasPrefix(arg, "-") {
 				return buildOptions{}, fmt.Errorf("unknown build flag: %s", arg)
@@ -1235,12 +1253,12 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		printError("plan", err, stderr, opts.JSON)
 		return 5
 	}
-	selected, err := selectedTransformIDs(ctx.Manifest, opts.Select)
+	selected, err := selectedTransformIDs(ctx.Manifest, snapshot, opts.Select, planOpts.Failed)
 	if err != nil {
 		printError("plan", err, stderr, opts.JSON)
 		return 2
 	}
-	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: planOpts.Force})
+	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: planOpts.Force, RetryFailed: planOpts.Failed || selectsFailedState(opts.Select)})
 	plan = contextualizePlan(plan, opts)
 	if opts.JSON {
 		writeJSON(stdout, map[string]any{"command": "plan", "status": "success", "summary": plan.Summary, "nodes": plan.Nodes})
@@ -1254,7 +1272,8 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 }
 
 type planOptions struct {
-	Force bool
+	Force  bool
+	Failed bool
 }
 
 func parsePlanArgs(args []string) (planOptions, error) {
@@ -1263,6 +1282,8 @@ func parsePlanArgs(args []string) (planOptions, error) {
 		switch arg {
 		case "--force":
 			opts.Force = true
+		case "--failed":
+			opts.Failed = true
 		default:
 			if strings.HasPrefix(arg, "-") {
 				return planOptions{}, fmt.Errorf("unknown plan flag: %s", arg)
@@ -2038,8 +2059,40 @@ func stringFromAnyMap(values map[string]any, key string) (string, bool) {
 	return text, ok
 }
 
-func selectedTransformIDs(m manifest.Manifest, expr string) (map[string]struct{}, error) {
-	return graph.SelectTransforms(m, expr)
+func selectedTransformIDs(m manifest.Manifest, snapshot state.Snapshot, expr string, failedOnly bool) (map[string]struct{}, error) {
+	if !failedOnly {
+		return graph.SelectTransformsWithState(m, snapshot, expr)
+	}
+	var base map[string]struct{}
+	if strings.TrimSpace(expr) != "" {
+		selected, err := graph.SelectTransformsWithState(m, snapshot, expr)
+		if err != nil {
+			return nil, err
+		}
+		base = selected
+	}
+	out := map[string]struct{}{}
+	for id := range m.Transforms {
+		if base != nil {
+			if _, ok := base[id]; !ok {
+				continue
+			}
+		}
+		if latest, ok := snapshot.LatestRuns[id]; ok && state.IsFailedLatestStatus(latest.LatestStatus) {
+			out[id] = struct{}{}
+		}
+	}
+	return out, nil
+}
+
+func selectsFailedState(expr string) bool {
+	expr = strings.TrimSpace(expr)
+	if expr == "" {
+		return false
+	}
+	expr = strings.TrimPrefix(expr, "+")
+	expr = strings.TrimSuffix(expr, "+")
+	return expr == "state:failed"
 }
 
 func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, version state.ArtifactVersion) artifactRecord {
@@ -2697,9 +2750,11 @@ func errorMessageHint(message string) string {
 	case strings.Contains(message, "unknown flag: --dry-run") || strings.Contains(message, "unknown plan flag: --dry-run") || strings.Contains(message, "unknown build flag: --dry-run"):
 		return "use `fbt plan` to preview without writing state or starting runners."
 	case strings.Contains(message, "runner closed stdout before response") || strings.Contains(message, "failed to read runner response") || strings.Contains(message, "failed to write runner request") || strings.Contains(message, "runner stderr:"):
-		return "check the configured runner command with `fbt doctor`; inspect runner stderr and verify credentials or CLI setup."
+		return "check the configured runner command with `fbt doctor`; inspect runner stderr and verify credentials or CLI setup. Then run `fbt plan --failed` and `fbt build --failed` after fixing the cause."
 	case strings.Contains(message, "runner lock incompatible"):
 		return "run `fbt doctor` to see runner lockfile drift, then update the runner installation or fbt.lock.json outside fbt."
+	case strings.Contains(message, "eval failed") || strings.Contains(message, "policy denied") || strings.Contains(message, "runner returned status") || strings.Contains(message, "output candidate"):
+		return "run `fbt plan --failed` to inspect failed transforms, then `fbt build --failed` after fixing the cause."
 	default:
 		return ""
 	}

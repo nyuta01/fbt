@@ -528,6 +528,13 @@ them, and docs/examples clarify that deterministic evals are core-local while
 schema-specific validation and model judging belong to external runner report
 artifacts.
 
+`FBT-OPS-002` is done. `plan --failed` and `build --failed` now select
+transforms whose latest recorded run did not finish as `success`, show
+`latest run failed` as the run reason, compose with `--select`, and append new
+retry receipts without hiding earlier failures. `state:failed` is available as
+a selector, and recovery remains an explicit CLI invocation rather than a queue,
+scheduler, or automatic retry loop.
+
 ## Verification
 
 Required gate before calling work done:
@@ -542,10 +549,9 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
-2. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
+1. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
    any destructive cleanup command exists.
-3. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

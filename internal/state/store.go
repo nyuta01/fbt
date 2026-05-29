@@ -57,6 +57,10 @@ type LatestRun struct {
 	LatestEffectiveFingerprint string `json:"latest_effective_fingerprint,omitempty"`
 }
 
+func IsFailedLatestStatus(status string) bool {
+	return status != "" && status != "success"
+}
+
 type ArtifactVersionsIndex struct {
 	Metadata         Metadata                   `json:"metadata"`
 	ArtifactVersions map[string]ArtifactVersion `json:"artifact_versions"`

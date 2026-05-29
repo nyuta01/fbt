@@ -1121,6 +1121,62 @@ func TestRunBuildShowsRunnerProtocolHintAndRedactsStderr(t *testing.T) {
 	}
 }
 
+func TestPlanAndBuildFailedRetrySelection(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+
+	var buildOut bytes.Buffer
+	var buildErr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root}, &buildOut, &buildErr); code != 0 {
+		t.Fatalf("initial build failed: code=%d stdout=%q stderr=%q", code, buildOut.String(), buildErr.String())
+	}
+
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\necho retry me >&2\nexit 42\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	var failedOut bytes.Buffer
+	var failedErr bytes.Buffer
+	if code := Run([]string{"build", "--force", "--project-dir", root}, &failedOut, &failedErr); code == 0 {
+		t.Fatalf("expected forced build failure, stdout=%q stderr=%q", failedOut.String(), failedErr.String())
+	}
+	if !strings.Contains(failedErr.String(), "fbt plan --failed") {
+		t.Fatalf("expected failed-recovery hint, got %q", failedErr.String())
+	}
+	runResultsPath := filepath.Join(root, ".fbt", "state", "run_results.jsonl")
+	beforeRetry := strings.Count(readFile(t, runResultsPath), "\n")
+
+	installFakeCLIRunner(t, root)
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--failed", "--project-dir", root}, &planOut, &planErr); code != 0 {
+		t.Fatalf("failed plan failed: code=%d stdout=%q stderr=%q", code, planOut.String(), planErr.String())
+	}
+	if !strings.Contains(planOut.String(), "RUN     case_summaries") || !strings.Contains(planOut.String(), "latest run failed") {
+		t.Fatalf("expected failed transform retry plan, got %q", planOut.String())
+	}
+
+	var retryOut bytes.Buffer
+	var retryErr bytes.Buffer
+	if code := Run([]string{"build", "--failed", "--project-dir", root}, &retryOut, &retryErr); code != 0 {
+		t.Fatalf("failed retry build failed: code=%d stdout=%q stderr=%q", code, retryOut.String(), retryErr.String())
+	}
+	if !strings.Contains(retryOut.String(), "SUCCESS case_summaries") {
+		t.Fatalf("expected failed-only retry success, got %q", retryOut.String())
+	}
+	afterRetry := readFile(t, runResultsPath)
+	if strings.Count(afterRetry, "\n") <= beforeRetry || !strings.Contains(afterRetry, `"status":"failed"`) {
+		t.Fatalf("expected append-only failed receipt history, got %s", afterRetry)
+	}
+}
+
 func writeCLIArtifactVersion(t *testing.T, store state.Store, root, versionID, storagePath, body string) state.ArtifactVersion {
 	t.Helper()
 	writeFile(t, root, filepath.Join(storagePath, "index.md"), "# Summary\n"+body+"\n")

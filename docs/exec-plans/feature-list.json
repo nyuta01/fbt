@@ -3994,7 +3994,7 @@
       "id": "FBT-OPS-002",
       "title": "Define failed-run recovery and failure-focused selection UX",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-BUILD-002",
@@ -4014,12 +4014,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "failure_inspection_behavior_defined": false,
-        "failed_selector_or_retry_behavior_defined": false,
-        "receipts_remain_append_only": false,
-        "make_verify": false
+        "failure_inspection_behavior_defined": true,
+        "failed_selector_or_retry_behavior_defined": true,
+        "receipts_remain_append_only": true,
+        "make_verify": true
       },
-      "notes": "Failed build receipts exist, but operational recovery needs a small build-tool UX for inspecting failed artifacts and rerunning failed work without adding queues, schedulers, retries, or approval workflow to core."
+      "notes": "`plan --failed` and `build --failed` now select transforms whose latest run did not finish as success, show `latest run failed` as the explicit run reason, compose with `--select`, and append new retry receipts without hiding earlier failed receipts. The `state:failed` selector is available for inspection, while fbt still avoids queues, schedulers, automatic retry loops, or approval workflow."
     },
     {
       "id": "FBT-STATE-005",
