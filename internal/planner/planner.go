@@ -39,13 +39,22 @@ type Summary struct {
 }
 
 type Node struct {
-	TransformID    string   `json:"transform_id"`
-	Name           string   `json:"name"`
-	Action         Action   `json:"action"`
-	DirtyReasons   []string `json:"dirty_reasons,omitempty"`
-	BlockedReasons []string `json:"blocked_reasons,omitempty"`
-	NextSteps      []string `json:"next_steps,omitempty"`
-	Outputs        []string `json:"outputs,omitempty"`
+	TransformID    string         `json:"transform_id"`
+	Name           string         `json:"name"`
+	Action         Action         `json:"action"`
+	DirtyReasons   []string       `json:"dirty_reasons,omitempty"`
+	SourceChanges  []SourceChange `json:"source_changes,omitempty"`
+	BlockedReasons []string       `json:"blocked_reasons,omitempty"`
+	NextSteps      []string       `json:"next_steps,omitempty"`
+	Outputs        []string       `json:"outputs,omitempty"`
+}
+
+type SourceChange struct {
+	SourceID string   `json:"source_id"`
+	Name     string   `json:"name,omitempty"`
+	Added    []string `json:"added,omitempty"`
+	Changed  []string `json:"changed,omitempty"`
+	Removed  []string `json:"removed,omitempty"`
 }
 
 func Build(inputs Inputs) Plan {
@@ -67,7 +76,7 @@ func Build(inputs Inputs) Plan {
 			node.Action = ActionBlocked
 			plan.Summary.Blocked++
 		} else {
-			node.DirtyReasons = dirtyReasons(id, transform, inputs, plannedRunOutputs)
+			node.DirtyReasons, node.SourceChanges = dirtyReasons(id, transform, inputs, plannedRunOutputs)
 			if len(node.DirtyReasons) > 0 {
 				node.Action = ActionRun
 				plan.Summary.Run++
@@ -168,8 +177,9 @@ func blockedReasons(transform manifest.TransformResource, snapshot state.Snapsho
 	return reasons
 }
 
-func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs, plannedRunOutputs map[string]struct{}) []string {
+func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs, plannedRunOutputs map[string]struct{}) ([]string, []SourceChange) {
 	reasons := map[string]struct{}{}
+	var sourceChanges []SourceChange
 	if inputs.Force {
 		reasons["forced rebuild"] = struct{}{}
 	}
@@ -195,10 +205,10 @@ func dirtyReasons(id string, transform manifest.TransformResource, inputs Inputs
 	}
 
 	if inputs.PreviousManifest != nil {
-		addManifestDiffReasons(reasons, id, transform, inputs.Manifest, *inputs.PreviousManifest)
+		addManifestDiffReasons(reasons, &sourceChanges, id, transform, inputs.Manifest, *inputs.PreviousManifest)
 	}
 
-	return sortedReasons(reasons)
+	return sortedReasons(reasons), sourceChanges
 }
 
 func selectedTransformSet(m manifest.Manifest, selected map[string]struct{}) map[string]struct{} {
@@ -293,7 +303,7 @@ func dependencyOrderedTransformIDs(m manifest.Manifest, selected map[string]stru
 	return ordered
 }
 
-func addManifestDiffReasons(reasons map[string]struct{}, id string, transform manifest.TransformResource, current manifest.Manifest, previous manifest.Manifest) {
+func addManifestDiffReasons(reasons map[string]struct{}, sourceChanges *[]SourceChange, id string, transform manifest.TransformResource, current manifest.Manifest, previous manifest.Manifest) {
 	previousTransform, ok := previous.Transforms[id]
 	if !ok {
 		reasons["transform added"] = struct{}{}
@@ -309,8 +319,16 @@ func addManifestDiffReasons(reasons map[string]struct{}, id string, transform ma
 	for _, parent := range current.ParentMap[id] {
 		switch {
 		case hasPrefix(parent, "source."):
-			if previousSource, ok := previous.Sources[parent]; !ok || previousSource.Fingerprint != current.Sources[parent].Fingerprint {
+			currentSource, currentOK := current.Sources[parent]
+			previousSource, previousOK := previous.Sources[parent]
+			if !currentOK {
+				continue
+			}
+			if !previousOK || previousSource.Fingerprint != currentSource.Fingerprint {
 				reasons["source descriptor changed"] = struct{}{}
+				if change, ok := sourceChange(current, previous, parent); ok {
+					*sourceChanges = append(*sourceChanges, change)
+				}
 			}
 		case hasPrefix(parent, "transform_asset."):
 			if previousAsset, ok := previous.TransformAssets[parent]; !ok || previousAsset.Fingerprint != current.TransformAssets[parent].Fingerprint {
@@ -329,6 +347,60 @@ func addManifestDiffReasons(reasons map[string]struct{}, id string, transform ma
 				reasons["runner identity changed"] = struct{}{}
 			}
 		}
+	}
+}
+
+func sourceChange(current manifest.Manifest, previous manifest.Manifest, sourceID string) (SourceChange, bool) {
+	currentFiles := filesForResource(current.Files, sourceID)
+	previousFiles := filesForResource(previous.Files, sourceID)
+	if len(currentFiles) == 0 && len(previousFiles) == 0 {
+		return SourceChange{}, false
+	}
+	change := SourceChange{SourceID: sourceID, Name: sourceName(current.Sources[sourceID])}
+	for path, checksum := range currentFiles {
+		previousChecksum, ok := previousFiles[path]
+		if !ok {
+			change.Added = append(change.Added, path)
+			continue
+		}
+		if previousChecksum != checksum {
+			change.Changed = append(change.Changed, path)
+		}
+	}
+	for path := range previousFiles {
+		if _, ok := currentFiles[path]; !ok {
+			change.Removed = append(change.Removed, path)
+		}
+	}
+	sort.Strings(change.Added)
+	sort.Strings(change.Changed)
+	sort.Strings(change.Removed)
+	return change, len(change.Added) > 0 || len(change.Changed) > 0 || len(change.Removed) > 0
+}
+
+func filesForResource(files map[string]manifest.FileResource, resourceID string) map[string]string {
+	out := map[string]string{}
+	for key, file := range files {
+		if !containsString(file.ResourceIDs, resourceID) {
+			continue
+		}
+		path := file.Path
+		if path == "" {
+			path = key
+		}
+		out[path] = file.Checksum
+	}
+	return out
+}
+
+func sourceName(source manifest.SourceResource) string {
+	switch {
+	case source.SourceName != "" && source.Name != "":
+		return source.SourceName + "." + source.Name
+	case source.Name != "":
+		return source.Name
+	default:
+		return source.UniqueID
 	}
 }
 
@@ -409,6 +481,15 @@ func sortedReasons(reasons map[string]struct{}) []string {
 
 func hasPrefix(value, prefix string) bool {
 	return len(value) >= len(prefix) && value[:len(prefix)] == prefix
+}
+
+func containsString(values []string, target string) bool {
+	for _, value := range values {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
 
 func hashAny(value any) string {

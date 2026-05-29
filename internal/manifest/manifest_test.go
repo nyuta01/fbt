@@ -93,6 +93,15 @@ func TestSourceFingerprintChangesWhenGlobFilesChange(t *testing.T) {
 	if len(second.Sources[sourceID].ResolvedPaths) != 2 {
 		t.Fatalf("expected new resolved source file, got %v", second.Sources[sourceID].ResolvedPaths)
 	}
+	for _, path := range second.Sources[sourceID].ResolvedPaths {
+		file, ok := second.Files[path]
+		if !ok {
+			t.Fatalf("expected resolved source path %s in manifest files", path)
+		}
+		if !slices.Contains(file.ResourceIDs, sourceID) {
+			t.Fatalf("expected %s to be associated with %s, got %v", path, sourceID, file.ResourceIDs)
+		}
+	}
 }
 
 func resourceExists(m Manifest, id string) bool {

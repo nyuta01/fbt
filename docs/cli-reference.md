@@ -144,9 +144,9 @@ read-only: it does not start runners, commit artifacts, or write fbt state.
 fbt plan [--select EXPR] [--force]
 ```
 
-Shows selected transforms, skipped transforms, dirty reasons, blocked reasons,
-confidence requirements, and next commands. Use `fbt artifact explain TARGET`
-to focus on one artifact.
+Shows selected transforms, skipped transforms, dirty reasons, source-file
+change details, blocked reasons, confidence requirements, and next commands.
+Use `fbt artifact explain TARGET` to focus on one artifact.
 
 When the current invocation includes `--project-dir` or `--state-dir`, printed
 next commands include the same context so they can be copied directly.
@@ -164,7 +164,10 @@ Plan
   blocked   0
 
 RUN     case_summaries
-        because  no previous successful run
+        because  source descriptor changed
+        source   support.raw_tickets (added 1, changed 1, removed 0)
+        added    data/support/tickets/2026-05-29.jsonl
+        changed  data/support/tickets/2026-05-28.jsonl
         output   case_summaries
         next     fbt build --select case_summaries
 
@@ -261,10 +264,10 @@ full descriptor structure. `artifact history` lists prior versions for the same
 logical artifact. `artifact explain` is the primary command for plan reasoning:
 it shows the producing transform, current version, previous run, decision,
 input/source fingerprints, upstream artifact requirements, dirty or blocked
-reasons, and exact next commands. `artifact retention` is read-only and reports
-human-readable local state/artifact sizes, current and historical version
-counts, run-record count, and missing immutable storage references. It does not
-remove files.
+reasons, source-file deltas, and exact next commands. `artifact retention` is
+read-only and reports human-readable local state/artifact sizes, current and
+historical version counts, run-record count, and missing immutable storage
+references. It does not remove files.
 
 ### 5.6 fbt doctor
 
@@ -324,7 +327,15 @@ stderr.
       "transform_id": "transform.knowledge_ops.case_summaries",
       "name": "case_summaries",
       "action": "run",
-      "dirty_reasons": ["source descriptor changed"]
+      "dirty_reasons": ["source descriptor changed"],
+      "source_changes": [
+        {
+          "source_id": "source.knowledge_ops.support.raw_tickets",
+          "name": "support.raw_tickets",
+          "added": ["data/support/tickets/2026-05-29.jsonl"],
+          "changed": ["data/support/tickets/2026-05-28.jsonl"]
+        }
+      ]
     },
     {
       "transform_id": "transform.knowledge_ops.weekly_support_insights",

@@ -347,6 +347,13 @@ graph dependencies.
 ```json
 {
   "files": {
+    "data/support/tickets/2026-05-28.jsonl": {
+      "path": "data/support/tickets/2026-05-28.jsonl",
+      "checksum": "sha256:...",
+      "resource_ids": [
+        "source.knowledge_ops.support.raw_tickets"
+      ]
+    },
     "assets/support_style_guide.md": {
       "path": "assets/support_style_guide.md",
       "checksum": "sha256:...",
@@ -373,6 +380,19 @@ Modified reasons include:
 - Retrieved context changed
 - Tool identity changed
 - Output missing
+
+When a previous manifest is available, file-backed source changes include an
+inspection delta grouped by source resource:
+
+```json
+{
+  "source_id": "source.knowledge_ops.support.raw_tickets",
+  "name": "support.raw_tickets",
+  "added": ["data/support/tickets/2026-05-29.jsonl"],
+  "changed": ["data/support/tickets/2026-05-28.jsonl"],
+  "removed": []
+}
+```
 
 ## 18. Manifest vs State vs Run Results
 

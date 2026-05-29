@@ -314,6 +314,9 @@ checks, or output-candidate boundaries.
 For local file, directory, and glob sources, the source fingerprint includes
 the resolved file set and file content fingerprints. Adding, removing, or
 changing a file under a declared source path makes dependent transforms dirty.
+When a previous manifest is available, `fbt plan` and
+`fbt artifact explain` also report the concrete source paths that were added,
+changed, or removed.
 
 `fbt` does not include a daemon, scheduler, watermark store, or built-in
 per-file partition engine. Large daily batches should be partitioned in project

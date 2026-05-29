@@ -102,6 +102,76 @@ func TestBuildDetectsSourceDirtyReason(t *testing.T) {
 	assertContains(t, node.DirtyReasons, "source descriptor changed")
 }
 
+func TestBuildReportsSourceFileChanges(t *testing.T) {
+	previous := fixtureManifest("asset-old")
+	current := fixtureManifest("asset-old")
+	transformID := manifest.TransformID("knowledge_ops", "case_summaries")
+	sourceID := manifest.SourceID("knowledge_ops", "support", "raw_tickets")
+	artifactID := manifest.ArtifactID("knowledge_ops", "case_summaries")
+
+	previous.Sources[sourceID] = manifest.SourceResource{
+		UniqueID:     sourceID,
+		ResourceType: "source",
+		SourceName:   "support",
+		Name:         "raw_tickets",
+		Fingerprint:  manifest.Fingerprint{Value: "source-old"},
+	}
+	previous.Files = map[string]manifest.FileResource{
+		"data/support/tickets/2026-05-28.jsonl": {
+			Path:        "data/support/tickets/2026-05-28.jsonl",
+			Checksum:    "sha256:old",
+			ResourceIDs: []string{sourceID},
+		},
+		"data/support/tickets/2026-05-27.jsonl": {
+			Path:        "data/support/tickets/2026-05-27.jsonl",
+			Checksum:    "sha256:removed",
+			ResourceIDs: []string{sourceID},
+		},
+	}
+	current.Sources[sourceID] = previous.Sources[sourceID]
+	source := current.Sources[sourceID]
+	source.Fingerprint = manifest.Fingerprint{Value: "source-new"}
+	current.Sources[sourceID] = source
+	current.Files = map[string]manifest.FileResource{
+		"data/support/tickets/2026-05-28.jsonl": {
+			Path:        "data/support/tickets/2026-05-28.jsonl",
+			Checksum:    "sha256:new",
+			ResourceIDs: []string{sourceID},
+		},
+		"data/support/tickets/2026-05-29.jsonl": {
+			Path:        "data/support/tickets/2026-05-29.jsonl",
+			Checksum:    "sha256:added",
+			ResourceIDs: []string{sourceID},
+		},
+	}
+
+	snapshot := emptyState()
+	snapshot.CurrentArtifacts[artifactID] = state.ArtifactPointer{ArtifactID: artifactID}
+	snapshot.LatestRuns[transformID] = state.LatestRun{
+		LatestRunID:                "transform_run.run_1",
+		LatestSuccessfulRunID:      "transform_run.run_1",
+		LatestStatus:               "success",
+		LatestEffectiveFingerprint: previous.Transforms[transformID].Fingerprint["effective"],
+	}
+
+	plan := Build(Inputs{Manifest: current, PreviousManifest: &previous, State: snapshot})
+	node := plan.Nodes[0]
+	if node.Action != ActionRun {
+		t.Fatalf("expected run, got %+v", node)
+	}
+	assertContains(t, node.DirtyReasons, "source descriptor changed")
+	if len(node.SourceChanges) != 1 {
+		t.Fatalf("expected one source change, got %+v", node.SourceChanges)
+	}
+	change := node.SourceChanges[0]
+	if change.Name != "support.raw_tickets" {
+		t.Fatalf("expected source name, got %q", change.Name)
+	}
+	assertContains(t, change.Added, "data/support/tickets/2026-05-29.jsonl")
+	assertContains(t, change.Changed, "data/support/tickets/2026-05-28.jsonl")
+	assertContains(t, change.Removed, "data/support/tickets/2026-05-27.jsonl")
+}
+
 func TestBuildBlocksOnConfidenceRequirement(t *testing.T) {
 	m := fixtureManifest("asset-old")
 	weeklyID := manifest.TransformID("knowledge_ops", "weekly_support_insights")
@@ -243,7 +313,7 @@ func fixtureManifest(assetFingerprint string) manifest.Manifest {
 	artifactID := manifest.ArtifactID(project, "case_summaries")
 	return manifest.Manifest{
 		Sources: map[string]manifest.SourceResource{
-			sourceID: {UniqueID: sourceID, ResourceType: "source", Fingerprint: manifest.Fingerprint{Value: "source"}},
+			sourceID: {UniqueID: sourceID, ResourceType: "source", SourceName: "support", Name: "raw_tickets", Fingerprint: manifest.Fingerprint{Value: "source"}},
 		},
 		Artifacts: map[string]manifest.ArtifactResource{
 			artifactID: {UniqueID: artifactID, ResourceType: "artifact", Name: "case_summaries"},
@@ -283,6 +353,13 @@ func fixtureManifest(assetFingerprint string) manifest.Manifest {
 			transformID: {sourceID, assetID, policyID, evalID, runnerID},
 		},
 		ChildMap: map[string][]string{},
+		Files: map[string]manifest.FileResource{
+			"data/support/tickets/2026-05-28.jsonl": {
+				Path:        "data/support/tickets/2026-05-28.jsonl",
+				Checksum:    "sha256:source",
+				ResourceIDs: []string{sourceID},
+			},
+		},
 	}
 }
 

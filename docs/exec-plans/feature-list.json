@@ -3857,7 +3857,7 @@
       "id": "FBT-UX-016",
       "title": "Show source-file change details in dirty explanations",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-002",
@@ -3878,12 +3878,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "source_add_change_delete_reported": false,
-        "plan_and_artifact_explain_show_changed_files": false,
-        "json_output_preserves_machine_readable_details": false,
-        "make_verify": false
+        "source_add_change_delete_reported": true,
+        "plan_and_artifact_explain_show_changed_files": true,
+        "json_output_preserves_machine_readable_details": true,
+        "make_verify": true
       },
-      "notes": "Daily source directories can change by many files. Add source file-set delta details to dirty explanations so users can see which files were added, changed, or removed without adding scheduling or partition management to core."
+      "notes": "Manifest files now include resolved source paths. Planner nodes expose machine-readable source_changes with added, changed, and removed paths, and plan/artifact explain print those deltas for high-volume daily source directories without adding scheduling or partition management to core."
     },
     {
       "id": "FBT-LOCK-002",

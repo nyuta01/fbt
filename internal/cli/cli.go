@@ -1209,6 +1209,9 @@ func printPlanNode(stdout io.Writer, node planner.Node) {
 	for _, reason := range node.DirtyReasons {
 		rows = append(rows, displayRow{Label: "because", Value: humanizeResourceIDs(reason)})
 	}
+	for _, change := range node.SourceChanges {
+		rows = appendSourceChangeRows(rows, change)
+	}
 	for _, reason := range node.BlockedReasons {
 		rows = append(rows, displayRow{Label: "blocked", Value: humanizeResourceIDs(reason)})
 	}
@@ -1220,6 +1223,42 @@ func printPlanNode(stdout io.Writer, node planner.Node) {
 	}
 	printDisplayRows(stdout, "        ", rows)
 	fmt.Fprintln(stdout)
+}
+
+const sourceChangePathLimit = 8
+
+func appendSourceChangeRows(rows []displayRow, change planner.SourceChange) []displayRow {
+	label := change.Name
+	if label == "" {
+		label = shortenResourceID(change.SourceID)
+	}
+	rows = append(rows, displayRow{Label: "source", Value: label + " " + sourceChangeSummary(change)})
+	rows = append(rows, sourceChangePathRows("added", change.Added)...)
+	rows = append(rows, sourceChangePathRows("changed", change.Changed)...)
+	rows = append(rows, sourceChangePathRows("removed", change.Removed)...)
+	return rows
+}
+
+func sourceChangeSummary(change planner.SourceChange) string {
+	return fmt.Sprintf("(added %d, changed %d, removed %d)", len(change.Added), len(change.Changed), len(change.Removed))
+}
+
+func sourceChangePathRows(label string, paths []string) []displayRow {
+	if len(paths) == 0 {
+		return nil
+	}
+	limit := sourceChangePathLimit
+	if len(paths) < limit {
+		limit = len(paths)
+	}
+	rows := make([]displayRow, 0, limit+1)
+	for _, path := range paths[:limit] {
+		rows = append(rows, displayRow{Label: label, Value: path})
+	}
+	if more := len(paths) - limit; more > 0 {
+		rows = append(rows, displayRow{Label: label, Value: fmt.Sprintf("... %d more", more)})
+	}
+	return rows
 }
 
 func contextualizePlan(plan planner.Plan, opts options) planner.Plan {
@@ -1635,6 +1674,7 @@ type artifactExplanation struct {
 	Outputs        []manifest.TransformOutput `json:"outputs,omitempty"`
 	Dependencies   []explanationDependency    `json:"dependencies,omitempty"`
 	DirtyReasons   []string                   `json:"dirty_reasons,omitempty"`
+	SourceChanges  []planner.SourceChange     `json:"source_changes,omitempty"`
 	BlockedReasons []string                   `json:"blocked_reasons,omitempty"`
 	NextSteps      []string                   `json:"next_steps,omitempty"`
 	Current        *state.ArtifactPointer     `json:"current,omitempty"`
@@ -1714,6 +1754,7 @@ func runArtifactExplain(ctx projectContext, target string, opts options, stdout 
 		Outputs:        transform.Outputs,
 		Dependencies:   explanationDependencies(ctx.Manifest, previous, snapshot, transform, currentVersionID, evalResults),
 		DirtyReasons:   node.DirtyReasons,
+		SourceChanges:  node.SourceChanges,
 		BlockedReasons: node.BlockedReasons,
 		NextSteps:      contextualizeNextSteps(node.NextSteps, opts),
 		Current:        currentPointer,
@@ -2238,6 +2279,15 @@ func printArtifactExplanation(stdout io.Writer, explanation artifactExplanation)
 		reasonRows = append(reasonRows, displayRow{Label: "blocked", Value: humanizeResourceIDs(reason)})
 	}
 	printDisplayRows(stdout, "  ", reasonRows)
+	if len(explanation.SourceChanges) > 0 {
+		fmt.Fprintln(stdout)
+		fmt.Fprintln(stdout, "Source Changes")
+		var sourceRows []displayRow
+		for _, change := range explanation.SourceChanges {
+			sourceRows = appendSourceChangeRows(sourceRows, change)
+		}
+		printDisplayRows(stdout, "  ", sourceRows)
+	}
 	if len(explanation.NextSteps) > 0 {
 		fmt.Fprintln(stdout)
 		fmt.Fprintln(stdout, "Next")

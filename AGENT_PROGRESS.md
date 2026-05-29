@@ -118,6 +118,11 @@ user's own files, proving the loop with demo runners, inspecting receipts, and
 then switching to an external runner. `make verify` includes
 `own-files-smoke`.
 
+`FBT-UX-016` is done. Manifest `files` now records resolved source paths,
+planner nodes include `source_changes` for added, changed, and removed source
+files, and both `fbt plan` and `fbt artifact explain` print those concrete
+paths after a previous build manifest exists.
+
 `FBT-RUNNER-026` is done. `make official-adapter-smoke` now runs fixture/fake
 checks for the official command, OpenAI, Codex CLI, and Claude Code adapters
 without live provider calls. Runner docs now describe the adapter verification

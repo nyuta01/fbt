@@ -129,6 +129,9 @@ fbt build --select promote_manual_update
 fbt fingerprints the resolved source file set and content. New or changed files
 make dependent transforms dirty. fbt intentionally does not include a daemon,
 scheduler, watermark store, or built-in per-file partition engine.
+After the first successful build records a manifest, `fbt plan` and
+`fbt artifact explain` show which source files were added, changed, or removed,
+so daily batches can be inspected before starting a runner.
 
 Use one of these source-window patterns:
 

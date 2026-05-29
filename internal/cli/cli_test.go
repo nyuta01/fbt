@@ -433,6 +433,80 @@ func TestRunBuildShowsCommittedArtifactPathAndNext(t *testing.T) {
 	}
 }
 
+func TestRunPlanAndExplainShowSourceFileChanges(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+
+	var buildOut bytes.Buffer
+	var buildErr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &buildOut, &buildErr); code != 0 {
+		t.Fatalf("build failed: code=%d stdout=%q stderr=%q", code, buildOut.String(), buildErr.String())
+	}
+
+	writeFile(t, root, "data/support/tickets/2026-05-28.jsonl", "{\"id\":\"T-1\",\"status\":\"updated\"}\n")
+	writeFile(t, root, "data/support/tickets/2026-05-29.jsonl", "{\"id\":\"T-2\",\"status\":\"new\"}\n")
+
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--project-dir", root, "--select", "case_summaries"}, &planOut, &planErr); code != 0 {
+		t.Fatalf("plan failed: code=%d stdout=%q stderr=%q", code, planOut.String(), planErr.String())
+	}
+	planText := planOut.String()
+	for _, expected := range []string{
+		"source descriptor changed",
+		"support.raw_tickets (added 1, changed 1, removed 0)",
+		"added",
+		"data/support/tickets/2026-05-29.jsonl",
+		"changed",
+		"data/support/tickets/2026-05-28.jsonl",
+	} {
+		if !strings.Contains(planText, expected) {
+			t.Fatalf("expected %q in plan output:\n%s", expected, planText)
+		}
+	}
+
+	var planJSONOut bytes.Buffer
+	var planJSONErr bytes.Buffer
+	if code := Run([]string{"plan", "--project-dir", root, "--select", "case_summaries", "--json"}, &planJSONOut, &planJSONErr); code != 0 {
+		t.Fatalf("json plan failed: code=%d stdout=%q stderr=%q", code, planJSONOut.String(), planJSONErr.String())
+	}
+	if !strings.Contains(planJSONOut.String(), `"source_changes"`) || !strings.Contains(planJSONOut.String(), `"added"`) {
+		t.Fatalf("expected source changes in json plan output:\n%s", planJSONOut.String())
+	}
+
+	var explainOut bytes.Buffer
+	var explainErr bytes.Buffer
+	if code := Run([]string{"artifact", "explain", "case_summaries", "--project-dir", root}, &explainOut, &explainErr); code != 0 {
+		t.Fatalf("explain failed: code=%d stdout=%q stderr=%q", code, explainOut.String(), explainErr.String())
+	}
+	explainText := explainOut.String()
+	for _, expected := range []string{
+		"Source Changes",
+		"support.raw_tickets (added 1, changed 1, removed 0)",
+		"data/support/tickets/2026-05-29.jsonl",
+		"data/support/tickets/2026-05-28.jsonl",
+	} {
+		if !strings.Contains(explainText, expected) {
+			t.Fatalf("expected %q in explain output:\n%s", expected, explainText)
+		}
+	}
+
+	var explainJSONOut bytes.Buffer
+	var explainJSONErr bytes.Buffer
+	if code := Run([]string{"artifact", "explain", "case_summaries", "--project-dir", root, "--json"}, &explainJSONOut, &explainJSONErr); code != 0 {
+		t.Fatalf("json explain failed: code=%d stdout=%q stderr=%q", code, explainJSONOut.String(), explainJSONErr.String())
+	}
+	if !strings.Contains(explainJSONOut.String(), `"source_changes"`) || !strings.Contains(explainJSONOut.String(), "data/support/tickets/2026-05-29.jsonl") {
+		t.Fatalf("expected source changes in json explain output:\n%s", explainJSONOut.String())
+	}
+}
+
 func TestRunBuildAndExplainShowSkippedDelegatedEval(t *testing.T) {
 	root := writeCLIProject(t)
 	repoRoot := repoRoot(t)
@@ -1019,6 +1093,17 @@ selectors:
     tags: ["support", "knowledge"]
 `)
 	return root
+}
+
+func installFakeCLIRunner(t *testing.T, root string) {
+	t.Helper()
+	repoRoot := repoRoot(t)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner"))
 }
 
 func writeFile(t *testing.T, root, relative, content string) {

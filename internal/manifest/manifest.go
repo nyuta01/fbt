@@ -266,6 +266,9 @@ func (b *manifestBuilder) addSource(source parser.Source) {
 	for _, artifact := range source.Artifacts {
 		id := SourceID(b.project, source.Name, artifact.Name)
 		resolved := b.resolvePaths(artifact.Path)
+		for _, path := range resolved {
+			b.addFile(path, id)
+		}
 		b.manifest.Sources[id] = SourceResource{
 			UniqueID:      id,
 			ResourceType:  "source",
