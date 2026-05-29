@@ -52,6 +52,81 @@ For production, pin a commit or an adapter module tag when one is published.
 Adapter tags should be scoped to the nested module, for example
 `adapters/openai/v0.1.0`.
 
+Official module-scoped release tags:
+
+| Module | Tag example | Install command |
+|---|---|---|
+| Go runner SDK | `sdk/go/v0.1.0` | used by adapter modules |
+| Command adapter | `adapters/command/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/command/cmd/fbt-runner-command@v0.1.0` |
+| OpenAI adapter | `adapters/openai/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0` |
+| Codex CLI adapter | `adapters/codex-cli/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/codex-cli/cmd/fbt-runner-codex-cli@v0.1.0` |
+| Claude Code adapter | `adapters/claude-code/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/claude-code/cmd/fbt-runner-claude-code@v0.1.0` |
+
+The root `v0.1.0` tag belongs to fbt core CLI releases. Do not use root tags as
+adapter module versions.
+
+## Adapter Release Workflow
+
+Adapters currently ship as Go module source installs. The release integrity
+baseline is:
+
+1. Run source checks.
+2. Create a module-scoped signed annotated tag.
+3. Verify the tag signature.
+4. Verify the module checksum through Go's module machinery.
+5. Publish binary checksums/signatures only if a future adapter release adds
+   binary archives.
+
+Preflight:
+
+```sh
+make verify
+make official-adapter-smoke
+make adapter-install-smoke
+make adapter-release-plan-check
+```
+
+Cut and verify a module-scoped signed tag:
+
+```sh
+git tag -s adapters/openai/v0.1.0 -m "adapters/openai v0.1.0"
+git tag -v adapters/openai/v0.1.0
+git push origin adapters/openai/v0.1.0
+```
+
+Verify the install and module checksum:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
+go env GOSUMDB
+go mod download -json github.com/nyuta01/fbt/adapters/openai@v0.1.0
+```
+
+The Go checksum database and the user's `go.sum` entry cover source module
+integrity for `go install` users. If an adapter later publishes binary
+archives, the release must include adapter-specific `SHA256SUMS` and a detached
+signature. Recommended signing command:
+
+```sh
+shasum -a 256 fbt-runner-openai_* > SHA256SUMS
+cosign sign-blob --output-signature SHA256SUMS.sig SHA256SUMS
+cosign verify-blob --signature SHA256SUMS.sig SHA256SUMS
+```
+
+Keep adapter `SHA256SUMS` separate from the core CLI `SHA256SUMS` so users can
+verify only the package they install.
+
+Each adapter release note should state:
+
+- module path and module-scoped tag
+- fbt core version tested with the adapter
+- runner protocol version
+- executable command name
+- logical runner names
+- required credential environment variables
+- provider API or CLI-agent version tested
+- verification commands and results
+
 ## Verification
 
 Source checkout checks:

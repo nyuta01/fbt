@@ -3633,7 +3633,7 @@
       "id": "FBT-REL-005",
       "title": "Define adapter release tags, checksums, and signature workflow",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-REL-004",
@@ -3652,12 +3652,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "adapter_release_plan_documented": false,
-        "module_scoped_tag_guidance_checked": false,
-        "checksum_or_signature_flow_checked": false,
-        "make_verify": false
+        "adapter_release_plan_documented": true,
+        "module_scoped_tag_guidance_checked": true,
+        "checksum_or_signature_flow_checked": true,
+        "make_verify": true
       },
-      "notes": "Official adapters install from source and have smoke coverage, but release operations still need module-scoped tags, checksum/signature expectations, and an automation path before adapters feel like maintained official packages."
+      "notes": "Documented module-scoped adapter tags, signed tag verification, Go module checksum verification, future binary `SHA256SUMS`/`cosign sign-blob` flow, and release metadata. Added `.github/workflows/release-adapters.yml` and `make adapter-release-plan-check`; `make verify` passed."
     },
     {
       "id": "FBT-SEC-001",

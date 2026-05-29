@@ -150,6 +150,46 @@ runner SDK. The user-facing install command still uses the module version:
 go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
 ```
 
+Official maintained module-scoped tags are:
+
+```text
+sdk/go/v0.1.0
+adapters/command/v0.1.0
+adapters/openai/v0.1.0
+adapters/codex-cli/v0.1.0
+adapters/claude-code/v0.1.0
+```
+
+An official adapter release must be tied to a signed annotated tag, not only a
+floating branch:
+
+```sh
+git tag -s adapters/openai/v0.1.0 -m "adapters/openai v0.1.0"
+git tag -v adapters/openai/v0.1.0
+```
+
+For source installs, Go module checksum verification is the primary checksum
+path:
+
+```sh
+go env GOSUMDB
+go mod download -json github.com/nyuta01/fbt/adapters/openai@v0.1.0
+```
+
+If an adapter later ships binary archives, publish adapter-specific
+`SHA256SUMS` plus a detached signature such as `cosign sign-blob` output. Keep
+those checksums separate from the core CLI release checksums.
+
+Every adapter release note must include the runner protocol version, logical
+runner names, command name, credential environment variables, provider or agent
+CLI version tested, and the `make adapter-install-smoke` result.
+
+The repository keeps this release contract checked with:
+
+```sh
+make adapter-release-plan-check
+```
+
 ## 4.1 Official Adapter Verification Ladder
 
 Use the same ladder for official and third-party adapters:

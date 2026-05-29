@@ -174,6 +174,13 @@ YAML files. `scripts/generate-project-config-schema.py` reads parser/config Go
 source for field sets and registries, and `make verify` now includes
 `project-config-schema-check` to catch schema drift.
 
+`FBT-REL-005` is done. Adapter releases now have a documented module-scoped tag
+workflow, signed annotated tag verification, Go module checksum verification,
+future binary `SHA256SUMS` plus `cosign sign-blob` guidance, and required
+release metadata. `make verify` includes `adapter-release-plan-check`, and
+`.github/workflows/release-adapters.yml` runs release-plan, official-adapter,
+and clean-install checks on adapter/SDK release tags.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
