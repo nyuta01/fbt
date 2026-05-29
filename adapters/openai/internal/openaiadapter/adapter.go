@@ -1,8 +1,8 @@
-package main
+package openaiadapter
 
 import (
-	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -16,41 +16,33 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/nyuta01/fbt/sdk/go/outputs"
+	"github.com/nyuta01/fbt/sdk/go/protocol"
+	"github.com/nyuta01/fbt/sdk/go/stdiojsonrpc"
 )
 
 const (
+	version         = "0.1.0"
 	defaultEndpoint = "https://api.openai.com/v1/responses"
 	maxContextBytes = 180_000
 )
 
-type request struct {
-	JSONRPC string          `json:"jsonrpc"`
-	ID      string          `json:"id"`
-	Method  string          `json:"method"`
-	Params  json.RawMessage `json:"params"`
-}
-
 type runParams struct {
-	Mode           string           `json:"mode"`
-	TransformRunID string           `json:"transform_run_id"`
-	Transform      transformInfo    `json:"transform"`
-	Inputs         []map[string]any `json:"inputs"`
-	Outputs        []declaredOut    `json:"outputs"`
-	Assets         []map[string]any `json:"assets"`
-	Model          map[string]any   `json:"model"`
-	Policy         map[string]any   `json:"policy"`
-	Work           workInfo         `json:"work"`
+	Mode           string                    `json:"mode"`
+	TransformRunID string                    `json:"transform_run_id"`
+	Transform      transformInfo             `json:"transform"`
+	Inputs         []map[string]any          `json:"inputs"`
+	Outputs        []protocol.DeclaredOutput `json:"outputs"`
+	Assets         []map[string]any          `json:"assets"`
+	Model          map[string]any            `json:"model"`
+	Policy         map[string]any            `json:"policy"`
+	Work           workInfo                  `json:"work"`
 }
 
 type transformInfo struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
-}
-
-type declaredOut struct {
-	Name         string `json:"name"`
-	ArtifactType string `json:"artifact_type"`
-	DeclaredPath string `json:"declared_path"`
 }
 
 type workInfo struct {
@@ -78,145 +70,140 @@ type responseBlock struct {
 	Text string `json:"text"`
 }
 
-func main() {
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		var req request
-		if err := json.Unmarshal(scanner.Bytes(), &req); err != nil {
-			writeError("", -32700, err.Error())
-			continue
-		}
-		switch req.Method {
-		case "initialize":
-			writeResponse(req.ID, initializeResult())
-		case "initialized":
-		case "fbt/runTransform":
-			if err := runOpenAI(req); err != nil {
-				writeError(req.ID, -32099, err.Error())
-			}
-		case "$/cancelRequest":
+func Handler() stdiojsonrpc.Handler {
+	return stdiojsonrpc.Handler{
+		Initialize: func(context.Context, protocol.Request, *stdiojsonrpc.Writer) (any, error) {
+			return initializeResult(), nil
+		},
+		Validate: func(context.Context, protocol.Request, *stdiojsonrpc.Writer) (any, error) {
+			return map[string]any{"status": "success", "warnings": []string{}}, nil
+		},
+		RunTransform: runOpenAI,
+		Cancel: func(context.Context, protocol.Request, *stdiojsonrpc.Writer) error {
 			os.Exit(0)
-		default:
-			writeError(req.ID, -32601, "method not found")
-		}
-	}
-}
-
-func initializeResult() map[string]any {
-	return map[string]any{
-		"runner": map[string]any{
-			"name":     "fbt-runner-openai",
-			"version":  "0.1.0",
-			"language": "go",
-		},
-		"protocol": map[string]any{
-			"version": "0.1",
-			"framing": "jsonl",
-		},
-		"capabilities": map[string]any{
-			"transform_types":   []string{"llm"},
-			"artifact_types":    []string{"markdown", "markdown_directory", "text", "directory"},
-			"stream_events":     true,
-			"tool_call_log":     false,
-			"usage_reporting":   true,
-			"cost_estimation":   false,
-			"output_candidates": true,
-			"supports_dry_run":  true,
-			"supports_cancel":   true,
+			return nil
 		},
 	}
 }
 
-func runOpenAI(req request) error {
+func initializeResult() protocol.InitializeResult {
+	return protocol.InitializeResult{
+		Runner: protocol.RunnerInfo{
+			Name:     "fbt-runner-openai",
+			Version:  version,
+			Language: "go",
+		},
+		Protocol: protocol.ProtocolInfo{
+			Version: protocol.Version,
+			Framing: protocol.FramingJSONL,
+		},
+		Capabilities: protocol.Capabilities{
+			TransformTypes:   []string{"llm"},
+			ArtifactTypes:    []string{"markdown", "markdown_directory", "text", "directory"},
+			StreamEvents:     true,
+			ToolCallLog:      false,
+			UsageReporting:   true,
+			CostEstimation:   false,
+			OutputCandidates: true,
+			SupportsDryRun:   true,
+			SupportsCancel:   true,
+		},
+	}
+}
+
+func runOpenAI(ctx context.Context, req protocol.Request, writer *stdiojsonrpc.Writer) (any, error) {
 	var params runParams
 	if err := json.Unmarshal(req.Params, &params); err != nil {
-		return err
+		return nil, err
 	}
 	if params.Transform.Name == "" {
 		params.Transform.Name = "openai_transform"
 	}
-	outputs := params.Outputs
-	if len(outputs) == 0 {
-		outputs = []declaredOut{{Name: "output", ArtifactType: "markdown"}}
+	declaredOutputs := params.Outputs
+	if len(declaredOutputs) == 0 {
+		declaredOutputs = []protocol.DeclaredOutput{{Name: "output", ArtifactType: "markdown"}}
 	}
 	model := stringValue(params.Model, "name", "gpt-5")
 	provider := stringValue(params.Model, "provider", "openai")
 	if params.Mode == "plan" || params.Mode == "dry_run" {
-		writeResponse(req.ID, map[string]any{
-			"status":           "success",
-			"transform_run_id": params.TransformRunID,
-			"provenance":       provenanceFor(model, provider, "", params.Model),
-			"warnings":         []string{"dry run only; no OpenAI request sent"},
-		})
-		return nil
+		return protocol.RunTransformResult{
+			Status:         "success",
+			TransformRunID: params.TransformRunID,
+			Provenance:     provenanceFor(model, provider, "", params.Model),
+			Warnings:       []string{"dry run only; no OpenAI request sent"},
+		}, nil
 	}
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
-		return errors.New("OPENAI_API_KEY is required")
+		return nil, errors.New("OPENAI_API_KEY is required")
 	}
 	if params.Work.Outputs == "" {
-		return errors.New("work.outputs is required")
+		return nil, errors.New("work.outputs is required")
 	}
 	prompt, err := buildPrompt(params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	start := time.Now()
-	result, err := callResponses(apiKey, model, prompt)
+	result, err := callResponses(ctx, apiKey, model, prompt)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	text := strings.TrimSpace(extractText(result))
 	if text == "" {
-		return errors.New("OpenAI response did not contain output text")
+		return nil, errors.New("OpenAI response did not contain output text")
 	}
 	if err := os.MkdirAll(params.Work.Outputs, 0o755); err != nil {
-		return err
+		return nil, err
 	}
 	usage := usageFor(result.Usage)
-	writeNotification("fbt/event", map[string]any{
-		"request_id":       req.ID,
-		"transform_run_id": params.TransformRunID,
-		"time":             time.Now().UTC().Format(time.RFC3339),
-		"event_type":       "usage",
-		"level":            "info",
-		"message":          "OpenAI Responses API request completed",
-		"attributes": map[string]any{
+	if err := writer.Notification(protocol.MethodEvent, protocol.Event{
+		RequestID:      req.ID,
+		TransformRunID: params.TransformRunID,
+		Time:           time.Now().UTC().Format(time.RFC3339),
+		EventType:      "usage",
+		Level:          "info",
+		Message:        "OpenAI Responses API request completed",
+		Attributes: map[string]any{
 			"gen_ai.provider.name":       provider,
 			"gen_ai.request.model":       model,
 			"gen_ai.response.id":         result.ID,
 			"gen_ai.operation.name":      "responses.create",
-			"fbt.runner.external_api":    true,
+			"fbt.runner.external_api":    os.Getenv("FBT_OPENAI_ADAPTER_FAKE_RESPONSE") == "",
 			"fbt.runner.provider":        "openai",
 			"fbt.runner.elapsed_seconds": time.Since(start).Seconds(),
 			"gen_ai.usage.input_tokens":  usage["gen_ai.usage.input_tokens"],
 			"gen_ai.usage.output_tokens": usage["gen_ai.usage.output_tokens"],
 			"fbt.usage.total_tokens":     usage["fbt.usage.total_tokens"],
 		},
-	})
+	}); err != nil {
+		return nil, err
+	}
 
 	var candidates []map[string]any
-	for _, output := range outputs {
-		candidate, err := writeOutput(params.Work.Outputs, output, text)
+	for _, output := range declaredOutputs {
+		candidate, err := outputs.WriteText(params.Work.Outputs, output, []byte(text+"\n"))
 		if err != nil {
-			return err
+			return nil, err
 		}
 		candidates = append(candidates, candidate)
 	}
-	writeNotification("fbt/outputCandidate", map[string]any{
-		"request_id":       req.ID,
-		"transform_run_id": params.TransformRunID,
-		"outputs":          candidates,
-	})
-	writeResponse(req.ID, map[string]any{
-		"status":           "success",
-		"transform_run_id": params.TransformRunID,
-		"outputs":          candidates,
-		"usage":            usage,
-		"provenance":       provenanceFor(model, provider, result.ID, params.Model),
-		"warnings":         []string{},
-	})
-	return nil
+	outputItems := anySlice(candidates)
+	if err := writer.Notification(protocol.MethodOutputCandidate, protocol.OutputCandidate{
+		RequestID:      req.ID,
+		TransformRunID: params.TransformRunID,
+		Outputs:        outputItems,
+	}); err != nil {
+		return nil, err
+	}
+	return protocol.RunTransformResult{
+		Status:         "success",
+		TransformRunID: params.TransformRunID,
+		Outputs:        outputItems,
+		Usage:          usage,
+		Provenance:     provenanceFor(model, provider, result.ID, params.Model),
+		Warnings:       []string{},
+	}, nil
 }
 
 func buildPrompt(params runParams) (string, error) {
@@ -378,7 +365,20 @@ func isReadableTextPath(path string) bool {
 	}
 }
 
-func callResponses(apiKey, model, input string) (responsesResult, error) {
+func callResponses(ctx context.Context, apiKey, model, input string) (responsesResult, error) {
+	if fake := os.Getenv("FBT_OPENAI_ADAPTER_FAKE_RESPONSE"); fake != "" {
+		return responsesResult{
+			ID: "resp_fbt_fake",
+			Output: []responseItem{{
+				Type: "message",
+				Content: []responseBlock{{
+					Type: "output_text",
+					Text: fake,
+				}},
+			}},
+			Usage: map[string]any{"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+		}, nil
+	}
 	endpoint := os.Getenv("OPENAI_RESPONSES_ENDPOINT")
 	if endpoint == "" {
 		endpoint = defaultEndpoint
@@ -392,7 +392,7 @@ func callResponses(apiKey, model, input string) (responsesResult, error) {
 	if err != nil {
 		return responsesResult{}, err
 	}
-	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		return responsesResult{}, err
 	}
@@ -440,39 +440,6 @@ func extractText(result responsesResult) string {
 	return builder.String()
 }
 
-func writeOutput(root string, output declaredOut, content string) (map[string]any, error) {
-	name := output.Name
-	if name == "" {
-		name = "output"
-	}
-	artifactType := output.ArtifactType
-	if artifactType == "" {
-		artifactType = "markdown"
-	}
-	path := filepath.Join(root, name)
-	if isDirectoryType(artifactType) {
-		if err := os.MkdirAll(path, 0o755); err != nil {
-			return nil, err
-		}
-		if err := os.WriteFile(filepath.Join(path, "index.md"), []byte(content), 0o644); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			return nil, err
-		}
-		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-			return nil, err
-		}
-	}
-	return map[string]any{
-		"name":          name,
-		"artifact_type": artifactType,
-		"path":          path,
-		"declared_path": output.DeclaredPath,
-	}, nil
-}
-
 func usageFor(raw map[string]any) map[string]any {
 	inputTokens := numberField(raw, "input_tokens")
 	outputTokens := numberField(raw, "output_tokens")
@@ -490,7 +457,7 @@ func usageFor(raw map[string]any) map[string]any {
 func provenanceFor(model, provider, responseID string, raw map[string]any) map[string]any {
 	return map[string]any{
 		"runner":                "fbt-runner-openai",
-		"runner_version":        "0.1.0",
+		"runner_version":        version,
 		"model_provider":        provider,
 		"model":                 model,
 		"response_id":           responseID,
@@ -547,27 +514,10 @@ func hashJSON(value any) string {
 	return "sha256:" + hex.EncodeToString(sum[:])
 }
 
-func isDirectoryType(artifactType string) bool {
-	return artifactType == "directory" || strings.HasSuffix(artifactType, "_directory")
-}
-
-func writeResponse(id string, result any) {
-	write(map[string]any{"jsonrpc": "2.0", "id": id, "result": result})
-}
-
-func writeNotification(method string, params any) {
-	write(map[string]any{"jsonrpc": "2.0", "method": method, "params": params})
-}
-
-func writeError(id string, code int, message string) {
-	write(map[string]any{"jsonrpc": "2.0", "id": id, "error": map[string]any{"code": code, "message": message}})
-}
-
-func write(value any) {
-	data, err := json.Marshal(value)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "marshal response: %v\n", err)
-		os.Exit(1)
+func anySlice(values []map[string]any) []any {
+	out := make([]any, 0, len(values))
+	for _, value := range values {
+		out = append(out, value)
 	}
-	fmt.Printf("%s\n", data)
+	return out
 }

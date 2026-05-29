@@ -3,5 +3,6 @@ go 1.23
 use (
 	.
 	./adapters/command
+	./adapters/openai
 	./sdk/go
 )

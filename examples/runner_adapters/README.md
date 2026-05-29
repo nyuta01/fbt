@@ -10,11 +10,10 @@ smoke workflows before publishing a real adapter package or plugin.
 |---|---|
 | `demo_llm/` | Deterministic LLM-shaped runner for offline templates and examples. |
 | `demo_agent/` | Deterministic agent-shaped runner with redacted tool-call events. |
-| `openai/` | Optional OpenAI Responses adapter used by practical examples. |
 
 Official maintained adapters live under `adapters/`, starting with
-`adapters/command`. Real provider or CLI-agent integrations should live in an
-official adapter module, third-party package, plugin, or project-local adapter
-directory. fbt only requires that the command advertises compatible
-capabilities, writes candidates under `work.outputs`, and returns JSON-RPC
-protocol messages.
+`adapters/command` and `adapters/openai`. Real provider or CLI-agent
+integrations should live in an official adapter module, third-party package,
+plugin, or project-local adapter directory. fbt only requires that the command
+advertises compatible capabilities, writes candidates under `work.outputs`, and
+returns JSON-RPC protocol messages.

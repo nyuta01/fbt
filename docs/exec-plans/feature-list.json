@@ -1507,7 +1507,7 @@
       ],
       "plan_url": "docs/exec-plans/active/FBT-RUNNER-008-plan.md",
       "paths": [
-        "examples/runner_adapters/openai",
+        "adapters/openai",
         "examples/incident_response_runbook",
         "examples/support_resolution_manual",
         "docs/examples/practical-manual-generation-examples.md"
@@ -1519,7 +1519,7 @@
         "real_openai_smoke": false
       },
       "verification_override_reason": "Real OpenAI API calls require a user-provided secret and are intentionally outside `make verify`; runner behavior is covered by an httptest Responses API fixture plus parse/plan example smoke.",
-      "notes": "Adds an optional source-checkout `examples/runner_adapters/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
+      "notes": "Adds an optional source-checkout `adapters/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
     },
     {
       "id": "FBT-DOCSITE-001",
@@ -2946,27 +2946,38 @@
       "id": "FBT-RUNNER-017",
       "title": "Promote OpenAI runner into official adapter module",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-015",
         "FBT-RUNNER-016"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-017-plan.md",
       "paths": [
         "adapters/openai",
-        "examples/runner_adapters/openai",
+        "go.work",
+        "Makefile",
+        "examples/runner_adapters/README.md",
+        "examples/incident_response_runbook/bin/fbt-runner-openai",
+        "examples/support_resolution_manual/bin/fbt-runner-openai",
         "docs/runner-adapters.md",
-        "examples/incident_response_runbook",
-        "examples/support_resolution_manual"
+        "docs/examples/practical-manual-generation-examples.md",
+        "apps/docs/src/content/docs/runners/openai-runner.mdx",
+        "apps/docs/src/content/docs/runners/external-runners.mdx",
+        "docs/exec-plans/active/FBT-RUNNER-008-plan.md",
+        "docs/exec-plans/active/FBT-RUNNER-017-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
       ],
       "verification": {
-        "go_test": false,
-        "runner_conformance": false,
-        "runner_adapter_smoke": false,
-        "make_verify": false
+        "go_test": true,
+        "adapter_openai_test": true,
+        "runner_conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Package the OpenAI Responses adapter as an official nested module while keeping live provider calls opt-in through environment-gated smoke tests."
+      "notes": "Promotes the OpenAI Responses runner into official nested module adapters/openai with SDK-based protocol handling, manifest, README, httptest coverage, network-free conformance, and updated practical example wrappers."
     },
     {
       "id": "FBT-RUNNER-018",

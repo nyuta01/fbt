@@ -1,6 +1,7 @@
-package main
+package openaiadapter
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -10,10 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nyuta01/fbt/internal/protocol"
+	"github.com/nyuta01/fbt/sdk/go/stdiojsonrpc"
 )
 
-func TestOpenAIRunnerProtocolCallsResponsesAPI(t *testing.T) {
+func TestOpenAIAdapterProtocolCallsResponsesAPI(t *testing.T) {
 	var sawAuth bool
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/responses" {
@@ -35,27 +36,8 @@ func TestOpenAIRunnerProtocolCallsResponsesAPI(t *testing.T) {
 		}`))
 	}))
 	defer server.Close()
-
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	client, err := protocol.Start(context.Background(), "go", []string{"run", "."}, protocol.Options{
-		Dir: wd,
-		Env: append(os.Environ(), "OPENAI_API_KEY=test-key", "OPENAI_RESPONSES_ENDPOINT="+server.URL+"/v1/responses"),
-	})
-	if err != nil {
-		t.Fatalf("start openai runner: %v", err)
-	}
-	defer client.Close()
-
-	init, err := client.Initialize(context.Background(), protocol.InitializeParams{})
-	if err != nil {
-		t.Fatalf("initialize: %v", err)
-	}
-	if init.Capabilities["usage_reporting"] != true {
-		t.Fatalf("expected usage reporting capability: %+v", init.Capabilities)
-	}
+	t.Setenv("OPENAI_API_KEY", "test-key")
+	t.Setenv("OPENAI_RESPONSES_ENDPOINT", server.URL+"/v1/responses")
 
 	root := t.TempDir()
 	assetPath := filepath.Join(root, "format.md")
@@ -67,39 +49,56 @@ func TestOpenAIRunnerProtocolCallsResponsesAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	work := filepath.Join(root, "work", "outputs")
-	outcome, err := client.RunTransform(context.Background(), protocol.RunTransformParams{
-		Mode:           "run",
-		TransformRunID: "transform_run.openai",
-		Transform:      map[string]any{"name": "incident_response_runbook", "type": "llm"},
-		Model:          map[string]any{"provider": "openai", "name": "gpt-test"},
-		Inputs: []any{
-			map[string]any{"kind": "source", "name": "event_logs", "resolved_paths": []any{inputPath}},
+	request := map[string]any{
+		"jsonrpc": "2.0",
+		"id":      "run",
+		"method":  "fbt/runTransform",
+		"params": map[string]any{
+			"mode":             "run",
+			"transform_run_id": "transform_run.openai",
+			"transform":        map[string]any{"name": "incident_response_runbook", "type": "llm"},
+			"model":            map[string]any{"provider": "openai", "name": "gpt-test"},
+			"inputs": []any{
+				map[string]any{"kind": "source", "name": "event_logs", "resolved_paths": []any{inputPath}},
+			},
+			"assets": []any{
+				map[string]any{"name": "incident_runbook_format", "absolute_path": assetPath},
+			},
+			"outputs": []any{
+				map[string]any{"name": "incident_response_runbook", "artifact_type": "markdown", "declared_path": "target/artifacts/runbooks/incident_response_runbook.md"},
+			},
+			"work": map[string]any{"outputs": work},
 		},
-		Assets: []any{
-			map[string]any{"name": "incident_runbook_format", "absolute_path": assetPath},
-		},
-		Outputs: []any{
-			map[string]any{"name": "incident_response_runbook", "artifact_type": "markdown", "declared_path": "target/artifacts/runbooks/incident_response_runbook.md"},
-		},
-		Work: map[string]any{"outputs": work},
-	})
-	if err != nil {
-		t.Fatalf("run transform: %v", err)
+	}
+	var input bytes.Buffer
+	input.WriteString(`{"jsonrpc":"2.0","id":"init","method":"initialize","params":{}}` + "\n")
+	if err := json.NewEncoder(&input).Encode(request); err != nil {
+		t.Fatal(err)
+	}
+	var output bytes.Buffer
+	if err := stdiojsonrpc.Serve(context.Background(), &input, &output, Handler()); err != nil {
+		t.Fatal(err)
 	}
 	if !sawAuth {
 		t.Fatal("expected bearer auth header")
 	}
-	if outcome.Result.Status != "success" {
-		t.Fatalf("unexpected status: %s", outcome.Result.Status)
+	lines := strings.Split(strings.TrimSpace(output.String()), "\n")
+	if len(lines) != 4 {
+		t.Fatalf("expected init response, event, output candidate, and run response; got %d: %s", len(lines), output.String())
 	}
-	if outcome.Result.Usage["fbt.usage.total_tokens"] != float64(168) {
-		t.Fatalf("missing usage: %+v", outcome.Result.Usage)
+	var runResponse map[string]any
+	if err := json.Unmarshal([]byte(lines[3]), &runResponse); err != nil {
+		t.Fatal(err)
 	}
-	if outcome.Result.Provenance["response_id"] != "resp_test" {
-		t.Fatalf("missing provenance: %+v", outcome.Result.Provenance)
+	result := runResponse["result"].(map[string]any)
+	if result["status"] != "success" {
+		t.Fatalf("unexpected response: %+v", runResponse)
 	}
-	if len(outcome.OutputCandidates) != 1 {
-		t.Fatalf("expected output candidate, got %d", len(outcome.OutputCandidates))
+	if result["usage"].(map[string]any)["fbt.usage.total_tokens"] != float64(168) {
+		t.Fatalf("missing usage: %+v", result["usage"])
+	}
+	if result["provenance"].(map[string]any)["response_id"] != "resp_test" {
+		t.Fatalf("missing provenance: %+v", result["provenance"])
 	}
 	data, err := os.ReadFile(filepath.Join(work, "incident_response_runbook"))
 	if err != nil {

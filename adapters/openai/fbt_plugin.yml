@@ -1,0 +1,11 @@
+name: fbt-runner-openai
+version: 0.1.0
+protocol: stdio_jsonrpc
+command: fbt-runner-openai
+provides:
+  - runner: openai.responses
+    type: llm
+    transform_types: ["llm"]
+    artifact_types: ["markdown", "markdown_directory", "text", "directory"]
+env:
+  - OPENAI_API_KEY

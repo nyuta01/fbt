@@ -284,6 +284,13 @@ tests.
 target. `examples/markdown_toolchain` and `examples/data_tool_interop` wrappers
 now execute `go run ./adapters/command/cmd/fbt-runner-command`.
 
+`FBT-RUNNER-017` is done. The OpenAI Responses runner now lives under
+`adapters/openai` as an official nested module with its own `go.mod`,
+`fbt_plugin.yml`, README, SDK-based protocol handling, httptest coverage, and
+network-free conformance through `FBT_OPENAI_ADAPTER_FAKE_RESPONSE`.
+`examples/incident_response_runbook` and `examples/support_resolution_manual`
+wrappers now execute `go run ./adapters/openai/cmd/fbt-runner-openai`.
+
 ## Verification
 
 Required gate before calling work done:

@@ -9,7 +9,7 @@ Audience: teams applying fbt to operational manuals and runbooks
 
 These examples show fbt projects shaped for real business workflows, not demo
 runner output. They use external runner configuration and project-local wrappers
-that call the optional `examples/runner_adapters/openai` implementation. `fbt doctor` and
+that call the official `adapters/openai` implementation. `fbt doctor` and
 `fbt build` require `OPENAI_API_KEY`.
 
 | Example | Inputs | Generated Artifact |
