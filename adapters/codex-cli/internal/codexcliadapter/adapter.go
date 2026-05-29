@@ -119,7 +119,7 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 		return nil, err
 	}
 	start := time.Now()
-	text, err := runCodex(ctx, staging, buildPrompt(params, staging), stringValue(params.Model, "name", ""))
+	text, err := runCodex(ctx, staging, buildPrompt(params, staging), runnableModel(params.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -186,14 +186,14 @@ func runCodex(ctx context.Context, staging, prompt, model string) (string, error
 	cmd := exec.CommandContext(ctx, command, args...)
 	cmd.Dir = staging
 	cmd.Env = os.Environ()
-	stdout, err := cmd.Output()
+	combined, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("Codex CLI failed: %w", err)
+		return "", fmt.Errorf("Codex CLI failed: %w: %s", err, trimCommandOutput(combined))
 	}
 	if data, err := os.ReadFile(lastMessage); err == nil && len(data) > 0 {
 		return string(data), nil
 	}
-	return string(stdout), nil
+	return string(combined), nil
 }
 
 func materializeContext(staging string, params runParams) error {
@@ -329,6 +329,17 @@ func stringValue(values map[string]any, key, fallback string) string {
 	return fallback
 }
 
+func runnableModel(values map[string]any) string {
+	if stringField(values, "provider") == "conformance" {
+		return ""
+	}
+	model := stringField(values, "name")
+	if model == "fixture" {
+		return ""
+	}
+	return model
+}
+
 func stringSlice(value any) []string {
 	items, ok := value.([]any)
 	if !ok {
@@ -363,4 +374,12 @@ func anySlice(values []map[string]any) []any {
 		out = append(out, value)
 	}
 	return out
+}
+
+func trimCommandOutput(data []byte) string {
+	text := strings.TrimSpace(string(data))
+	if len(text) > 4000 {
+		return text[:4000] + "\n[truncated]"
+	}
+	return text
 }

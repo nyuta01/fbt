@@ -3014,6 +3014,32 @@
       "notes": "Adds official nested Codex CLI and Claude Code adapter modules with SDK-based protocol handling, staging workspaces, fail-closed agent safety markers, fixture CLI tests, and strict agent-adapter conformance."
     },
     {
+      "id": "FBT-RUNNER-019",
+      "title": "Fix CLI-agent live invocation issues",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-018"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-019-plan.md",
+      "paths": [
+        "adapters/codex-cli/internal/codexcliadapter/adapter.go",
+        "adapters/claude-code/internal/claudecodeadapter/adapter.go",
+        "docs/exec-plans/active/FBT-RUNNER-019-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "codex_live_conformance": true,
+        "claude_live_auth_boundary": true,
+        "agent_adapter_conformance": true,
+        "go_test": true,
+        "make_verify": true
+      },
+      "notes": "Live adapter testing fixed conformance fixture model forwarding, added bounded CLI output in errors, and corrected Claude Code prompt handling so real CLI failures are actionable."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

@@ -298,6 +298,13 @@ and report fail-closed policy markers for `--agent-adapter` conformance. Their
 `testdata/*-fixture.sh` scripts are protocol test fixtures only, used to keep
 `make verify` deterministic without network, credentials, or paid model calls.
 
+`FBT-RUNNER-019` is done after live testing. Fixture model names are no longer
+forwarded to real CLI agents, and Codex/Claude adapter errors include bounded
+CLI output for actionable live diagnostics. Claude Code prompt handling no
+longer uses variadic flags that consume the prompt. Live Codex conformance
+passes with the installed CLI and saved authentication; live Claude Code now
+reaches authentication and reports that the local CLI is not logged in.
+
 ## Verification
 
 Required gate before calling work done:

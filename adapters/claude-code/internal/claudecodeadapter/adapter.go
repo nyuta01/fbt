@@ -119,7 +119,7 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 		return nil, err
 	}
 	start := time.Now()
-	text, err := runClaude(ctx, staging, buildPrompt(params, staging), stringValue(params.Model, "name", ""))
+	text, err := runClaude(ctx, staging, buildPrompt(params, staging), runnableModel(params.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +173,6 @@ func runClaude(ctx context.Context, staging, prompt, model string) (string, erro
 		"--bare",
 		"--output-format", "text",
 		"--permission-mode", "dontAsk",
-		"--tools", "",
-		"--add-dir", staging,
 	}
 	if model != "" {
 		args = append(args, "--model", model)
@@ -183,9 +181,9 @@ func runClaude(ctx context.Context, staging, prompt, model string) (string, erro
 	cmd := exec.CommandContext(ctx, command, args...)
 	cmd.Dir = staging
 	cmd.Env = os.Environ()
-	stdout, err := cmd.Output()
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("Claude Code failed: %w", err)
+		return "", fmt.Errorf("Claude Code failed: %w: %s", err, trimCommandOutput(stdout))
 	}
 	return string(stdout), nil
 }
@@ -323,6 +321,17 @@ func stringValue(values map[string]any, key, fallback string) string {
 	return fallback
 }
 
+func runnableModel(values map[string]any) string {
+	if stringField(values, "provider") == "conformance" {
+		return ""
+	}
+	model := stringField(values, "name")
+	if model == "fixture" {
+		return ""
+	}
+	return model
+}
+
 func stringSlice(value any) []string {
 	items, ok := value.([]any)
 	if !ok {
@@ -357,4 +366,12 @@ func anySlice(values []map[string]any) []any {
 		out = append(out, value)
 	}
 	return out
+}
+
+func trimCommandOutput(data []byte) string {
+	text := strings.TrimSpace(string(data))
+	if len(text) > 4000 {
+		return text[:4000] + "\n[truncated]"
+	}
+	return text
 }
