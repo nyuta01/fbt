@@ -88,6 +88,14 @@ runners:
 Provider and agent integrations are optional external runner packages, not fbt
 core dependencies. See [Runner Adapter Packaging](runner-adapters.md).
 
+State is local-only in MVP. `state.backend` may be omitted or set to `local`;
+any other value fails during project parsing. `state.path` controls the local
+receipt/state directory and must stay project-relative. The CLI `--state-dir`
+flag can override that directory for one invocation, but it does not move
+immutable artifact snapshots. Those snapshots are stored under `.fbt/artifacts`.
+`artifact_path` controls the current logical artifact outputs, usually
+`target/artifacts`.
+
 Top-level fields:
 
 | Field | Required | Meaning |
@@ -101,8 +109,8 @@ Top-level fields:
 | `policy_paths` | no | Directories containing policy YAML |
 | `eval_paths` | no | Directories containing eval YAML |
 | `target_path` | no | Generated files root |
-| `artifact_path` | no | Official artifact path |
-| `state` | no | State backend configuration |
+| `artifact_path` | no | Current logical artifact output root |
+| `state` | no | Local receipt/state directory configuration; MVP supports only `backend: local` |
 | `execution` | no | Local execution mode; MVP supports only `mode: local` |
 | `runners` | no | Runner references |
 | `selectors` | no | Named selections |

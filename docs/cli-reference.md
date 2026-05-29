@@ -48,6 +48,10 @@ artifact that has not been built yet suggests `fbt build --select TARGET`, an
 empty selector suggests running `fbt plan` without `--select`, and `--dry-run`
 points to the read-only `plan` command.
 
+`--state-dir` affects only local state and receipts for the invocation. Current
+logical artifact files still land under each transform output path beneath
+`artifact_path`, and immutable artifact snapshots remain under `.fbt/artifacts`.
+
 ## 3. Exit Codes
 
 | Code | Meaning |

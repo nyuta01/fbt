@@ -2635,13 +2635,13 @@
       "id": "FBT-CONFIG-003",
       "title": "Clarify local state and artifact directory controls",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-CONFIG-001",
         "FBT-STATE-002"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-CONFIG-003-plan.md",
       "paths": [
         "internal/config",
         "internal/cli",
@@ -2656,7 +2656,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Make the relationship among --state-dir, .fbt/state, .fbt/artifacts, artifact_path, and state.backend explicit. Avoid implying unsupported state backends or artifact relocation semantics."
+      "notes": "The relationship among --state-dir, .fbt/state, .fbt/artifacts, artifact_path, and state.backend is now explicit. Unsupported state backends and escaping state.path values fail with actionable parser diagnostics."
     },
     {
       "id": "FBT-RUNNER-011",

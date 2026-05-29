@@ -97,6 +97,10 @@ func ParseProject(options Options) (Result, error) {
 	}
 	result.validateProjectPath("ARTIFACT_PATH_INVALID", result.Config.ArtifactPath, prj.ConfigPath, "project")
 	result.validateProjectPath("TARGET_PATH_INVALID", result.Config.TargetPath, prj.ConfigPath, "project")
+	if result.Config.State.Backend != "local" {
+		result.addError("STATE_BACKEND_UNSUPPORTED", fmt.Sprintf("unsupported state backend %q; expected local", result.Config.State.Backend), prj.ConfigPath, "project")
+	}
+	result.validateProjectPath("STATE_PATH_INVALID", result.Config.State.Path, prj.ConfigPath, "project")
 
 	files, err := resourceFiles(prj.RootDir, result.resourceDirs())
 	if err != nil {
@@ -966,6 +970,10 @@ func diagnosticHint(code string) string {
 		return "Remove the review field. Use Git, PRs, CI, release tooling, or your publishing workflow for human approval."
 	case "CONFIG_FIELD_RESERVED":
 		return "Remove this field. fbt uses file fingerprints, explicit ref confidence requirements, and `build --force` instead of hidden cache/default controls."
+	case "STATE_BACKEND_UNSUPPORTED":
+		return "Use `state.backend: local` or omit state.backend. Remote or database state backends are outside core."
+	case "STATE_PATH_INVALID":
+		return "Use a project-relative state.path such as `.fbt/state`, or override it at runtime with --state-dir."
 	case "YAML_FIELD_UNKNOWN":
 		return "Remove the field, fix the spelling, or put custom resource data under `meta` when that resource supports it."
 	case "PROJECT_NAME_REQUIRED":

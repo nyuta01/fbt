@@ -91,6 +91,63 @@ func TestParseProjectRejectsArtifactPathEscape(t *testing.T) {
 	assertDiagnostic(t, result.Diagnostics, "PATH_OUTSIDE_ARTIFACT_PATH")
 }
 
+func TestParseProjectRejectsUnsupportedStateBackend(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "fs_project.yml", `name: knowledge_ops
+config_version: 1
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+artifact_path: "target/artifacts"
+state:
+  backend: postgres
+  path: .fbt/state
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-openai-runner
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	diagnostic := findDiagnostic(t, result.Diagnostics, "STATE_BACKEND_UNSUPPORTED")
+	if diagnostic.Hint == "" {
+		t.Fatalf("expected state backend hint, got %+v", diagnostic)
+	}
+}
+
+func TestParseProjectRejectsStatePathEscape(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "fs_project.yml", `name: knowledge_ops
+config_version: 1
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: ../fbt-state
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-openai-runner
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	assertDiagnostic(t, result.Diagnostics, "STATE_PATH_INVALID")
+}
+
 func TestParseProjectRejectsUnresolvedRefs(t *testing.T) {
 	root := writeValidProject(t)
 	writeFile(t, root, "transforms/case.yml", `transforms:

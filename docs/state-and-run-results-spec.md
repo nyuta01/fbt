@@ -9,6 +9,12 @@ eval results, and policy decisions
 snapshots, current artifact pointers, execution summaries, artifact versions,
 eval results, and policy decisions under `.fbt/state/`.
 
+State is local-only in MVP. `state.backend` must be `local` when set. The
+project `state.path` config and CLI `--state-dir` override only the state and
+receipt directory. They do not move immutable artifact snapshots under
+`.fbt/artifacts`, and they do not change the current logical output root
+configured by `artifact_path`.
+
 ## Files
 
 ```text
@@ -42,9 +48,9 @@ The read-only retention inspection command is:
 fbt artifact retention
 ```
 
-It reports state bytes, immutable artifact bytes, run-record count, artifact
-version count, current-version count, historical-version count, and missing
-storage references. The command removes no files.
+It reports human-readable state size, immutable artifact size, run-record
+count, artifact version count, current-version count, historical-version count,
+and missing storage references. The command removes no files.
 
 For high-volume projects, archive `.fbt/state/` and `.fbt/artifacts/` together
 before any external cleanup. Current logical artifacts under `artifact_path`

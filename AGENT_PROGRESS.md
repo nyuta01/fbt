@@ -154,10 +154,13 @@ artifact path, version, and contextual `artifact show` command. Scannable
 artifact/retention output (`FBT-UX-013`) is done: human output summarizes
 semantic descriptors and reports retention sizes with human-readable units
 while JSON remains complete. The remaining backlog focuses on state/artifact
-directory semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`),
-standard export command UX (`FBT-STD-008`), and grouped doctor diagnostics
-(`FBT-UX-014`). These are polish tasks on the existing Unix-style core, not new
-core surfaces.
+directory semantics (`FBT-CONFIG-003`) is done: only `state.backend: local` is
+accepted, `state.path` must remain project-relative, and docs clarify that
+`--state-dir` affects receipts/state only, not `.fbt/artifacts` or
+`artifact_path`. The remaining backlog focuses on runner terminology
+(`FBT-RUNNER-011`), standard export command UX (`FBT-STD-008`), and grouped
+doctor diagnostics (`FBT-UX-014`). These are polish tasks on the existing
+Unix-style core, not new core surfaces.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
