@@ -3233,7 +3233,7 @@
       "id": "FBT-RUNNER-025",
       "title": "Expose runner stderr and exit diagnostics in protocol failures",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-BUILD-002",
@@ -3254,12 +3254,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "runner_start_stderr_test": false,
-        "failed_receipt_error_detail_test": false,
-        "cli_error_hint_test": false,
-        "make_verify": false
+        "runner_start_stderr_test": true,
+        "failed_receipt_error_detail_test": true,
+        "cli_error_hint_test": true,
+        "make_verify": true
       },
-      "notes": "When a runner exits before initialization or during a protocol call, core should retain bounded stderr and exit status in the safe error record and human hint so external-runner failures are diagnosable."
+      "notes": "The protocol client now captures bounded redacted stderr and exit status for startup and protocol-call failures. Build receipts and CLI errors include safe diagnostics and a runner setup hint without leaking configured runner env values."
     },
     {
       "id": "FBT-PDCA-001",

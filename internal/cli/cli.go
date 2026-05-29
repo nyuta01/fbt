@@ -2477,6 +2477,8 @@ func errorMessageHint(message string) string {
 		return "use a transform name, tag:, path:, resource_type:, selector:, or graph form such as +target."
 	case strings.Contains(message, "unknown flag: --dry-run") || strings.Contains(message, "unknown plan flag: --dry-run") || strings.Contains(message, "unknown build flag: --dry-run"):
 		return "use `fbt plan` to preview without writing state or starting runners."
+	case strings.Contains(message, "runner closed stdout before response") || strings.Contains(message, "failed to read runner response") || strings.Contains(message, "failed to write runner request") || strings.Contains(message, "runner stderr:"):
+		return "check the configured runner command with `fbt doctor`; inspect runner stderr and verify credentials or CLI setup."
 	default:
 		return ""
 	}

@@ -806,6 +806,36 @@ func TestRunDoctorShowsMixedRunnerDiagnosticStatuses(t *testing.T) {
 	}
 }
 
+func TestRunBuildShowsRunnerProtocolHintAndRedactsStderr(t *testing.T) {
+	root := writeCLIProject(t)
+	secret := "cli-secret-token"
+	t.Setenv("OPENAI_API_KEY", secret)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\necho \"runner boot failed: $OPENAI_API_KEY\" >&2\nexit 42\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner\n    env: [\"OPENAI_API_KEY\"]")
+	writeFile(t, root, "fs_project.yml", content)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	code := Run([]string{"build", "--project-dir", root}, &stdout, &stderr)
+	if code == 0 {
+		t.Fatalf("expected build failure, stdout=%q stderr=%q", stdout.String(), stderr.String())
+	}
+	errText := stderr.String()
+	if !strings.Contains(errText, "runner boot failed") {
+		t.Fatalf("expected runner stderr in CLI error, got %q", errText)
+	}
+	if !strings.Contains(errText, "Hint: check the configured runner command with `fbt doctor`") {
+		t.Fatalf("expected runner protocol hint, got %q", errText)
+	}
+	if strings.Contains(errText, secret) {
+		t.Fatalf("CLI error leaked secret: %q", errText)
+	}
+}
+
 func writeCLIArtifactVersion(t *testing.T, store state.Store, root, versionID, storagePath, body string) state.ArtifactVersion {
 	t.Helper()
 	writeFile(t, root, filepath.Join(storagePath, "index.md"), "# Summary\n"+body+"\n")

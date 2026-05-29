@@ -89,7 +89,8 @@ Initial transport: stdio.
 - Core starts runner process.
 - Core writes JSON-RPC messages to stdin.
 - Runner writes JSON-RPC messages to stdout.
-- stderr is human-readable debug output.
+- stderr is human-readable debug output. Core may include bounded, redacted
+  stderr snippets in protocol failure diagnostics and failed-run receipts.
 - MVP framing is JSON Lines: one JSON-RPC object per line.
 - Current core and Go SDK implementations accept JSONL frames up to 16 MiB.
   Runners should keep raw source documents, raw prompts, and generated artifact

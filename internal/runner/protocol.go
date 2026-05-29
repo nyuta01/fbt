@@ -18,8 +18,9 @@ func StartProtocolClient(ctx context.Context, resolved Resolved) (*protocol.Clie
 		return nil, fmt.Errorf("runner command is empty")
 	}
 	return protocol.Start(ctx, command, resolved.Args, protocol.Options{
-		Dir: resolved.CWD,
-		Env: runnerEnv(resolved.Env),
+		Dir:            resolved.CWD,
+		Env:            runnerEnv(resolved.Env),
+		RedactEnvNames: resolved.Env,
 	})
 }
 

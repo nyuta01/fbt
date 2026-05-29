@@ -205,6 +205,54 @@ func TestRunBuildRejectsOutputCandidateOutsideWorkOutputs(t *testing.T) {
 	}
 }
 
+func TestRunBuildRecordsRunnerStderrAndExitDiagnostics(t *testing.T) {
+	root := writeBuildProject(t)
+	secret := "build-secret-token"
+	t.Setenv("OPENAI_API_KEY", secret)
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\necho \"runner boot failed: $OPENAI_API_KEY\" >&2\nexit 42\n")
+	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	projectConfig := readFile(t, filepath.Join(root, "fs_project.yml"))
+	projectConfig = strings.ReplaceAll(projectConfig, "command: bin/fbt-fake-runner\n", "command: bin/fbt-fake-runner\n    env: [\"OPENAI_API_KEY\"]\n")
+	writeFile(t, root, "fs_project.yml", projectConfig)
+
+	_, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err == nil {
+		t.Fatal("expected runner protocol error")
+	}
+	message := err.Error()
+	if !strings.Contains(message, "runner boot failed") || !strings.Contains(message, "exit status 42") {
+		t.Fatalf("expected stderr and exit status in error, got %q", message)
+	}
+	if strings.Contains(message, secret) {
+		t.Fatalf("build error leaked secret: %q", message)
+	}
+
+	records := readRunRecords(t, root)
+	var found bool
+	for _, record := range records {
+		if record["record_type"] != "transform_run" || record["status"] != "failed" {
+			continue
+		}
+		errorRecord, ok := record["error"].(map[string]any)
+		if !ok || errorRecord["kind"] != "runner_protocol_error" {
+			continue
+		}
+		errorMessage, _ := errorRecord["message"].(string)
+		if !strings.Contains(errorMessage, "runner boot failed") || !strings.Contains(errorMessage, "exit status 42") {
+			t.Fatalf("expected receipt diagnostics, got %+v", errorRecord)
+		}
+		if strings.Contains(errorMessage, secret) {
+			t.Fatalf("receipt leaked secret: %q", errorMessage)
+		}
+		found = true
+	}
+	if !found {
+		t.Fatalf("expected failed runner protocol receipt, got %+v", records)
+	}
+}
+
 func TestRunBuildRecordsEvalAndConfidence(t *testing.T) {
 	root := writeBuildProject(t)
 

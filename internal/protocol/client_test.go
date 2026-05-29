@@ -94,6 +94,35 @@ func TestClientReadsLargeRunnerMessages(t *testing.T) {
 	}
 }
 
+func TestClientIncludesRedactedStderrAndExitStatus(t *testing.T) {
+	secret := "runner-secret-token"
+	client, err := Start(context.Background(), os.Args[0], []string{"-test.run=TestFakeRunnerProcess"}, Options{
+		Env: append(os.Environ(),
+			"FBT_FAKE_RUNNER=1",
+			"FBT_FAKE_RUNNER_MODE=exit_before_initialize",
+			"FBT_SECRET_TOKEN="+secret,
+		),
+		RedactEnvNames: []string{"FBT_SECRET_TOKEN"},
+	})
+	if err != nil {
+		t.Fatalf("start fake runner: %v", err)
+	}
+	defer client.Close()
+	_, err = client.Initialize(context.Background(), InitializeParams{})
+	if err == nil {
+		t.Fatal("expected initialize error")
+	}
+	message := err.Error()
+	for _, want := range []string{"runner closed stdout before response", "exit status 42", "runner stderr:", "startup failed", "[REDACTED]"} {
+		if !strings.Contains(message, want) {
+			t.Fatalf("expected error to contain %q, got %q", want, message)
+		}
+	}
+	if strings.Contains(message, secret) {
+		t.Fatalf("error leaked secret: %q", message)
+	}
+}
+
 func TestClientCancelsOnContext(t *testing.T) {
 	client := startFakeRunner(t, "hang")
 	defer client.Close()
@@ -199,6 +228,10 @@ func TestFakeRunnerProcess(t *testing.T) {
 		return
 	}
 	mode := os.Getenv("FBT_FAKE_RUNNER_MODE")
+	if mode == "exit_before_initialize" {
+		fmt.Fprintf(os.Stderr, "startup failed: %s\n", os.Getenv("FBT_SECRET_TOKEN"))
+		os.Exit(42)
+	}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		var request struct {

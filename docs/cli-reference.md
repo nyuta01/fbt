@@ -70,6 +70,11 @@ logical artifact files still land under each transform output path beneath
 | `6` | Missing dependency or runner not installed |
 | `130` | Cancelled by user |
 
+When an external runner exits before `initialize` or during a protocol call,
+`build` and `doctor` include a bounded, redacted stderr snippet when available.
+For `build`, the same safe diagnostic is written to failed run receipts under
+`.fbt/state/run_results.jsonl`.
+
 ## 4. Selection Syntax
 
 | Expression | Meaning |

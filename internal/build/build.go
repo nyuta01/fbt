@@ -551,6 +551,10 @@ func errorKind(err error, status string) string {
 	if errors.As(err, &rpcErr) {
 		return "runner_protocol_error"
 	}
+	var processErr protocol.RunnerProcessError
+	if errors.As(err, &processErr) {
+		return "runner_protocol_error"
+	}
 	message := err.Error()
 	switch {
 	case strings.Contains(message, "output candidate outside work outputs"):

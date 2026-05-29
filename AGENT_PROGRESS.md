@@ -76,9 +76,8 @@ done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 The latest full review added a new post-MVP hardening backlog. Real CLI-agent
 policy enforcement (`FBT-RUNNER-022`) and explicit large JSON-RPC JSONL frame
 handling (`FBT-RUNNER-023`) are done. Visible CLI-agent staged-input truncation
-failures (`FBT-RUNNER-024`) are also done. The remaining runner robustness task
-is bounded stderr/exit diagnostics for runner protocol failures
-(`FBT-RUNNER-025`).
+failures (`FBT-RUNNER-024`) and bounded stderr/exit diagnostics for runner
+protocol failures (`FBT-RUNNER-025`) are also done.
 
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
@@ -112,6 +111,12 @@ source or asset files through a truncating `LimitReader`. Files within the 2
 MiB per-file staging limit are copied completely; oversized source or asset
 files return an actionable error naming the file and limit before any external
 CLI process is invoked.
+
+`FBT-RUNNER-025` is done. The protocol client captures bounded runner stderr
+and process exit status for startup and protocol-call failures. Values from
+project-configured runner env names are redacted before the diagnostic reaches
+CLI output or failed build receipts. CLI errors now include a runner setup hint
+that points users back to `fbt doctor`.
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform
