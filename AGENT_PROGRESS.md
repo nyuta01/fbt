@@ -64,6 +64,15 @@ The single-purpose boundary is explicit in README, specs, and docs site: fbt
 composes with dbt, DataChain, DVC, Snakemake, remark, Pandoc, schedulers,
 provider SDKs, artifact stores, and catalogs, but does not replace them.
 
+A product audit against that boundary is now captured in the structured
+backlog. The critical gaps are not review, scheduling, provider SDKs, or custom
+visualization; those remain outside core. The new high-priority tasks focus on
+build-tool reliability: one-invocation dependency-ordered builds
+(`FBT-BUILD-001`), failed-run receipts (`FBT-BUILD-002`), inert config cleanup
+(`FBT-CONFIG-001`), strict YAML diagnostics (`FBT-CONFIG-002`), CLI-agent
+adapter safety (`FBT-RUNNER-010`), and stale current-state docs cleanup
+(`FBT-DOCS-DRIFT-001`).
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
@@ -149,14 +158,16 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Keep base runtime free of provider SDKs and heavyweight agent dependencies.
-2. Keep approval, publishing, scheduling, and catalog-specific ingestion outside
-   core unless implemented as external tooling.
-3. Improve source-window ergonomics and artifact explanations without turning
-   fbt into a scheduler or transform engine.
-4. Keep graph, trace, and catalog visualization on standard-compatible exports
-   rather than a custom fbt backend.
-5. Add CLI surface only when backed by a spec and verification.
+1. Start with `FBT-BUILD-001`: a selected upstream/downstream graph should build
+   in one dependency-ordered invocation when no external blocker remains.
+2. Then implement `FBT-BUILD-002` so failed runner, policy, eval, and
+   cancellation paths leave safe receipts without moving artifact pointers.
+3. Clean the project contract through `FBT-CONFIG-001` and `FBT-CONFIG-002` so
+   YAML has no placebo controls and typos fail fast.
+4. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
+   SDKs and agent runtimes outside base core.
+5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+   visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent
 

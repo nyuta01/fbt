@@ -2230,6 +2230,278 @@
       "notes": "Made `fbt plan` read-only by removing its manifest write. Manifest snapshots are written by `fbt build`; CLI tests, smoke checks, dist checks, and docs now assert or describe the read-only plan behavior."
     },
     {
+      "id": "FBT-UNIX-017",
+      "title": "Capture critical product gap backlog",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-015",
+        "FBT-UNIX-016"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UNIX-017-plan.md",
+      "paths": [
+        "docs/exec-plans/feature-list.json",
+        "docs/exec-plans/active/FBT-UNIX-017-plan.md",
+        "docs/exec-plans/active/FBT-BUILD-001-plan.md",
+        "docs/exec-plans/active/FBT-BUILD-002-plan.md",
+        "docs/exec-plans/active/FBT-CONFIG-001-plan.md",
+        "docs/exec-plans/active/FBT-CONFIG-002-plan.md",
+        "docs/exec-plans/active/FBT-RUNNER-009-plan.md",
+        "docs/exec-plans/active/FBT-RUNNER-010-plan.md",
+        "docs/exec-plans/active/FBT-STATE-002-plan.md",
+        "docs/exec-plans/active/FBT-STD-007-plan.md",
+        "docs/exec-plans/active/FBT-DOCS-DRIFT-001-plan.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "harness_check": true,
+        "drift_check": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Converted the product audit into restartable backlog items. The highest-priority gaps are one-invocation DAG builds, failed-run receipts, inert config cleanup, strict YAML diagnostics, CLI-agent adapter safety, and stale boundary-doc cleanup."
+    },
+    {
+      "id": "FBT-BUILD-001",
+      "title": "Execute selected build DAGs in dependency order",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-016"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-BUILD-001-plan.md",
+      "paths": [
+        "internal/planner",
+        "internal/build",
+        "internal/graph",
+        "internal/cli",
+        "docs/spec.md",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "scripts",
+        "tests"
+      ],
+      "verification": {
+        "go_test": false,
+        "cli_smoke": false,
+        "conformance": false,
+        "make_verify": false
+      },
+      "notes": "Selected transforms should run in topological order within one build invocation. A selected downstream transform that depends on an upstream selected in the same build should run after the upstream commits instead of requiring a second command."
+    },
+    {
+      "id": "FBT-BUILD-002",
+      "title": "Persist failed build and transform receipts",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-BUILD-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-BUILD-002-plan.md",
+      "paths": [
+        "internal/build",
+        "internal/state",
+        "internal/cli",
+        "internal/telemetry",
+        "docs/state-and-run-results-spec.md",
+        "docs/spec.md",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "cli_smoke": false,
+        "make_verify": false
+      },
+      "notes": "Build receipts must explain failed runner, policy, eval, cancellation, and interrupted runs. Failed invocations should append completion records and transform failure records without moving official artifact pointers."
+    },
+    {
+      "id": "FBT-CONFIG-001",
+      "title": "Remove or implement inert config fields",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-015"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-CONFIG-001-plan.md",
+      "paths": [
+        "internal/config",
+        "internal/parser",
+        "internal/build",
+        "internal/planner",
+        "docs/project-config-spec.md",
+        "docs/spec.md",
+        "docs/usage-guide.md",
+        "examples",
+        "tests"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false,
+        "make_verify": false
+      },
+      "notes": "Audit execution.max_workers, fail_fast, defaults.cache, defaults.confidence, and transform cache. Either wire each field to real behavior or remove/reserve it with explicit diagnostics so project YAML has no placebo controls."
+    },
+    {
+      "id": "FBT-CONFIG-002",
+      "title": "Reject unknown YAML fields with actionable diagnostics",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-CONFIG-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-CONFIG-002-plan.md",
+      "paths": [
+        "internal/config",
+        "internal/parser",
+        "docs/project-config-spec.md",
+        "docs/schema-and-versioning-spec.md",
+        "scripts",
+        "tests"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false,
+        "make_verify": false
+      },
+      "notes": "Project and resource YAML should fail fast on misspelled or legacy fields. Review removal has a one-off diagnostic; the parser needs a general strict-field contract with file, line, resource, and hint."
+    },
+    {
+      "id": "FBT-RUNNER-009",
+      "title": "Add opt-in real runner adapter smoke matrix",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-009-plan.md",
+      "paths": [
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "examples/runner_adapter_scaffold",
+        "scripts",
+        "Makefile"
+      ],
+      "verification": {
+        "runner_conformance": false,
+        "validate_docs": false,
+        "make_verify": false
+      },
+      "notes": "Keep provider SDKs outside core, but make OpenAI, Claude Code, Codex, Gemini, and internal CLI adapters easier to validate through opt-in smoke commands and documented adapter package contracts."
+    },
+    {
+      "id": "FBT-RUNNER-010",
+      "title": "Harden CLI-agent adapter safety contract",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-005",
+        "FBT-RUNNER-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-010-plan.md",
+      "paths": [
+        "docs/security-and-conformance-spec.md",
+        "docs/runner-authoring-guide.md",
+        "docs/runner-adapters.md",
+        "tests/runner-conformance",
+        "examples/runner_adapter_scaffold"
+      ],
+      "verification": {
+        "runner_conformance": false,
+        "conformance": false,
+        "validate_docs": false,
+        "make_verify": false
+      },
+      "notes": "Adapters for Codex CLI, Claude Code, Gemini CLI, or other agents must prove staging-workspace behavior, policy fail-closed mapping, redaction, and no direct writes to sources, artifact paths, or .fbt/state."
+    },
+    {
+      "id": "FBT-STATE-002",
+      "title": "Define local state and artifact retention hygiene",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-BUILD-002"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-STATE-002-plan.md",
+      "paths": [
+        "internal/state",
+        "internal/artifact",
+        "docs/state-and-run-results-spec.md",
+        "docs/usage-guide.md",
+        "docs/spec.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": false,
+        "conformance": false,
+        "validate_docs": false,
+        "make_verify": false
+      },
+      "notes": "Immutable history is valuable, but daily high-volume projects need a clear local retention and archive story. Define the smallest safe hygiene mechanism without adding a metadata database or remote artifact store."
+    },
+    {
+      "id": "FBT-STD-007",
+      "title": "Add opt-in standard backend visualization verification",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STD-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-STD-007-plan.md",
+      "paths": [
+        "docs/standard-visualization-guide.md",
+        "examples/standard_visualization",
+        "apps/docs/src/content/docs/standards",
+        "scripts",
+        "Makefile"
+      ],
+      "verification": {
+        "validate_docs": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "Base verify should stay service-free, but docs should be backed by opt-in Marquez and OTLP backend smoke recipes plus screenshots captured from real standard tools."
+    },
+    {
+      "id": "FBT-DOCS-DRIFT-001",
+      "title": "Remove stale core-boundary references",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UNIX-014",
+        "FBT-UNIX-017"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-DRIFT-001-plan.md",
+      "paths": [
+        "docs/runner-protocol-spec.md",
+        "internal/README.md",
+        "docs",
+        "apps/docs",
+        "scripts"
+      ],
+      "verification": {
+        "validate_docs": false,
+        "drift_check": false,
+        "make_verify": false
+      },
+      "notes": "Audit current-state docs for stale claims such as core-owned approval state, removed CLI commands, docs generation, or internal debug surfaces. Add a deterministic grep guard for the non-core terms where possible."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
