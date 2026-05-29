@@ -33,8 +33,8 @@ state, policy/eval checks, descriptors, and official commits.
 ## 2. Minimal Scaffold
 
 Adapter is the authoring/package word for a runner command plus its dependency
-and setup wrapper. Start from `examples/runner_adapter_scaffold` when building a new adapter. It
-contains:
+and setup wrapper. Start from `examples/runner_adapter_scaffold` when building
+a new adapter. It contains:
 
 ```text
 bin/fbt-runner-example
@@ -52,6 +52,12 @@ python3 tests/runner-conformance/run.py \
   --strict \
   --agent-adapter
 ```
+
+The repository also keeps source-checkout adapter examples under
+`examples/runner_adapters/` and test-only protocol fixtures under
+`tests/runner_fixtures/`. There is intentionally no top-level `runners/`
+directory, because runner implementations are external commands, not fbt core
+packages.
 
 ## 3. Package Naming
 
@@ -71,7 +77,7 @@ identifies the runner contract used by transforms. One package may provide
 multiple logical runners when they share the same executable and dependency
 set.
 
-The source tree includes `runners/openai` as an optional source-checkout
+The source tree includes `examples/runner_adapters/openai` as an optional source-checkout
 adapter for the practical examples. It is outside `internal/`, is invoked as an
 external process, and reads `OPENAI_API_KEY` from the environment. Separately
 packaged adapters should follow the same protocol and credential boundary.

@@ -316,8 +316,8 @@
       ],
       "plan_url": "docs/exec-plans/active/FBT-MVP-009-plan.md",
       "paths": [
-        "runners/fake",
-        "runners/command",
+        "tests/runner_fixtures/fake",
+        "examples/runner_adapters/command",
         "tests/fixtures"
       ],
       "verification": {
@@ -417,8 +417,8 @@
       ],
       "plan_url": "docs/exec-plans/active/FBT-MVP-013-plan.md",
       "paths": [
-        "runners/llm",
-        "runners/agent",
+        "examples/runner_adapters/demo_llm",
+        "examples/runner_adapters/demo_agent",
         "docs/runner-protocol-spec.md",
         "docs/examples/knowledge-loop-example.md"
       ],
@@ -1228,7 +1228,7 @@
       "paths": [
         "internal/build",
         "internal/protocol",
-        "runners/fake",
+        "tests/runner_fixtures/fake",
         "docs/runner-protocol-spec.md",
         "docs/exec-plans/active/FBT-RUNNER-001-plan.md"
       ],
@@ -1313,7 +1313,7 @@
         "docs/security-and-conformance-spec.md",
         "docs/usage-guide.md",
         "internal/build",
-        "runners/fake",
+        "tests/runner_fixtures/fake",
         "tests/conformance"
       ],
       "verification": {
@@ -1361,7 +1361,7 @@
       ],
       "plan_url": "docs/exec-plans/active/FBT-RUNNER-006-plan.md",
       "paths": [
-        "runners",
+        "examples/runner_adapters",
         "internal/templates",
         "README.md",
         "docs/usage-guide.md",
@@ -1507,7 +1507,7 @@
       ],
       "plan_url": "docs/exec-plans/active/FBT-RUNNER-008-plan.md",
       "paths": [
-        "runners/openai",
+        "examples/runner_adapters/openai",
         "examples/incident_response_runbook",
         "examples/support_resolution_manual",
         "docs/examples/practical-manual-generation-examples.md"
@@ -1519,7 +1519,7 @@
         "real_openai_smoke": false
       },
       "verification_override_reason": "Real OpenAI API calls require a user-provided secret and are intentionally outside `make verify`; runner behavior is covered by an httptest Responses API fixture plus parse/plan example smoke.",
-      "notes": "Adds an optional source-checkout `runners/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
+      "notes": "Adds an optional source-checkout `examples/runner_adapters/openai` external runner that speaks fbt stdio JSON-RPC, reads `OPENAI_API_KEY`, calls the OpenAI Responses API, writes output candidates under `work.outputs`, and is wired into the practical examples through project-local wrappers."
     },
     {
       "id": "FBT-DOCSITE-001",
@@ -2685,6 +2685,35 @@
         "make_verify": true
       },
       "notes": "OpenAI, Claude Code, Codex, Gemini, scripts, converters, and internal tools are now presented through one external-command runner mental model. Adapter, protocol, conformance, and smoke terminology remains available for authors."
+    },
+    {
+      "id": "FBT-RUNNER-012",
+      "title": "Clarify runner adapter repository layout",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-011"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-012-plan.md",
+      "paths": [
+        "examples/runner_adapters",
+        "tests/runner_fixtures",
+        "examples/runner_adapters/README.md",
+        "internal/templates",
+        "Makefile",
+        "docs/runner-adapters.md",
+        "internal/README.md",
+        "tests/runner-conformance"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "runner_conformance": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "The ambiguous top-level runners directory was removed. Source-checkout runner adapter examples now live under examples/runner_adapters, while protocol-only fake fixtures live under tests/runner_fixtures."
     },
     {
       "id": "FBT-STD-008",

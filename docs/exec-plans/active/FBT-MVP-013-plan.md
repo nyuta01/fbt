@@ -11,9 +11,9 @@ without adding provider SDKs to the base runtime.
 
 Implement optional local AI runner examples:
 
-- add `runners/llm` for deterministic mock LLM output, usage, cost, and
+- add `examples/runner_adapters/demo_llm` for deterministic mock LLM output, usage, cost, and
   provenance reporting
-- add `runners/agent` for deterministic mock agent output, usage, provenance,
+- add `examples/runner_adapters/demo_agent` for deterministic mock agent output, usage, provenance,
   and redacted tool-call events
 - pass transform model/tools from build into `fbt/runTransform`
 - record runner usage/provenance in transform run records

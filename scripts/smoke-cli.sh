@@ -21,7 +21,7 @@ project="$tmpdir/project"
 mkdir -p "$project"/{bin,sources,transforms,assets,policies,evals,prompts,data/support/tickets}
 cat >"$project/bin/fbt-fake-runner" <<SH
 #!/usr/bin/env sh
-exec go run "$ROOT_DIR/runners/fake"
+exec go run "$ROOT_DIR/tests/runner_fixtures/fake"
 SH
 chmod +x "$project/bin/fbt-fake-runner"
 cat >"$project/fs_project.yml" <<'YAML'

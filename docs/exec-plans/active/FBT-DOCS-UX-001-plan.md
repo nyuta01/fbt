@@ -7,8 +7,8 @@ answer the practical user questions first: what fbt can do today, how the
 commands run, what files are produced, what the generated artifacts look like,
 and where the promised lineage graph and standard export records appear.
 While capturing the quickstart from outside the repository, generated demo
-runner wrappers failed because they invoked `go run ./runners/...` without
-first changing to the source checkout.
+runner wrappers failed because they invoked source-checkout runner paths
+without first changing to the source checkout.
 
 ## Decision
 

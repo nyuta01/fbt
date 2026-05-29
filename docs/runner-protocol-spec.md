@@ -694,9 +694,9 @@ Not required in MVP:
 
 The repository includes optional protocol-compatible demo examples:
 
-- `runners/llm`: deterministic demo LLM output with usage, estimated cost, and
+- `examples/runner_adapters/demo_llm`: deterministic demo LLM output with usage, estimated cost, and
   provenance fields
-- `runners/agent`: deterministic demo agent output with usage, provenance, and
+- `examples/runner_adapters/demo_agent`: deterministic demo agent output with usage, provenance, and
   redacted `tool_call.completed` events
 
 These runners are out-of-process stdio JSON-RPC programs. They are intended for

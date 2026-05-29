@@ -145,7 +145,7 @@ func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 func TestRunBuildRejectsIncompatibleRunnerCapabilities(t *testing.T) {
 	root := writeBuildProject(t)
 	repoRoot := repoRoot(t)
-	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_ARTIFACT_TYPES=text\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_ARTIFACT_TYPES=text\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestRunBuildRejectsIncompatibleRunnerCapabilities(t *testing.T) {
 func TestRunBuildRejectsOutputCandidateOutsideWorkOutputs(t *testing.T) {
 	root := writeBuildProject(t)
 	repoRoot := repoRoot(t)
-	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexport FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -248,7 +248,7 @@ func TestRunBuildEvalFailureDoesNotCommitOutput(t *testing.T) {
 func TestRunBuildWithLocalLLMRunnerRecordsUsageAndProvenance(t *testing.T) {
 	root := writeBuildProject(t)
 	repoRoot := repoRoot(t)
-	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "llm"))+"\n")
+	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "examples", "runner_adapters", "demo_llm"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-local-llm-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -294,7 +294,7 @@ func TestRunBuildWithLocalLLMRunnerRecordsUsageAndProvenance(t *testing.T) {
 func TestRunBuildStoresImmutableVersionContent(t *testing.T) {
 	root := writeBuildProject(t)
 	repoRoot := repoRoot(t)
-	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "llm"))+"\n")
+	writeFile(t, root, "bin/fbt-local-llm-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "examples", "runner_adapters", "demo_llm"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-local-llm-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +380,7 @@ func TestRunBuildPassesCompleteProtocolContext(t *testing.T) {
 
 	capturePath := filepath.Join(root, ".fbt", "captured-runner-params.json")
 	t.Setenv("FBT_FAKE_RUNNER_CAPTURE_PARAMS", capturePath)
-	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +429,7 @@ func writeBuildProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	repoRoot := repoRoot(t)
-	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-fake-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(filepath.Join(root, "bin", "fbt-fake-runner"), 0o755); err != nil {
 		t.Fatal(err)
 	}

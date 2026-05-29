@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--runner-command",
-        default=os.environ.get("FBT_RUNNER_CONFORMANCE_COMMAND", "go run ./runners/fake"),
+        default=os.environ.get("FBT_RUNNER_CONFORMANCE_COMMAND", "go run ./tests/runner_fixtures/fake"),
         help="runner command to execute; defaults to FBT_RUNNER_CONFORMANCE_COMMAND or the source fake runner",
     )
     parser.add_argument(

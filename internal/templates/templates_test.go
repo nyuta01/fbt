@@ -36,7 +36,7 @@ func TestCreateSupportProjectParses(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(wrapperContent), "cd ") || !strings.Contains(string(wrapperContent), "go run './runners/agent'") {
+	if !strings.Contains(string(wrapperContent), "cd ") || !strings.Contains(string(wrapperContent), "go run './examples/runner_adapters/demo_agent'") {
 		t.Fatalf("runner wrapper should cd to the source checkout before go run:\n%s", string(wrapperContent))
 	}
 }

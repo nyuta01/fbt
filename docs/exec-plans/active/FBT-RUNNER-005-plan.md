@@ -17,7 +17,7 @@ to run in `make verify` against the source fake runner.
 
 Added `tests/runner-conformance/run.py`, sample JSON fixtures, a shell wrapper,
 `make runner-conformance`, and a runner authoring guide. `make verify` now runs
-the strict conformance fixture by default against `runners/fake`.
+the strict conformance fixture by default against `tests/runner_fixtures/fake`.
 
 ## Next Check
 

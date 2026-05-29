@@ -3,4 +3,4 @@
 # Replace the matching runner entry in fs_project.yml for real provider execution.
 ROOT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$ROOT_DIR" || exit 1
-exec go run ./runners/llm "$@"
+exec go run ./examples/runner_adapters/demo_llm "$@"

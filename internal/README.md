@@ -11,9 +11,9 @@ transforms as run, skip, or blocked. The public CLI exposes the small project
 loop: init, doctor, plan, build, artifact inspection, diff, and standard
 exports. The runner and protocol packages discover external runner commands,
 start JSON-RPC stdio runners, and collect events/output candidates.
-Local fake and command runners live outside `internal/` under `runners/`,
-alongside deterministic demo LLM/agent examples and the optional OpenAI
-Responses external runner. The build package wires the current
+Runner adapter examples live outside `internal/` under
+`examples/runner_adapters/`; protocol-only test fixtures live under
+`tests/runner_fixtures/`. The build package wires the current
 parse-plan-run-commit-state lifecycle for local protocol runners, with baseline
 policy checks, deterministic evals, and runner usage/provenance records before
 official commit.

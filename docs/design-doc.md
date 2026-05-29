@@ -209,7 +209,8 @@ internal/runner     runner discovery and protocol client
 internal/eval       eval execution
 internal/lineage    OpenLineage and OTel exports
 internal/diff       artifact diffs
-runners/            optional external runner implementations
+examples/runner_adapters/ optional external runner adapter examples
+tests/runner_fixtures/    protocol fixtures used by tests
 ```
 
 ## 10. Current MVP

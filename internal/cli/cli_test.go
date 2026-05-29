@@ -406,7 +406,7 @@ func TestRunBuildShowsCommittedArtifactPathAndNext(t *testing.T) {
 	root := writeCLIProject(t)
 	repoRoot := repoRoot(t)
 	command := filepath.Join(root, "bin", "fbt-openai-runner")
-	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(command, 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -753,7 +753,7 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	root := writeCLIProject(t)
 	repoRoot := repoRoot(t)
 	command := filepath.Join(root, "bin", "fbt-openai-runner")
-	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
 	if err := os.Chmod(command, 0o755); err != nil {
 		t.Fatal(err)
 	}

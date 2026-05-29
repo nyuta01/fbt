@@ -174,7 +174,7 @@ capability_mismatch="$tmpdir/capability-mismatch"
 cat >"$capability_mismatch/bin/fbt-demo-llm-runner" <<EOF_RUNNER
 #!/usr/bin/env sh
 export FBT_FAKE_RUNNER_ARTIFACT_TYPES=text
-exec go run "$ROOT_DIR/runners/fake" "\$@"
+exec go run "$ROOT_DIR/tests/runner_fixtures/fake" "\$@"
 EOF_RUNNER
 chmod +x "$capability_mismatch/bin/fbt-demo-llm-runner"
 set +e
@@ -196,7 +196,7 @@ candidate_escape="$tmpdir/candidate-escape"
 cat >"$candidate_escape/bin/fbt-demo-llm-runner" <<EOF_RUNNER
 #!/usr/bin/env sh
 export FBT_FAKE_RUNNER_OUTPUT_OUTSIDE_WORK=1
-exec go run "$ROOT_DIR/runners/fake" "\$@"
+exec go run "$ROOT_DIR/tests/runner_fixtures/fake" "\$@"
 EOF_RUNNER
 chmod +x "$candidate_escape/bin/fbt-demo-llm-runner"
 set +e

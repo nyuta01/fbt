@@ -39,11 +39,11 @@ validate-docs: ## Validate docs-local links and language/file-name invariants.
 
 .PHONY: fmt
 fmt: ## Format Go source.
-	@$(GOFMT) -w cmd internal runners
+	@$(GOFMT) -w cmd internal examples/runner_adapters tests/runner_fixtures
 
 .PHONY: fmt-check
 fmt-check: ## Verify Go source formatting.
-	@test -z "$$($(GOFMT) -l cmd internal runners)"
+	@test -z "$$($(GOFMT) -l cmd internal examples/runner_adapters tests/runner_fixtures)"
 
 .PHONY: go-test
 go-test: ## Run Go unit tests.

@@ -10,9 +10,9 @@ simple command transforms.
 
 Add two out-of-process runners:
 
-- `runners/fake`: deterministic protocol runner that creates simple output
+- `tests/runner_fixtures/fake`: deterministic protocol runner that creates simple output
   candidates under the assigned work directory without external services
-- `runners/command`: protocol runner that executes a configured local command
+- `examples/runner_adapters/command`: protocol runner that executes a configured local command
   with `FBT_WORK_ROOT`, `FBT_WORK_TEMP`, and `FBT_WORK_OUTPUTS`
 - tests that start each runner as an external process through the protocol
   client
@@ -20,7 +20,7 @@ Add two out-of-process runners:
 
 ## Permanent Fix
 
-Added process-level Go tests that start `runners/fake` and `runners/command`
+Added process-level Go tests that start `tests/runner_fixtures/fake` and `examples/runner_adapters/command`
 through the protocol client and verify initialize, runTransform, output files,
 and output-candidate notifications.
 

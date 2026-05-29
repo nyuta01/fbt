@@ -248,13 +248,15 @@ The checked-in examples cover:
 - `examples/support_resolution_manual`: optional OpenAI runner flow for turning
   support evidence into a manual.
 
-External runner extensibility remains out-of-core. `runners/openai` is optional
-and reads `OPENAI_API_KEY`; provider SDKs and agent runtimes are not part of
-base core. Runner authoring, adapter packaging, protocol fixtures, and
-conformance checks are documented under `docs/runner-authoring-guide.md`,
-`docs/runner-adapters.md`, and `tests/runner-conformance/`. Installed adapter
-checks use `make runner-adapter-smoke` with explicit matrix rows and optional
-real builds.
+External runner extensibility remains out-of-core. Source-checkout adapter
+examples live under `examples/runner_adapters/`, test-only protocol fixtures
+live under `tests/runner_fixtures/`, and there is no top-level `runners/`
+directory. The optional OpenAI adapter reads `OPENAI_API_KEY`; provider SDKs
+and agent runtimes are not part of base core. Runner authoring, adapter
+packaging, protocol fixtures, and conformance checks are documented under
+`docs/runner-authoring-guide.md`, `docs/runner-adapters.md`, and
+`tests/runner-conformance/`. Installed adapter checks use
+`make runner-adapter-smoke` with explicit matrix rows and optional real builds.
 
 ## Verification
 
