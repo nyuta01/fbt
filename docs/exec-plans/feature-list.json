@@ -4319,21 +4319,31 @@
       "id": "FBT-EVAL-003",
       "title": "Add production quality-gate reference workflow",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-EVAL-002",
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-EVAL-003-plan.md",
       "paths": [
         "examples/daily_qa_ops/",
         "examples/semantic_eval_boundary/",
         "docs/examples/",
-        "scripts/"
+        "scripts/",
+        "docs/exec-plans/active/FBT-EVAL-003-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Show structural, evidence-grounding, and domain-review gates as fbt artifacts or CI checks, including expected pass/fail output and explainable receipts, without adding LLM judge logic to core."
+      "verification": {
+        "structural_gate": true,
+        "evidence_lineage_gate": true,
+        "domain_review_handoff": true,
+        "daily_ops_smoke": true,
+        "make_verify": true
+      },
+      "notes": "The daily support ops wrapper now runs an external quality gate that checks artifact existence, lineage/evidence markers, and records domain review as a pending external handoff. It writes text and JSON results into the run bundle without adding LLM judge or approval logic to fbt core."
     },
     {
       "id": "FBT-STATE-006",

@@ -37,6 +37,7 @@ run_fbt artifact explain manual_update >"$run_dir/manual_update-explain.txt"
 run_fbt artifact retention >"$run_dir/retention.txt"
 run_fbt export openlineage --output "$run_dir/openlineage.ndjson" >"$run_dir/openlineage-export.txt"
 run_fbt export otel --output "$run_dir/otel.json" >"$run_dir/otel-export.txt"
+"$script_dir/check-quality-gates.py" --project-dir "$project_dir" --run-dir "$run_dir" >"$run_dir/quality-gates.txt"
 
 cat >"$run_dir/summary.md" <<EOF
 # fbt Daily Support Knowledge Run
@@ -63,6 +64,7 @@ cat >"$run_dir/summary.md" <<EOF
 - retention.txt: local state and artifact archive boundary
 - openlineage.ndjson: standard lineage events
 - otel.json: OTLP/JSON trace payload
+- quality-gates.txt/json: structural and evidence gates plus review handoff
 
 Approval, publishing, notifications, and scheduling stay outside fbt. In a
 production job, hand this run directory to Git, CI artifacts, Slack, or your

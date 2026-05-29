@@ -38,6 +38,7 @@ source readiness marker
   -> fbt artifact show/explain
   -> fbt artifact retention
   -> fbt export openlineage / otel
+  -> external quality gates
 ```
 
 It writes a CI-friendly run bundle under:
@@ -200,8 +201,30 @@ Change the window outside fbt:
 | Daily source window | Stable source paths and content fingerprints. | Ingestion, date partitions, `_READY` marker, expected counts. |
 | State retention | `artifact retention`, immutable versions, archive boundary. | Storage lifecycle, backup, long-term pruning policy. |
 | Approval and publish | Diff, explain, standard exports. | Git PRs, human review, Slack, wiki/catalog publishing. |
-| Quality checks | Deterministic eval receipts and confidence. | Domain review, LLM judge, semantic evidence scoring, incident ownership. |
+| Quality checks | Deterministic eval receipts, confidence, and run-bundle evidence. | Domain review, LLM judge, semantic evidence scoring, incident ownership. |
 | Team authority | Reproducible CLI commands and local state records. | CI as the authoritative builder and run-bundle archive. |
+
+## Production Quality Gates
+
+`examples/daily_qa_ops/ops/check-quality-gates.py` demonstrates the recommended
+boundary for production checks. It is an external CI check over fbt outputs, not
+a core fbt command.
+
+Expected passing shape:
+
+```text
+Quality Gates
+  PASS    structural_artifacts - all declared artifacts exist and are non-empty
+  PASS    evidence_lineage - artifact explain and OpenLineage expose upstream evidence
+  PENDING domain_review - manual_update requires external owner review before publishing
+  RESULT  pass
+```
+
+If artifacts are missing or lineage evidence is absent, the check exits nonzero
+and the run bundle contains `quality-gates.json` explaining the failure. A
+separate LLM judge or domain-specific evidence scorer can be added as another
+external check that writes a normal report artifact or CI result; fbt core does
+not need to interpret that domain logic.
 
 ## Retention
 

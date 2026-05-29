@@ -596,6 +596,13 @@ the daily wrapper calls fbt, and docs now distinguish `new_items_only`,
 `cumulative`, `correction`, `deletion`, and `backfill` without adding ingestion
 or date partitioning to fbt core.
 
+`FBT-EVAL-003` is done. The daily support ops wrapper now runs
+`ops/check-quality-gates.py` after build and standard exports. It records
+structural artifact checks, evidence-lineage checks, and a pending external
+domain-review handoff as `quality-gates.txt` and `quality-gates.json` in the
+run bundle. The quality gate remains an external CI check rather than fbt core
+LLM-judge or approval behavior.
+
 ## Verification
 
 Required gate before calling work done:
@@ -612,7 +619,7 @@ runner conformance, product conformance, and distribution smoke checks.
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-EVAL-003`, `FBT-PROD-001`, and `FBT-RUNNER-027`.
+   `FBT-PROD-001` and `FBT-RUNNER-027`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

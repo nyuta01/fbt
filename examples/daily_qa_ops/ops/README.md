@@ -15,6 +15,7 @@ prepared source window
   -> fbt artifact show/explain
   -> fbt artifact retention
   -> fbt export openlineage / otel
+  -> external quality gates
   -> CI or publish workflow receives the run bundle
 ```
 
@@ -32,7 +33,30 @@ examples/daily_qa_ops/target/ops/latest/
 ```
 
 The bundle contains source-window validation, human command output, artifact
-inspection output, retention report, OpenLineage NDJSON, and OTLP/JSON traces.
+inspection output, retention report, OpenLineage NDJSON, OTLP/JSON traces, and
+quality-gate output.
+
+## Quality Gates
+
+`ops/check-quality-gates.py` is a production-shaped CI check, not fbt core
+logic. It reads generated artifacts plus the run bundle and writes:
+
+```text
+quality-gates.txt
+quality-gates.json
+```
+
+The checked gates are:
+
+| Gate | Meaning |
+|---|---|
+| `structural_artifacts` | Declared artifacts exist and are non-empty. |
+| `evidence_lineage` | Artifact explain and OpenLineage expose the expected upstream evidence. |
+| `domain_review` | Publishing still requires an external owner review. |
+
+The first two gates fail the wrapper when they fail. `domain_review` is recorded
+as `pending` because human approval belongs in Git, PRs, tickets, or your
+knowledge-base workflow.
 
 ## Source Readiness
 
