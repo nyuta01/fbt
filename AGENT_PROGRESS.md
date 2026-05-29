@@ -148,9 +148,10 @@ tests cover the key wording. Actionable common errors (`FBT-UX-010`) is also
 done: declared-but-unbuilt artifacts, empty selectors, and `--dry-run` produce
 strict errors plus short `Hint:` lines. Copy-paste-safe next commands
 (`FBT-UX-011`) is done: `plan`, `build`, and `artifact explain` preserve
-`--project-dir` and `--state-dir` in printed next steps. The remaining backlog
-focuses on showing build output paths (`FBT-UX-012`),
-scannable artifact/retention output (`FBT-UX-013`), state/artifact directory
+`--project-dir` and `--state-dir` in printed next steps. Showing build output
+paths (`FBT-UX-012`) is done: successful builds now print each committed
+artifact path, version, and contextual `artifact show` command. The remaining
+backlog focuses on scannable artifact/retention output (`FBT-UX-013`), state/artifact directory
 semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`), standard
 export command UX (`FBT-STD-008`), and grouped doctor diagnostics
 (`FBT-UX-014`). These are polish tasks on the existing Unix-style core, not new

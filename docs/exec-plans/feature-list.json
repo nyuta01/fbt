@@ -2584,13 +2584,13 @@
       "id": "FBT-UX-012",
       "title": "Show committed artifact paths after build",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-010",
         "FBT-UX-008"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-012-plan.md",
       "paths": [
         "internal/cli",
         "internal/build",
@@ -2603,7 +2603,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "After a successful build, show the logical output path and the next inspection command for each committed artifact so users immediately know where the generated file landed."
+      "notes": "Successful build output now shows each committed artifact's logical output path, committed version, and contextual artifact show command so users immediately know where the generated file landed."
     },
     {
       "id": "FBT-UX-013",

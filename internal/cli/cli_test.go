@@ -401,6 +401,37 @@ func TestRunPlanForceShowsForcedRebuild(t *testing.T) {
 	}
 }
 
+func TestRunBuildShowsCommittedArtifactPathAndNext(t *testing.T) {
+	root := writeCLIProject(t)
+	repoRoot := repoRoot(t)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "runners", "fake"))+"\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner"))
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("build failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	expectedOutput := "output     case_summaries -> target/artifacts/support/case_summaries"
+	if !strings.Contains(stdout.String(), expectedOutput) {
+		t.Fatalf("expected committed output path %q, got %q", expectedOutput, stdout.String())
+	}
+	expectedNext := "next       fbt artifact show case_summaries --project-dir " + shellArg(root)
+	if !strings.Contains(stdout.String(), expectedNext) {
+		t.Fatalf("expected artifact inspection next step %q, got %q", expectedNext, stdout.String())
+	}
+}
+
 func TestRunPlanMissingConfigVersion(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "fs_project.yml", "name: demo\n")

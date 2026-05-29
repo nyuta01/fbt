@@ -40,17 +40,26 @@ type Result struct {
 }
 
 type Run struct {
-	TransformID       string
-	TransformRunID    string
-	Status            string
-	StartedAt         string
-	CompletedAt       string
-	CommittedVersions []string
-	EvaluationResults []string
-	PolicyDecisions   []string
-	Usage             map[string]any
-	Provenance        map[string]any
-	Events            []protocol.Event
+	TransformID        string
+	TransformRunID     string
+	Status             string
+	StartedAt          string
+	CompletedAt        string
+	CommittedVersions  []string
+	CommittedArtifacts []CommittedArtifact
+	EvaluationResults  []string
+	PolicyDecisions    []string
+	Usage              map[string]any
+	Provenance         map[string]any
+	Events             []protocol.Event
+}
+
+type CommittedArtifact struct {
+	ArtifactID   string `json:"artifact_id"`
+	VersionID    string `json:"version_id"`
+	LogicalPath  string `json:"logical_path"`
+	StoragePath  string `json:"storage_path"`
+	ArtifactType string `json:"artifact_type"`
 }
 
 type outputCandidate struct {
@@ -384,6 +393,13 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			GeneratedBy:      transformRunID,
 		}
 		run.CommittedVersions = append(run.CommittedVersions, versionID)
+		run.CommittedArtifacts = append(run.CommittedArtifacts, CommittedArtifact{
+			ArtifactID:   output.UniqueID,
+			VersionID:    versionID,
+			LogicalPath:  output.DeclaredPath,
+			StoragePath:  version.StoragePath,
+			ArtifactType: output.ArtifactType,
+		})
 	}
 	updateLatestRun(snapshot, transformID, transform, transformRunID, run.Status, true)
 	completedAt := time.Now().UTC()
@@ -417,20 +433,21 @@ func appendTransformRunResult(store state.Store, invocationID string, run Run, s
 		completedAt = time.Now().UTC().Format(time.RFC3339Nano)
 	}
 	record := map[string]any{
-		"record_type":        "transform_run",
-		"invocation_id":      invocationID,
-		"run_id":             run.TransformRunID,
-		"transform_id":       run.TransformID,
-		"status":             run.Status,
-		"started_at":         run.StartedAt,
-		"completed_at":       completedAt,
-		"duration_ms":        durationMillis(startedAt, completedAt),
-		"committed_versions": run.CommittedVersions,
-		"evaluation_results": run.EvaluationResults,
-		"policy_decisions":   run.PolicyDecisions,
-		"usage":              run.Usage,
-		"provenance":         run.Provenance,
-		"events":             run.Events,
+		"record_type":         "transform_run",
+		"invocation_id":       invocationID,
+		"run_id":              run.TransformRunID,
+		"transform_id":        run.TransformID,
+		"status":              run.Status,
+		"started_at":          run.StartedAt,
+		"completed_at":        completedAt,
+		"duration_ms":         durationMillis(startedAt, completedAt),
+		"committed_versions":  run.CommittedVersions,
+		"committed_artifacts": run.CommittedArtifacts,
+		"evaluation_results":  run.EvaluationResults,
+		"policy_decisions":    run.PolicyDecisions,
+		"usage":               run.Usage,
+		"provenance":          run.Provenance,
+		"events":              run.Events,
 	}
 	if runErr != nil {
 		record["error"] = safeErrorRecord(runErr, run.Status, secretNames)

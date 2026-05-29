@@ -179,6 +179,9 @@ Lifecycle:
 parse -> plan -> run external runner -> eval -> commit -> write state
 ```
 
+Human build output includes the transform run ID, each committed artifact path,
+the committed version, and a contextual `fbt artifact show TARGET` next command.
+
 If the runner, output contract, policy check, eval, or cancellation fails after
 an invocation has started, `build` still appends failed receipts to
 `.fbt/state/run_results.jsonl`. The failed receipt records a safe error kind

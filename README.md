@@ -193,14 +193,14 @@ Build
   run       2
 
 SUCCESS case_summaries
+        output     case_summaries -> target/artifacts/support/case_summaries
         committed  case_summaries@sha256:a5b4dfd91df7
+        next       fbt artifact show case_summaries --project-dir knowledge_ops
 
 Artifact: case_summaries
   Path        target/artifacts/support/case_summaries
   Version     case_summaries@sha256:a5b4dfd91df7
 ```
-
-The full transcript is in the [quickstart demo](apps/docs/src/content/docs/get-started/quickstart.mdx); standard backend recipes are in [examples/standard_visualization](examples/standard_visualization/).
 
 ## Install
 

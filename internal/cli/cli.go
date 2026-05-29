@@ -779,8 +779,20 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		if run.TransformRunID != "" {
 			rows = append(rows, displayRow{Label: "run", Value: shortenResourceID(run.TransformRunID)})
 		}
-		for _, version := range run.CommittedVersions {
-			rows = append(rows, displayRow{Label: "committed", Value: shortVersionID(version)})
+		for _, committed := range run.CommittedArtifacts {
+			target := shortenResourceID(committed.ArtifactID)
+			if committed.LogicalPath != "" {
+				rows = append(rows, displayRow{Label: "output", Value: target + " -> " + committed.LogicalPath})
+			}
+			if committed.VersionID != "" {
+				rows = append(rows, displayRow{Label: "committed", Value: shortVersionID(committed.VersionID)})
+			}
+			rows = append(rows, displayRow{Label: "next", Value: contextualizeNextStep("fbt artifact show "+target, opts)})
+		}
+		if len(run.CommittedArtifacts) == 0 {
+			for _, version := range run.CommittedVersions {
+				rows = append(rows, displayRow{Label: "committed", Value: shortVersionID(version)})
+			}
 		}
 		printDisplayRows(stdout, "        ", rows)
 		fmt.Fprintln(stdout)

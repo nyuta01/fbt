@@ -93,11 +93,15 @@ Build
 
 SUCCESS case_summaries
         run        transform_run.run_...
+        output     case_summaries -> target/artifacts/support/case_summaries
         committed  case_summaries@sha256:a5b4dfd91df7
+        next       fbt artifact show case_summaries --project-dir knowledge_ops
 
 SUCCESS weekly_support_insights
         run        transform_run.run_...
+        output     weekly_support_insights -> target/artifacts/support/weekly_insights.md
         committed  weekly_support_insights@sha256:49fdb22a332c
+        next       fbt artifact show weekly_support_insights --project-dir knowledge_ops
 ```
 
 The current artifact is written to:
