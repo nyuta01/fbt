@@ -2559,14 +2559,14 @@
       "id": "FBT-UX-011",
       "title": "Make next commands copy-paste safe",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-001",
         "FBT-UX-002",
         "FBT-UX-008"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-011-plan.md",
       "paths": [
         "internal/cli",
         "docs/cli-reference.md",
@@ -2578,7 +2578,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "When users invoke fbt with --project-dir or a non-default --state-dir, next commands printed by plan, build, and artifact explain should preserve that context so the command works from the same shell location."
+      "notes": "When users invoke fbt with --project-dir or a non-default --state-dir, next commands printed by plan, build, and artifact explain now preserve that context so the command works from the same shell location."
     },
     {
       "id": "FBT-UX-012",

@@ -134,6 +134,9 @@ Shows selected transforms, skipped transforms, dirty reasons, blocked reasons,
 confidence requirements, and next commands. Use `fbt artifact explain TARGET`
 to focus on one artifact.
 
+When the current invocation includes `--project-dir` or `--state-dir`, printed
+next commands include the same context so they can be copied directly.
+
 `--force` is read-only for `plan`: it previews selected clean transforms as
 `RUN` with `because  forced rebuild`.
 

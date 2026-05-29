@@ -314,7 +314,7 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if code := Run([]string{"plan", "--project-dir", root, "--select", "tag:support"}, &planOut, &planErr); code != 0 {
 		t.Fatalf("generated project should plan: code=%d stderr=%q", code, planErr.String())
 	}
-	if !strings.Contains(planOut.String(), "next     fbt build --select case_summaries") {
+	if !strings.Contains(planOut.String(), "next     fbt build --select case_summaries --project-dir "+shellArg(root)) {
 		t.Fatalf("expected blocked next step, got %q", planOut.String())
 	}
 
@@ -332,7 +332,7 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	if !strings.Contains(explainOut.String(), "missing  input") || !strings.Contains(explainOut.String(), "case_summaries") {
 		t.Fatalf("expected upstream artifact input detail, got %q", explainOut.String())
 	}
-	if !strings.Contains(explainOut.String(), "fbt build --select case_summaries") {
+	if !strings.Contains(explainOut.String(), "fbt build --select case_summaries --project-dir "+shellArg(root)) {
 		t.Fatalf("expected explanation next step, got %q", explainOut.String())
 	}
 
@@ -343,6 +343,30 @@ func TestRunInitSupportTemplate(t *testing.T) {
 	}
 	if !strings.Contains(doctorOut.String(), "Doctor: ok") || !strings.Contains(doctorOut.String(), "RUNNER_PROTOCOL_OK") {
 		t.Fatalf("expected doctor readiness output, got %q", doctorOut.String())
+	}
+}
+
+func TestRunNextCommandsPreserveInvocationContext(t *testing.T) {
+	root := writeCLIProject(t)
+	stateDir := filepath.Join(t.TempDir(), "custom state")
+	expectedNext := "fbt build --select case_summaries --project-dir " + shellArg(root) + " --state-dir " + shellArg(stateDir)
+
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--project-dir", root, "--state-dir", stateDir, "--select", "case_summaries"}, &planOut, &planErr); code != 0 {
+		t.Fatalf("plan failed: code=%d stdout=%q stderr=%q", code, planOut.String(), planErr.String())
+	}
+	if !strings.Contains(planOut.String(), expectedNext) {
+		t.Fatalf("expected contextual next step %q, got %q", expectedNext, planOut.String())
+	}
+
+	var explainOut bytes.Buffer
+	var explainErr bytes.Buffer
+	if code := Run([]string{"artifact", "explain", "case_summaries", "--project-dir", root, "--state-dir", stateDir}, &explainOut, &explainErr); code != 0 {
+		t.Fatalf("explain failed: code=%d stdout=%q stderr=%q", code, explainOut.String(), explainErr.String())
+	}
+	if !strings.Contains(explainOut.String(), expectedNext) {
+		t.Fatalf("expected contextual explanation next step %q, got %q", expectedNext, explainOut.String())
 	}
 }
 

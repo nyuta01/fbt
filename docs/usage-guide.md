@@ -48,14 +48,14 @@ RUN     case_summaries
         because  no previous successful run
         because  output missing
         output   case_summaries
-        next     fbt build --select case_summaries
+        next     fbt build --select case_summaries --project-dir knowledge_ops
 
 RUN     weekly_support_insights
         because  no previous successful run
         because  output missing
         because  upstream artifact selected to run
         output   weekly_support_insights
-        next     fbt build --select weekly_support_insights
+        next     fbt build --select weekly_support_insights --project-dir knowledge_ops
 ```
 
 `build` executes the selected graph in dependency order. The upstream

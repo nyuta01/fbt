@@ -121,7 +121,7 @@ The commands are checkpoints, not a script to memorize:
            because  no previous successful run
            because  output missing
            output   incident_response_runbook
-           next     fbt build --select incident_response_runbook
+           next     fbt build --select incident_response_runbook --project-dir examples/incident_response_runbook
    ```
 
 2. Generate the runbook.

@@ -146,10 +146,10 @@ flag-scope clarity (`FBT-UX-009`) is done: root, artifact, export, plan, build,
 and retention help now explain what each command returns, and help regression
 tests cover the key wording. Actionable common errors (`FBT-UX-010`) is also
 done: declared-but-unbuilt artifacts, empty selectors, and `--dry-run` produce
-strict errors plus short `Hint:` lines. The remaining highest-priority item is
-copy-paste-safe next commands (`FBT-UX-011`). The remaining backlog focuses on
-showing build output paths
-(`FBT-UX-012`),
+strict errors plus short `Hint:` lines. Copy-paste-safe next commands
+(`FBT-UX-011`) is done: `plan`, `build`, and `artifact explain` preserve
+`--project-dir` and `--state-dir` in printed next steps. The remaining backlog
+focuses on showing build output paths (`FBT-UX-012`),
 scannable artifact/retention output (`FBT-UX-013`), state/artifact directory
 semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`), standard
 export command UX (`FBT-STD-008`), and grouped doctor diagnostics

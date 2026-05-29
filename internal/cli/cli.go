@@ -763,6 +763,7 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 		}
 		return 1
 	}
+	result.Plan = contextualizePlan(result.Plan, opts)
 	if opts.JSON {
 		writeJSON(stdout, map[string]any{"command": "build", "status": "success", "summary": result.Plan.Summary, "runs": result.Runs})
 		if result.Plan.Summary.Blocked > 0 {
@@ -1051,6 +1052,7 @@ func runPlan(opts options, args []string, stdout io.Writer, stderr io.Writer) in
 		return 2
 	}
 	plan := planner.Build(planner.Inputs{Manifest: ctx.Manifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: planOpts.Force})
+	plan = contextualizePlan(plan, opts)
 	if opts.JSON {
 		writeJSON(stdout, map[string]any{"command": "plan", "status": "success", "summary": plan.Summary, "nodes": plan.Nodes})
 		return 0
@@ -1099,6 +1101,53 @@ func printPlanNode(stdout io.Writer, node planner.Node) {
 	}
 	printDisplayRows(stdout, "        ", rows)
 	fmt.Fprintln(stdout)
+}
+
+func contextualizePlan(plan planner.Plan, opts options) planner.Plan {
+	for i := range plan.Nodes {
+		plan.Nodes[i].NextSteps = contextualizeNextSteps(plan.Nodes[i].NextSteps, opts)
+	}
+	return plan
+}
+
+func contextualizeNextSteps(steps []string, opts options) []string {
+	if opts.ProjectDir == "" && opts.StateDir == "" {
+		return steps
+	}
+	contextualized := make([]string, 0, len(steps))
+	for _, step := range steps {
+		contextualized = append(contextualized, contextualizeNextStep(step, opts))
+	}
+	return contextualized
+}
+
+func contextualizeNextStep(step string, opts options) string {
+	if !strings.HasPrefix(step, "fbt ") {
+		return step
+	}
+	var suffix []string
+	if opts.ProjectDir != "" && !strings.Contains(step, "--project-dir") {
+		suffix = append(suffix, "--project-dir", shellArg(opts.ProjectDir))
+	}
+	if opts.StateDir != "" && !strings.Contains(step, "--state-dir") {
+		suffix = append(suffix, "--state-dir", shellArg(opts.StateDir))
+	}
+	if len(suffix) == 0 {
+		return step
+	}
+	return step + " " + strings.Join(suffix, " ")
+}
+
+func shellArg(value string) string {
+	if value == "" {
+		return "''"
+	}
+	if strings.IndexFunc(value, func(r rune) bool {
+		return !(r == '/' || r == '.' || r == '_' || r == '-' || r == ':' || r == '=' || r == '+' || r == ',' || r >= '0' && r <= '9' || r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z')
+	}) == -1 {
+		return value
+	}
+	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
 }
 
 func printSummary(stdout io.Writer, title string, summary planner.Summary) {
@@ -1295,7 +1344,7 @@ func runArtifact(opts options, args []string, stdout io.Writer, stderr io.Writer
 			fmt.Fprintf(stderr, "Error: %v\n", err)
 			return 2
 		}
-		return runArtifactExplain(ctx, args[1], opts.JSON, stdout, stderr)
+		return runArtifactExplain(ctx, args[1], opts, stdout, stderr)
 	case "path":
 		if len(args) < 2 {
 			fmt.Fprintln(stderr, "Error: artifact path requires 1 argument(s)")
@@ -1463,7 +1512,8 @@ type explanationDependency struct {
 	RequiredConfidence  string `json:"required_confidence,omitempty"`
 }
 
-func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
+func runArtifactExplain(ctx projectContext, target string, opts options, stdout io.Writer, stderr io.Writer) int {
+	jsonOutput := opts.JSON
 	artifactID, ok := resolveArtifactID(ctx.Manifest, target)
 	if !ok {
 		fmt.Fprintf(stderr, "Error: artifact not found: %s\n", target)
@@ -1508,7 +1558,7 @@ func runArtifactExplain(ctx projectContext, target string, jsonOutput bool, stdo
 		Dependencies:   explanationDependencies(ctx.Manifest, previous, snapshot, transform),
 		DirtyReasons:   node.DirtyReasons,
 		BlockedReasons: node.BlockedReasons,
-		NextSteps:      node.NextSteps,
+		NextSteps:      contextualizeNextSteps(node.NextSteps, opts),
 	}
 	if pointer, ok := snapshot.CurrentArtifacts[artifactID]; ok {
 		explanation.Current = &pointer
