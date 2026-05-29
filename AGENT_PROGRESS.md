@@ -581,6 +581,14 @@ readiness marker, then runs `doctor`, `plan`, `build`, artifact inspection,
 retention inspection, OpenLineage export, and OTel export into a CI-friendly
 run bundle. `make verify` covers the wrapper through `daily-ops-smoke`.
 
+`FBT-PROD-000` is done. The remaining production concerns are now explicit
+todo tasks instead of loose discussion: `FBT-PROD-001` for a real-adapter daily
+pilot, `FBT-RUNNER-027` for production runner reliability, `FBT-SOURCE-001` for
+source-window readiness and reprocessing, `FBT-EVAL-003` for quality gates,
+`FBT-STATE-006` for archive handoff, `FBT-PUBLISH-001` for external approval
+and publishing, `FBT-SEC-003` for sandbox and credential profiles, and
+`FBT-CI-001` for CI-authoritative team operation.
+
 ## Verification
 
 Required gate before calling work done:
@@ -596,9 +604,11 @@ runner conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+1. Execute the open production hardening tasks in priority order, starting with
+   `FBT-PROD-001`, `FBT-RUNNER-027`, `FBT-SOURCE-001`, and `FBT-EVAL-003`.
+2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
-2. When adding new product behavior, register it in
+3. When adding new product behavior, register it in
    `docs/exec-plans/feature-list.json` before implementation and keep
    `make verify` as the completion gate.
 

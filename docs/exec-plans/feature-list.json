@@ -4221,6 +4221,191 @@
       "notes": "Added an ops wrapper for the daily support knowledge example that keeps ingestion, scheduling, approval, publishing, and notification outside fbt while running doctor, plan, build, artifact inspection, retention inspection, OpenLineage export, and OTel export into a CI-friendly run bundle. The daily ops smoke now executes the wrapper against a copied project."
     },
     {
+      "id": "FBT-PROD-000",
+      "title": "Taskize production operation hardening concerns",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-OPS-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-PROD-000-plan.md",
+      "paths": [
+        "docs/exec-plans/active/FBT-PROD-000-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "runner_concern_taskized": true,
+        "source_window_concern_taskized": true,
+        "quality_gate_concern_taskized": true,
+        "retention_archive_concern_taskized": true,
+        "approval_publish_concern_taskized": true,
+        "security_ci_concerns_taskized": true,
+        "make_verify": true
+      },
+      "notes": "Converted the remaining production-readiness concerns into explicit todo tasks covering live runner pilots, runner reliability, source-window readiness, quality gates, state/archive handoff, external approval/publishing, sandbox/credential profiles, and authoritative CI operation."
+    },
+    {
+      "id": "FBT-PROD-001",
+      "title": "Run production daily support pilot with real adapters",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-OPS-003",
+        "FBT-RUNNER-026"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/",
+        "docs/pilots/",
+        "scripts/"
+      ],
+      "verification": {},
+      "notes": "Execute the daily support knowledge loop with installed production-capable adapters instead of demo runners, capture cost/latency/failure/quality friction, and keep live provider calls behind explicit opt-in credentials."
+    },
+    {
+      "id": "FBT-RUNNER-027",
+      "title": "Harden production runner reliability contract",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-025",
+        "FBT-RUNNER-026",
+        "FBT-PROD-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "adapters/",
+        "docs/runner-adapters.md",
+        "docs/runner-protocol-spec.md",
+        "tests/runner-conformance/"
+      ],
+      "verification": {},
+      "notes": "Define and test production runner behavior for input-size failure, retryable vs non-retryable errors, provider/model/cost metadata, redaction, timeout mapping, and fail-closed policy handling without moving provider SDK behavior into fbt core."
+    },
+    {
+      "id": "FBT-SOURCE-001",
+      "title": "Define source-window readiness and reprocessing contract",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/",
+        "docs/examples/daily-source-operations.md",
+        "scripts/smoke-daily-ops.sh"
+      ],
+      "verification": {},
+      "notes": "Make new-items-only, cumulative, correction, deletion, and backfill patterns explicit through a small readiness manifest or documented handoff while keeping ingestion and date partitioning outside fbt."
+    },
+    {
+      "id": "FBT-EVAL-003",
+      "title": "Add production quality-gate reference workflow",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-EVAL-002",
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/",
+        "examples/semantic_eval_boundary/",
+        "docs/examples/",
+        "scripts/"
+      ],
+      "verification": {},
+      "notes": "Show structural, evidence-grounding, and domain-review gates as fbt artifacts or CI checks, including expected pass/fail output and explainable receipts, without adding LLM judge logic to core."
+    },
+    {
+      "id": "FBT-STATE-006",
+      "title": "Add CI archive and retention handoff reference",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STATE-005",
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/ops/",
+        "docs/examples/high-volume-retention.md",
+        "docs/state-and-run-results-spec.md",
+        "scripts/"
+      ],
+      "verification": {},
+      "notes": "Document and smoke a safe handoff for `.fbt/state`, `.fbt/artifacts`, and `target/ops` bundles to CI artifacts or external storage, including restore expectations and no destructive prune behavior."
+    },
+    {
+      "id": "FBT-PUBLISH-001",
+      "title": "Add external approval publishing and notification workflow",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/ops/",
+        "docs/examples/daily-source-operations.md",
+        "apps/docs/"
+      ],
+      "verification": {},
+      "notes": "Provide copyable Git/PR, publish-script, and notification examples that consume fbt artifacts, diffs, and run bundles while keeping human review and publishing outside fbt core."
+    },
+    {
+      "id": "FBT-SEC-003",
+      "title": "Validate production sandbox and credential profiles",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-SEC-001",
+        "FBT-RUNNER-022",
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "docs/security/os-sandbox-profiles.md",
+        "examples/daily_qa_ops/ops/",
+        "tests/conformance/",
+        "scripts/"
+      ],
+      "verification": {},
+      "notes": "Add production-oriented examples and checks for CI/container/network-denied profiles, credential scoping, secret redaction, and adapter fail-closed behavior in the daily support loop."
+    },
+    {
+      "id": "FBT-CI-001",
+      "title": "Define authoritative CI builder and reproducibility handoff",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-LOCK-001",
+        "FBT-REL-008",
+        "FBT-OPS-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "examples/daily_qa_ops/ops/",
+        ".github/workflows/",
+        "docs/examples/daily-source-operations.md",
+        "docs/release.md"
+      ],
+      "verification": {},
+      "notes": "Make the recommended team operation explicit: developers use local plan/build for iteration, CI is the authoritative builder, runner versions are pinned, and run bundles plus exports are archived for later explanation."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
