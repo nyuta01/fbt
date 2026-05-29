@@ -17,7 +17,8 @@ fbt export openlineage
 
 `fbt doctor` reads `fs_project.yml` plus source, transform, asset, policy,
 eval, and runner YAML files. It checks state and runner readiness before any
-build work starts.
+build work starts. Human output is grouped into Project, State, and Runners;
+use `--json` when automation needs the flat diagnostic list.
 
 ## Plan
 

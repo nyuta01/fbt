@@ -29,8 +29,20 @@ variable:
 
 ```text
 Doctor: error
-ok PROJECT_CONFIG_OK: project config parsed
-error RUNNER_ENV_MISSING: runner env OPENAI_API_KEY is not set
+Project: examples/incident_response_runbook
+State: examples/incident_response_runbook/.fbt/state
+
+Project
+  ok PROJECT_CONFIG_OK: project config parsed
+
+State
+  ok STATE_LOCK_OK: state lock can be acquired and released
+  ok STATE_WRITABLE_OK: state directory is writable
+
+Runners
+  openai.responses
+    error RUNNER_ENV_MISSING: runner env OPENAI_API_KEY is not set
+    ok RUNNER_COMMAND_OK: runner command is executable: examples/incident_response_runbook/bin/fbt-runner-openai
 ```
 
 With credentials, the same project calls the optional OpenAI runner:

@@ -44,10 +44,25 @@ Files: 12
 Demo runners: configured as demo.*; replace runner commands in fs_project.yml for real provider execution
 
 Doctor: ok
-ok PROJECT_CONFIG_OK: project config parsed
-ok STATE_LOCK_OK: state lock can be acquired and released
-ok RUNNER_PROTOCOL_OK: runner protocol initialize succeeded
-ok RUNNER_CAPABILITIES_OK: runner capabilities satisfy configured transforms
+Project: <tmp>/knowledge_ops
+State: <tmp>/knowledge_ops/.fbt/state
+
+Project
+  ok PROJECT_CONFIG_OK: project config parsed
+
+State
+  ok STATE_LOCK_OK: state lock can be acquired and released
+  ok STATE_WRITABLE_OK: state directory is writable
+
+Runners
+  demo.agent
+    ok RUNNER_COMMAND_OK: runner command is executable: <tmp>/knowledge_ops/bin/fbt-demo-agent-runner
+    ok RUNNER_PROTOCOL_OK: runner protocol initialize succeeded
+    ok RUNNER_CAPABILITIES_OK: runner capabilities satisfy configured transforms
+  demo.llm
+    ok RUNNER_COMMAND_OK: runner command is executable: <tmp>/knowledge_ops/bin/fbt-demo-llm-runner
+    ok RUNNER_PROTOCOL_OK: runner protocol initialize succeeded
+    ok RUNNER_CAPABILITIES_OK: runner capabilities satisfy configured transforms
 
 Plan
   selected  2

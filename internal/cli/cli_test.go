@@ -770,6 +770,16 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	if !strings.Contains(stdout.String(), "RUNNER_CAPABILITIES_OK") {
 		t.Fatalf("expected capability diagnostic, got %q", stdout.String())
 	}
+	for _, expected := range []string{
+		"\nProject\n  ok PROJECT_CONFIG_OK",
+		"\nState\n  ok STATE_LOCK_OK",
+		"\nRunners\n  openai.responses\n    ok RUNNER_COMMAND_OK",
+		"    ok RUNNER_PROTOCOL_OK",
+	} {
+		if !strings.Contains(stdout.String(), expected) {
+			t.Fatalf("expected grouped doctor output %q, got %q", expected, stdout.String())
+		}
+	}
 }
 
 func TestRunDoctorShowsMixedRunnerDiagnosticStatuses(t *testing.T) {

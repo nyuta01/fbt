@@ -162,8 +162,10 @@ integration as an external command that speaks the fbt runner protocol, while
 adapter/protocol/conformance language remains for authors. Standard export
 command UX (`FBT-STD-008`) is done: `--output` summaries now name the standard
 format, output path, record count, and backend handoff while stdout remains raw
-for piping. The remaining backlog focuses on grouped doctor diagnostics
-(`FBT-UX-014`), a polish task on the existing Unix-style core.
+for piping. Grouped doctor diagnostics (`FBT-UX-014`) is done: human `doctor`
+output now separates Project, State, and Runners with per-runner nesting while
+`--json` keeps the flat diagnostics array for automation. The structured
+backlog now has no unfinished tasks.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,

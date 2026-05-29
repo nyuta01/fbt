@@ -886,13 +886,105 @@ func runDoctor(opts options, args []string, stdout io.Writer, stderr io.Writer) 
 		writeJSON(stdout, map[string]any{"command": "doctor", "status": status, "project_dir": ctx.ParseResult.ProjectDir, "state_dir": ctx.Store.Dir, "checks": checks})
 		return code
 	}
-	fmt.Fprintf(stdout, "Doctor: %s\n", status)
-	fmt.Fprintf(stdout, "Project: %s\n", ctx.ParseResult.ProjectDir)
-	fmt.Fprintf(stdout, "State: %s\n", ctx.Store.Dir)
-	for _, check := range checks {
-		fmt.Fprintf(stdout, "%s %s: %s\n", check.Status, check.Code, check.Message)
-	}
+	printDoctorHuman(stdout, ctx.ParseResult.ProjectDir, ctx.Store.Dir, status, checks)
 	return code
+}
+
+func printDoctorHuman(stdout io.Writer, projectDir, stateDir, status string, checks []doctorCheck) {
+	fmt.Fprintf(stdout, "Doctor: %s\n", status)
+	fmt.Fprintf(stdout, "Project: %s\n", projectDir)
+	fmt.Fprintf(stdout, "State: %s\n", stateDir)
+	fmt.Fprintln(stdout)
+	printDoctorSection(stdout, "Project", doctorChecksForGroup(checks, "project"))
+	printDoctorSection(stdout, "State", doctorChecksForGroup(checks, "state"))
+	printDoctorRunners(stdout, checks)
+	if other := doctorChecksForGroup(checks, "other"); len(other) > 0 {
+		printDoctorSection(stdout, "Other", other)
+	}
+}
+
+func printDoctorSection(stdout io.Writer, title string, checks []doctorCheck) {
+	if len(checks) == 0 {
+		return
+	}
+	fmt.Fprintln(stdout, title)
+	for _, check := range checks {
+		fmt.Fprintf(stdout, "  %s %s: %s\n", check.Status, check.Code, check.Message)
+	}
+	fmt.Fprintln(stdout)
+}
+
+type doctorRunnerGroup struct {
+	Name   string
+	Checks []doctorCheck
+}
+
+func printDoctorRunners(stdout io.Writer, checks []doctorCheck) {
+	groups := doctorRunnerGroups(checks)
+	if len(groups) == 0 {
+		return
+	}
+	fmt.Fprintln(stdout, "Runners")
+	for _, group := range groups {
+		fmt.Fprintf(stdout, "  %s\n", group.Name)
+		for _, check := range group.Checks {
+			fmt.Fprintf(stdout, "    %s %s: %s\n", check.Status, check.Code, check.Message)
+		}
+	}
+	fmt.Fprintln(stdout)
+}
+
+func doctorChecksForGroup(checks []doctorCheck, group string) []doctorCheck {
+	var selected []doctorCheck
+	for _, check := range checks {
+		if doctorCheckGroup(check) == group {
+			selected = append(selected, check)
+		}
+	}
+	return selected
+}
+
+func doctorRunnerGroups(checks []doctorCheck) []doctorRunnerGroup {
+	indexByName := map[string]int{}
+	var groups []doctorRunnerGroup
+	for _, check := range checks {
+		if doctorCheckGroup(check) != "runner" {
+			continue
+		}
+		name := doctorRunnerName(check.Name)
+		index, ok := indexByName[name]
+		if !ok {
+			index = len(groups)
+			indexByName[name] = index
+			groups = append(groups, doctorRunnerGroup{Name: name})
+		}
+		groups[index].Checks = append(groups[index].Checks, check)
+	}
+	return groups
+}
+
+func doctorCheckGroup(check doctorCheck) string {
+	switch {
+	case check.Name == "project_config":
+		return "project"
+	case strings.HasPrefix(check.Name, "state_"):
+		return "state"
+	case check.Name == "runner_discovery" || strings.HasPrefix(check.Name, "runner."):
+		return "runner"
+	default:
+		return "other"
+	}
+}
+
+func doctorRunnerName(checkName string) string {
+	if checkName == "runner_discovery" {
+		return "discovery"
+	}
+	name := strings.TrimPrefix(checkName, "runner.")
+	if name == "" || name == checkName {
+		return "unknown"
+	}
+	return name
 }
 
 func stateDoctorChecks(store state.Store) []doctorCheck {

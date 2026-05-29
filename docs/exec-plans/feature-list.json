@@ -2715,13 +2715,13 @@
       "id": "FBT-UX-014",
       "title": "Group doctor runner diagnostics for scanability",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UX-005",
         "FBT-RUNNER-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-UX-014-plan.md",
       "paths": [
         "internal/cli",
         "internal/runner",
@@ -2734,7 +2734,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "For projects with multiple runners, group doctor readiness checks by runner and keep the all-ok path compact while preserving detailed diagnostics in --json."
+      "notes": "Human doctor output now groups diagnostics into Project, State, and Runners sections with runner-specific nesting, while --json preserves the flat checks array for automation."
     },
     {
       "id": "FBT-PDCA-001",

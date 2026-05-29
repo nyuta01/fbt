@@ -267,6 +267,9 @@ fbt doctor
 
 Checks project config parsing, state writability/lock acquisition, runner
 discovery, executable availability, and runner protocol `initialize`.
+Human output groups checks by Project, State, and Runners so multi-runner
+projects remain scannable. `--json` preserves the flat `checks` array for
+automation.
 
 ### 5.7 Standard exports
 
