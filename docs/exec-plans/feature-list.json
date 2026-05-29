@@ -2502,6 +2502,241 @@
       "notes": "Audit current-state docs for stale claims such as core-owned approval state, removed CLI commands, docs generation, or internal debug surfaces. Add a deterministic grep guard for the non-core terms where possible."
     },
     {
+      "id": "FBT-UX-009",
+      "title": "Tighten CLI help and command descriptions",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-008",
+        "FBT-UNIX-013"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "docs/cli-reference.md",
+        "docs/usage-guide.md",
+        "README.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Make root, artifact, export, plan, build, and retention help describe what each command returns. Reduce global flag confusion by making command-specific applicability clear, especially for --select and --state-dir."
+    },
+    {
+      "id": "FBT-UX-010",
+      "title": "Make common CLI errors actionable",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-001",
+        "FBT-UX-003",
+        "FBT-CONFIG-002"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/artifact",
+        "internal/planner",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "conformance": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Improve declared-but-unbuilt artifact, empty selector, and common unsupported-flag diagnostics with concrete next actions such as fbt build --select TARGET, fbt plan, or using plan instead of --dry-run."
+    },
+    {
+      "id": "FBT-UX-011",
+      "title": "Make next commands copy-paste safe",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-001",
+        "FBT-UX-002",
+        "FBT-UX-008"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "When users invoke fbt with --project-dir or a non-default --state-dir, next commands printed by plan, build, and artifact explain should preserve that context so the command works from the same shell location."
+    },
+    {
+      "id": "FBT-UX-012",
+      "title": "Show committed artifact paths after build",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-010",
+        "FBT-UX-008"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/build",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "After a successful build, show the logical output path and the next inspection command for each committed artifact so users immediately know where the generated file landed."
+    },
+    {
+      "id": "FBT-UX-013",
+      "title": "Make human artifact details scannable",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-003",
+        "FBT-STATE-002",
+        "FBT-ARTIFACT-001"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/artifact",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Keep --json complete, but summarize dense semantic descriptors in human output and show retention sizes in human-readable units while preserving exact byte counts for JSON automation."
+    },
+    {
+      "id": "FBT-CONFIG-003",
+      "title": "Clarify local state and artifact directory controls",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-CONFIG-001",
+        "FBT-STATE-002"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/config",
+        "internal/cli",
+        "docs/project-config-spec.md",
+        "docs/state-and-run-results-spec.md",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Make the relationship among --state-dir, .fbt/state, .fbt/artifacts, artifact_path, and state.backend explicit. Avoid implying unsupported state backends or artifact relocation semantics."
+    },
+    {
+      "id": "FBT-RUNNER-011",
+      "title": "Simplify runner terminology and onboarding",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-006",
+        "FBT-RUNNER-010"
+      ],
+      "plan_url": null,
+      "paths": [
+        "README.md",
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "docs/runner-protocol-spec.md",
+        "docs/cli-reference.md",
+        "internal/cli",
+        "tests"
+      ],
+      "verification": {
+        "runner_conformance": true,
+        "go_test": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Present OpenAI, Claude Code, Codex, Gemini, scripts, and internal tools through one external-command runner mental model. Keep adapter, protocol, conformance, and smoke terminology available for authors without overwhelming first-time users."
+    },
+    {
+      "id": "FBT-STD-008",
+      "title": "Clarify standard export command UX",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STD-007"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "docs/cli-reference.md",
+        "docs/standard-visualization-guide.md",
+        "examples/standard_visualization",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "Make export openlineage and export otel help explain that they write standard records from local run history, where output goes, and how users can pipe or post those records to existing backends."
+    },
+    {
+      "id": "FBT-UX-014",
+      "title": "Group doctor runner diagnostics for scanability",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-005",
+        "FBT-RUNNER-003"
+      ],
+      "plan_url": null,
+      "paths": [
+        "internal/cli",
+        "internal/runner",
+        "docs/cli-reference.md",
+        "tests"
+      ],
+      "verification": {
+        "go_test": true,
+        "cli_smoke": true,
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "For projects with multiple runners, group doctor readiness checks by runner and keep the all-ok path compact while preserving detailed diagnostics in --json."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
