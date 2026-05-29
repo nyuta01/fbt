@@ -98,7 +98,6 @@ type TransformResource struct {
 	Model         map[string]any    `json:"model,omitempty"`
 	Tools         []string          `json:"tools,omitempty"`
 	Determinism   string            `json:"determinism"`
-	Cache         map[string]any    `json:"cache,omitempty"`
 	Tags          []string          `json:"tags,omitempty"`
 	File          string            `json:"file,omitempty"`
 	Fingerprint   map[string]string `json:"fingerprint"`
@@ -467,7 +466,6 @@ func (b *manifestBuilder) addTransform(transform parser.Transform) {
 		Model:         transform.Model,
 		Tools:         sortedCopy(transform.Tools),
 		Determinism:   determinism(transform.Type),
-		Cache:         transform.Cache,
 		Tags:          sortedCopy(transform.Tags),
 		File:          slashRel(b.root, transform.File),
 		Fingerprint: map[string]string{

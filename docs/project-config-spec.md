@@ -65,14 +65,6 @@ state:
 
 execution:
   mode: local
-  max_workers: 4
-  fail_fast: false
-
-defaults:
-  cache:
-    mode: reuse_if_same_inputs
-  confidence:
-    minimum: structural
 
 runners:
   - name: openai.responses
@@ -106,11 +98,20 @@ Top-level fields:
 | `target_path` | no | Generated files root |
 | `artifact_path` | no | Official artifact path |
 | `state` | no | State backend configuration |
-| `execution` | no | Local execution settings |
-| `defaults` | no | Resource defaults |
+| `execution` | no | Local execution mode; MVP supports only `mode: local` |
 | `runners` | no | Runner references |
 | `selectors` | no | Named selections |
 | `vars` | no | Project variables |
+
+Reserved fields are rejected instead of being silently ignored:
+
+| Field | Reason |
+|---|---|
+| `execution.max_workers` | fbt currently runs selected transforms sequentially in dependency order |
+| `execution.fail_fast` | fbt already stops on transform failure; alternate failure policies are outside MVP |
+| `defaults.cache` | dirty detection is file/manifest based; explicit rebuild is `build --force` |
+| `defaults.confidence` | confidence requirements are declared per `ref` input |
+| transform `cache` | fbt has no hidden cache engine in core |
 
 ## 4. Sources
 
@@ -223,7 +224,6 @@ Transform fields:
 | `tools` | no | Agent tools |
 | `policy` | no | Policy reference |
 | `evals` | no | Eval references |
-| `cache` | no | Reuse policy |
 | `contract` | no | Output contract |
 | `tags` | no | Selection and docs metadata |
 | `meta` | no | Arbitrary metadata |

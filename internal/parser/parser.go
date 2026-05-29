@@ -63,6 +63,15 @@ func ParseProject(options Options) (Result, error) {
 	result.Config = projectFile.Config
 	result.Runners = append(result.Runners, projectFile.Config.Runners...)
 
+	projectUnsupported, err := unsupportedProjectFields(prj.ConfigPath)
+	if err != nil {
+		result.addError("CONFIG_READ_FAILED", err.Error(), prj.ConfigPath, "")
+		return result, DiagnosticsError{Diagnostics: result.Diagnostics}
+	}
+	for _, field := range projectUnsupported {
+		result.addUnsupportedField(prj.ConfigPath, field)
+	}
+
 	switch projectFile.VersionStatus {
 	case config.VersionMissing:
 		result.addError("CONFIG_VERSION_MISSING", "fs_project.yml must include config_version: 1", prj.ConfigPath, "")
@@ -185,7 +194,7 @@ func loadResourceFile(path string) (resourceFile, map[string]int, []unsupportedF
 	if err := yaml.Unmarshal(data, &loaded); err != nil {
 		return resourceFile{}, nil, nil, err
 	}
-	return loaded, resourceLineIndex(data), unsupportedReviewFields(data), nil
+	return loaded, resourceLineIndex(data), unsupportedResourceFields(data), nil
 }
 
 func (r *Result) appendResources(file string, loaded resourceFile, lines map[string]int) {
@@ -272,7 +281,38 @@ func indexSourceArtifacts(lines map[string]int, sourceName string, sourceNode *y
 	}
 }
 
-func unsupportedReviewFields(data []byte) []unsupportedField {
+func unsupportedProjectFields(path string) ([]unsupportedField, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
+		return nil, err
+	}
+	root := doc.Content[0]
+	if root.Kind != yaml.MappingNode {
+		return nil, nil
+	}
+	var fields []unsupportedField
+	if execution := mappingNode(root, "execution"); execution != nil {
+		for _, key := range []string{"max_workers", "fail_fast"} {
+			if field := mappingNode(execution, key); field != nil {
+				fields = append(fields, reservedConfigField("execution."+key, "project", field.Line))
+			}
+		}
+	}
+	if defaults := mappingNode(root, "defaults"); defaults != nil {
+		for _, key := range []string{"cache", "confidence"} {
+			if field := mappingNode(defaults, key); field != nil {
+				fields = append(fields, reservedConfigField("defaults."+key, "project", field.Line))
+			}
+		}
+	}
+	return fields, nil
+}
+
+func unsupportedResourceFields(data []byte) []unsupportedField {
 	var doc yaml.Node
 	if err := yaml.Unmarshal(data, &doc); err != nil || len(doc.Content) == 0 {
 		return nil
@@ -292,6 +332,9 @@ func unsupportedReviewFields(data []byte) []unsupportedField {
 		case "transforms":
 			for _, item := range value.Content {
 				resource, _ := mappingScalar(item, "name")
+				if cache := mappingNode(item, "cache"); cache != nil {
+					fields = append(fields, reservedConfigField("transforms[].cache", resource, cache.Line))
+				}
 				if review := mappingNode(item, "review"); review != nil {
 					fields = append(fields, unsupportedReviewField(resource, review.Line))
 				}
@@ -319,6 +362,15 @@ func unsupportedReviewFields(data []byte) []unsupportedField {
 		}
 	}
 	return fields
+}
+
+func reservedConfigField(path, resource string, line int) unsupportedField {
+	return unsupportedField{
+		code:     "CONFIG_FIELD_RESERVED",
+		message:  fmt.Sprintf("`%s` is reserved and has no effect in this version", path),
+		resource: resource,
+		line:     line,
+	}
 }
 
 func unsupportedReviewField(resource string, line int) unsupportedField {
@@ -701,6 +753,8 @@ func diagnosticHint(code string) string {
 		return "Add `config_version: 1` to fs_project.yml."
 	case "REVIEW_UNSUPPORTED":
 		return "Remove the review field. Use Git, PRs, CI, release tooling, or your publishing workflow for human approval."
+	case "CONFIG_FIELD_RESERVED":
+		return "Remove this field. fbt uses file fingerprints, explicit ref confidence requirements, and `build --force` instead of hidden cache/default controls."
 	case "PROJECT_NAME_REQUIRED":
 		return "Add a non-empty `name` to fs_project.yml."
 	case "PROJECT_NAME_INVALID", "SOURCE_NAME_INVALID", "SOURCE_ARTIFACT_NAME_INVALID", "ARTIFACT_NAME_INVALID", "ASSET_NAME_INVALID", "POLICY_NAME_INVALID", "EVAL_NAME_INVALID", "TRANSFORM_NAME_INVALID":

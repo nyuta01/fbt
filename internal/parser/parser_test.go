@@ -165,6 +165,68 @@ func TestParseProjectRejectsReviewFields(t *testing.T) {
 	}
 }
 
+func TestParseProjectRejectsReservedProjectConfigFields(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "fs_project.yml", `name: knowledge_ops
+config_version: 1
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+eval_paths: ["evals"]
+execution:
+  mode: local
+  max_workers: 4
+  fail_fast: false
+defaults:
+  cache:
+    mode: reuse_if_same_inputs
+  confidence:
+    minimum: structural
+runners:
+  - name: openai.responses
+    type: llm
+    protocol: stdio_jsonrpc
+    command: fbt-openai-runner
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	diagnostic := findDiagnostic(t, result.Diagnostics, "CONFIG_FIELD_RESERVED")
+	if diagnostic.Line == 0 || diagnostic.Hint == "" {
+		t.Fatalf("expected line-oriented actionable diagnostic, got %+v", diagnostic)
+	}
+}
+
+func TestParseProjectRejectsReservedTransformCache(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "transforms/case.yml", `transforms:
+  - name: case_summaries
+    type: llm
+    runner: openai.responses
+    cache:
+      mode: reuse_if_same_inputs
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: case_summaries
+        type: markdown_directory
+        path: target/artifacts/support/case_summaries/
+    policy: support_agent_scope
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	diagnostic := findDiagnostic(t, result.Diagnostics, "CONFIG_FIELD_RESERVED")
+	if diagnostic.Resource != "case_summaries" || diagnostic.Line == 0 || diagnostic.Hint == "" {
+		t.Fatalf("expected transform cache diagnostic, got %+v", diagnostic)
+	}
+}
+
 func writeValidProject(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()

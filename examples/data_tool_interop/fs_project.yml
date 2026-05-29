@@ -10,7 +10,6 @@ state:
   path: .fbt/state
 execution:
   mode: local
-  max_workers: 1
 runners:
   - name: local.command
     type: command

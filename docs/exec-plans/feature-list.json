@@ -2325,7 +2325,7 @@
       "id": "FBT-CONFIG-001",
       "title": "Remove or implement inert config fields",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-015"
@@ -2343,12 +2343,12 @@
         "tests"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "validate_docs": false,
-        "make_verify": false
+        "go_test": true,
+        "conformance": true,
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Audit execution.max_workers, fail_fast, defaults.cache, defaults.confidence, and transform cache. Either wire each field to real behavior or remove/reserve it with explicit diagnostics so project YAML has no placebo controls."
+      "notes": "Reserved execution.max_workers, execution.fail_fast, defaults.cache, defaults.confidence, and transform-level cache with CONFIG_FIELD_RESERVED diagnostics and removed the no-op fields from public config structs, manifest transform resources, examples, and project-config docs."
     },
     {
       "id": "FBT-CONFIG-002",

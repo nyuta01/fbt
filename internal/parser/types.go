@@ -107,7 +107,6 @@ type Transform struct {
 	Tools    []string       `yaml:"tools"`
 	Policy   string         `yaml:"policy"`
 	Evals    []string       `yaml:"evals"`
-	Cache    map[string]any `yaml:"cache"`
 	Contract map[string]any `yaml:"contract"`
 	Tags     []string       `yaml:"tags"`
 	Meta     map[string]any `yaml:"meta"`

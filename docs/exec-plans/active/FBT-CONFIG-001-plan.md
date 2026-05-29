@@ -1,6 +1,6 @@
 # FBT-CONFIG-001 Remove Or Implement Inert Config Fields
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -25,12 +25,17 @@ now. Mark future fields as reserved or remove them from the public contract.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
-
-- Decide field-by-field whether to implement, reserve, or remove.
-- Align docs, examples, parser diagnostics, and tests with that decision.
-- Prefer one explicit rebuild control and simple confidence/eval behavior over
-  a hidden cache engine.
+- Reserved `execution.max_workers`, `execution.fail_fast`, `defaults.cache`,
+  `defaults.confidence`, and transform-level `cache` with
+  `CONFIG_FIELD_RESERVED` diagnostics that include file, line, resource, and
+  a hint.
+- Removed the no-op fields from the public config structs and transform
+  manifest resource.
+- Aligned examples and the project-config spec so public YAML no longer
+  presents hidden cache/default/parallel controls.
+- Kept the explicit rebuild model: `plan --force` previews and `build --force`
+  rebuilds selected transforms without bypassing dependency, confidence,
+  policy, or output-boundary checks.
 
 ## Next Check
 
@@ -42,3 +47,5 @@ make verify
 
 Expected result: project YAML no longer accepts no-op controls as if they were
 active behavior.
+
+Latest result: passed.

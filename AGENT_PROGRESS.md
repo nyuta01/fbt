@@ -69,7 +69,7 @@ backlog. The critical gaps are not review, scheduling, provider SDKs, or custom
 visualization; those remain outside core. The new high-priority tasks focus on
 build-tool reliability: one-invocation dependency-ordered builds
 (`FBT-BUILD-001`, now done), failed-run receipts (`FBT-BUILD-002`, now done),
-inert config cleanup (`FBT-CONFIG-001`), strict YAML diagnostics
+inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 (`FBT-CONFIG-002`), CLI-agent adapter safety (`FBT-RUNNER-010`), and stale
 current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
 
@@ -88,6 +88,13 @@ for runner setup, capability, protocol, output-contract, policy, eval, and
 cancellation failures. Failed receipts do not advance artifact versions or
 current artifact pointers, and OTel exports include failed spans plus
 `exception` events.
+
+`FBT-CONFIG-001` reserved no-op config controls instead of pretending they work.
+`execution.max_workers`, `execution.fail_fast`, `defaults.cache`,
+`defaults.confidence`, and transform-level `cache` now fail with
+`CONFIG_FIELD_RESERVED`, line/resource diagnostics, and a hint. Examples and
+the project-config spec no longer advertise hidden cache/default/parallel
+controls.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
@@ -174,8 +181,8 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Clean the project contract through `FBT-CONFIG-001` and `FBT-CONFIG-002` so
-   YAML has no placebo controls and typos fail fast.
+1. Implement `FBT-CONFIG-002` so misspelled or unknown YAML fields fail fast
+   across project and resource files.
 2. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
    SDKs and agent runtimes outside base core.
 3. Define local state/artifact retention hygiene through `FBT-STATE-002`.

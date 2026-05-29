@@ -22,7 +22,6 @@ type ProjectConfig struct {
 	ArtifactPath   string          `yaml:"artifact_path"`
 	State          StateConfig     `yaml:"state"`
 	Execution      ExecutionConfig `yaml:"execution"`
-	Defaults       Defaults        `yaml:"defaults"`
 	Runners        []RunnerConfig  `yaml:"runners"`
 	Selectors      []Selector      `yaml:"selectors"`
 	Vars           map[string]any  `yaml:"vars"`
@@ -34,22 +33,7 @@ type StateConfig struct {
 }
 
 type ExecutionConfig struct {
-	Mode       string `yaml:"mode"`
-	MaxWorkers int    `yaml:"max_workers"`
-	FailFast   bool   `yaml:"fail_fast"`
-}
-
-type Defaults struct {
-	Cache      CacheDefault      `yaml:"cache"`
-	Confidence ConfidenceDefault `yaml:"confidence"`
-}
-
-type CacheDefault struct {
 	Mode string `yaml:"mode"`
-}
-
-type ConfidenceDefault struct {
-	Minimum string `yaml:"minimum"`
 }
 
 type RunnerConfig struct {
@@ -153,12 +137,6 @@ func (c *ProjectConfig) ApplyDefaults() {
 	}
 	if c.Execution.Mode == "" {
 		c.Execution.Mode = "local"
-	}
-	if c.Execution.MaxWorkers == 0 {
-		c.Execution.MaxWorkers = 1
-	}
-	if c.Defaults.Cache.Mode == "" {
-		c.Defaults.Cache.Mode = "reuse_if_same_inputs"
 	}
 }
 
