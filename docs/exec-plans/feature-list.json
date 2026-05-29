@@ -3854,6 +3854,201 @@
       "notes": "Skipped semantic/LLM-judge evals now persist reason and hint fields, build output and transform-run receipts show the skipped state, artifact explain marks delegated eval dependencies as skipped, and docs/schema text points users to external judge transforms for active gates."
     },
     {
+      "id": "FBT-UX-016",
+      "title": "Show source-file change details in dirty explanations",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-002",
+        "FBT-STATE-002"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UX-016-plan.md",
+      "paths": [
+        "internal/artifact/",
+        "internal/manifest/",
+        "internal/planner/",
+        "internal/cli/",
+        "docs/spec.md",
+        "docs/cli-reference.md",
+        "docs/state-and-run-results-spec.md",
+        "docs/exec-plans/active/FBT-UX-016-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "source_add_change_delete_reported": false,
+        "plan_and_artifact_explain_show_changed_files": false,
+        "json_output_preserves_machine_readable_details": false,
+        "make_verify": false
+      },
+      "notes": "Daily source directories can change by many files. Add source file-set delta details to dirty explanations so users can see which files were added, changed, or removed without adding scheduling or partition management to core."
+    },
+    {
+      "id": "FBT-LOCK-002",
+      "title": "Implement validator-only runner lockfile diagnostics",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-LOCK-001",
+        "FBT-RUNNER-026"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-LOCK-002-plan.md",
+      "paths": [
+        "docs/runner-lockfile-spec.md",
+        "schemas/fbt-lock-v1.schema.json",
+        "internal/runner/",
+        "internal/cli/",
+        "internal/manifest/",
+        "internal/planner/",
+        "tests/conformance/",
+        "docs/cli-reference.md",
+        "docs/exec-plans/active/FBT-LOCK-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "doctor_lockfile_diagnostics": false,
+        "build_preflight_mismatch_failure": false,
+        "lockfile_dirty_state_participation": false,
+        "no_download_or_install_behavior": false,
+        "make_verify": false
+      },
+      "notes": "The lockfile contract is specified but not yet enforced. Implement read-only diagnostics and preflight validation for runner drift while keeping package installation, updates, and dependency resolution outside core."
+    },
+    {
+      "id": "FBT-STATE-004",
+      "title": "Specify orphaned resource and artifact semantics",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STATE-002",
+        "FBT-UX-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-STATE-004-plan.md",
+      "paths": [
+        "internal/state/",
+        "internal/manifest/",
+        "internal/cli/",
+        "internal/lineage/",
+        "docs/state-and-run-results-spec.md",
+        "docs/cli-reference.md",
+        "docs/standard-export-spec.md",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-STATE-004-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "removed_transform_current_artifact_behavior": false,
+        "artifact_show_orphan_visibility": false,
+        "exports_preserve_historical_lineage": false,
+        "make_verify": false
+      },
+      "notes": "Define what happens when sources, transforms, or artifact declarations are removed or renamed. Historical artifact versions should remain inspectable and exportable without pretending removed resources are still declared."
+    },
+    {
+      "id": "FBT-CONTRACT-001",
+      "title": "Clarify artifact contract and eval relationship",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-EVAL-002",
+        "FBT-SCHEMA-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-CONTRACT-001-plan.md",
+      "paths": [
+        "docs/project-config-spec.md",
+        "docs/spec.md",
+        "schemas/",
+        "scripts/generate-project-config-schema.py",
+        "internal/parser/",
+        "internal/eval/",
+        "internal/build/",
+        "examples/semantic_eval_boundary/",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-CONTRACT-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "contract_spec_boundary": false,
+        "schema_and_parser_alignment": false,
+        "deterministic_contract_examples": false,
+        "make_verify": false
+      },
+      "notes": "Clarify which artifact contract fields core understands, which checks are deterministic evals, and which validation belongs to external runner or judge-report artifacts so fbt does not become a document validator or model judge."
+    },
+    {
+      "id": "FBT-OPS-002",
+      "title": "Define failed-run recovery and failure-focused selection UX",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-BUILD-002",
+        "FBT-UX-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-OPS-002-plan.md",
+      "paths": [
+        "internal/state/",
+        "internal/planner/",
+        "internal/cli/",
+        "docs/cli-reference.md",
+        "docs/state-and-run-results-spec.md",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-OPS-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "failure_inspection_behavior_defined": false,
+        "failed_selector_or_retry_behavior_defined": false,
+        "receipts_remain_append_only": false,
+        "make_verify": false
+      },
+      "notes": "Failed build receipts exist, but operational recovery needs a small build-tool UX for inspecting failed artifacts and rerunning failed work without adding queues, schedulers, retries, or approval workflow to core."
+    },
+    {
+      "id": "FBT-STATE-005",
+      "title": "Specify archive-safe retention and pruning workflow",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STATE-002",
+        "FBT-STATE-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-STATE-005-plan.md",
+      "paths": [
+        "internal/state/",
+        "internal/cli/",
+        "docs/state-and-run-results-spec.md",
+        "docs/examples/high-volume-retention.md",
+        "docs/usage-guide.md",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-STATE-005-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "archive_unit_specified": false,
+        "dry_run_prune_or_report_semantics": false,
+        "current_pointer_safety_conformance": false,
+        "make_verify": false
+      },
+      "notes": "`keep_all` is safe but high-volume projects need an explicit archive and pruning story. Specify report/dry-run-first semantics and current-pointer protection before any destructive cleanup command exists."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

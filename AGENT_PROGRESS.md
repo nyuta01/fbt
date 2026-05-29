@@ -517,7 +517,18 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+1. `FBT-UX-016`: show source-file add/change/delete details in dirty
+   explanations for high-volume daily source directories.
+2. `FBT-LOCK-002`: implement validator-only `fbt.lock.json` diagnostics and
+   build preflight checks without package installation behavior.
+3. `FBT-STATE-004`: specify orphaned resource and artifact semantics for
+   deleted or renamed declarations.
+4. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
+   with deterministic evals and runner-owned judge reports.
+5. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
+6. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
+   any destructive cleanup command exists.
+7. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent
