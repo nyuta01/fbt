@@ -115,7 +115,7 @@ fbt version --json
 Human output is intentionally compact:
 
 ```text
-fbt 0.1.0
+fbt 0.2.0
 ```
 
 ### 5.1 fbt init

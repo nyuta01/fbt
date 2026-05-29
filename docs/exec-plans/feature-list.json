@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-05-29",
+  "updated": "2026-05-30",
   "principles": [
     "small-agent-entrypoint",
     "repository-as-system-of-record",
@@ -4051,6 +4051,40 @@
         "make_verify": true
       },
       "notes": "Retention reports now expose the `state_and_artifacts` archive unit, archive roots, protected current-version IDs, `prune_supported: false`, and `dry_run_required: true`. Human output, JSON, docs, high-volume smoke, and conformance cover read-only reporting, future dry-run-first cleanup semantics, and current-pointer protection without adding a destructive prune command."
+    },
+    {
+      "id": "FBT-REL-006",
+      "title": "Publish current core CLI release",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-REL-006-plan.md",
+      "paths": [
+        "Makefile",
+        "internal/version/version.go",
+        "scripts/dist-check.sh",
+        "scripts/release-core-cli.sh",
+        "scripts/smoke-cli.sh",
+        "README.md",
+        "docs/release.md",
+        "docs/cli-reference.md",
+        "docs/schema-and-versioning-spec.md",
+        "apps/docs/",
+        "docs/exec-plans/active/FBT-REL-006-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "version_defaults_updated": true,
+        "release_docs_updated": true,
+        "release_assets_built": true,
+        "make_verify": true
+      },
+      "notes": "Promoted core CLI source defaults and install docs to v0.2.0, added a deterministic cross-platform release asset builder, and prepared a signed GitHub release with CLI archives, version metadata, and SHA256SUMS. Official adapters remain separately installed Go modules and are not tagged by the core CLI release."
     },
     {
       "id": "FBT-PDCA-001",

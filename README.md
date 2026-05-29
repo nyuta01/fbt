@@ -5,7 +5,7 @@
 <h1 align="center">fbt</h1>
 
 <p align="center">
-<a href="https://github.com/nyuta01/fbt/releases/tag/v0.1.0"><img alt="Release" src="https://img.shields.io/github/v/release/nyuta01/fbt?label=fbt"></a>
+<a href="https://github.com/nyuta01/fbt/releases/tag/v0.2.0"><img alt="Release" src="https://img.shields.io/github/v/release/nyuta01/fbt?label=fbt"></a>
 <a href="https://nyuta01.github.io/fbt/"><img alt="Docs" src="https://img.shields.io/badge/docs-GitHub%20Pages-0f766e"></a>
 <a href="LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/License-Apache--2.0-blue.svg"></a>
 <a href="https://github.com/nyuta01/fbt/actions/workflows/verify.yml"><img alt="verify" src="https://img.shields.io/github/actions/workflow/status/nyuta01/fbt/verify.yml?branch=main&label=verify"></a>
@@ -75,7 +75,7 @@ which checks ran, and which artifact version is now current.
 ## Install
 
 Download the current CLI archive from
-[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0), verify
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.2.0), verify
 `SHA256SUMS`, or build from source:
 
 ```bash

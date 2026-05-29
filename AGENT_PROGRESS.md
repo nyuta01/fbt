@@ -1,6 +1,6 @@
 # Agent Progress
 
-Last updated: 2026-05-29
+Last updated: 2026-05-30
 
 ## Current State
 
@@ -542,6 +542,12 @@ matching human output. Docs, high-volume smoke, state/CLI tests, and
 conformance now cover read-only reporting, future dry-run-first cleanup
 semantics, and current-pointer protection without adding a destructive prune
 command.
+
+`FBT-REL-006` is done. Core CLI source defaults, smoke tests, install docs, and
+docs-site release references now target `v0.2.0`. `scripts/release-core-cli.sh`
+builds signed-release-ready darwin/linux/windows amd64/arm64 archives,
+`version.json`, and `SHA256SUMS` under `dist/release/v0.2.0`. This is a core
+CLI release only; official adapters remain separately installed Go modules.
 
 ## Verification
 

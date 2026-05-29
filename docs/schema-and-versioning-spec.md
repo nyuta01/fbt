@@ -19,7 +19,7 @@ or runner integrations unexpectedly.
 
 | Family | Field | Example | Meaning |
 |---|---|---|---|
-| Product version | `fbt_version` | `0.1.0` | Version of the core binary that produced an artifact |
+| Product version | `fbt_version` | `0.2.0` | Version of the core binary that produced an artifact |
 | Project config version | `config_version` | `1` | Version of `fs_project.yml` and resource YAML semantics |
 | JSON schema version | `fbt_schema_version` | `https://schemas.fbt.dev/fbt/manifest/v1.json` | Machine-readable file shape |
 | Runner protocol version | `protocol.version` | `0.1` | Core/runner wire protocol |
