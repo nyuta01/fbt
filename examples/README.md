@@ -6,7 +6,7 @@ Use these examples in this order.
 |---|---|---|---|
 | [`knowledge_ops`](knowledge_ops/) | Verify the local fbt control plane end to end. | Demo runners, no credentials. | `fbt init knowledge_ops --template support` |
 | first own-files path | Replace sample support data with your files and build one receipt-backed artifact. | Demo first, external runner later. | `docs/examples/first-own-files-success-path.md` |
-| [`daily_qa_ops`](daily_qa_ops/) | See a daily batch workflow with Markdown sources and multiple outputs. | Demo runners, no credentials. | `fbt plan --project-dir examples/daily_qa_ops --select tag:daily_qa` |
+| [`daily_qa_ops`](daily_qa_ops/) | See a daily batch workflow with Markdown sources, multiple outputs, and a CI-shaped ops wrapper. | Demo runners, no credentials. | `examples/daily_qa_ops/ops/run-daily.sh` |
 | [`markdown_toolchain`](markdown_toolchain/) | See fbt wrap remark/Pandoc-style CLI tools without owning document processing. | Command runner, no credentials. | `fbt plan --project-dir examples/markdown_toolchain --select tag:document_toolchain` |
 | [`data_tool_interop`](data_tool_interop/) | See fbt consume dbt/DataChain output files and turn them into a versioned human brief. | Command runner, no credentials. | `fbt plan --project-dir examples/data_tool_interop --select data_tool_brief` |
 | [`runner_adapters`](runner_adapters/) | Inspect source-checkout runner adapter examples used by demos and practical flows. | Protocol adapters, optional credentials. | `python3 tests/runner-conformance/run.py --runner-command 'go run ./examples/runner_adapters/demo_llm' --strict` |
@@ -64,6 +64,8 @@ Use stable source paths for the fbt project and keep windowing outside fbt:
 
 The detailed daily operations guide is
 [`docs/examples/daily-source-operations.md`](../docs/examples/daily-source-operations.md).
+For the production-shaped command wrapper, see
+[`examples/daily_qa_ops/ops`](daily_qa_ops/ops/).
 
 ## Copying Examples
 

@@ -4187,6 +4187,40 @@
       "notes": "Added a skills.sh-compatible product-level skills pack with exactly one standard skill, fbt-quickstart, plus package metadata and a deterministic agent-skills-check in make verify. No project-local skill commands were added to fbt core."
     },
     {
+      "id": "FBT-OPS-003",
+      "title": "Add production-shaped daily support knowledge loop",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-OPS-001",
+        "FBT-STATE-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-OPS-003-plan.md",
+      "paths": [
+        "examples/daily_qa_ops/README.md",
+        "examples/daily_qa_ops/data/qa/inbox/_READY",
+        "examples/daily_qa_ops/ops/README.md",
+        "examples/daily_qa_ops/ops/run-daily.sh",
+        "examples/daily_qa_ops/ops/github-actions-daily-fbt.yml",
+        "docs/examples/daily-source-operations.md",
+        "examples/README.md",
+        "scripts/smoke-daily-ops.sh",
+        "docs/exec-plans/active/FBT-OPS-003-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "source_readiness_marker": true,
+        "ci_shaped_ops_wrapper": true,
+        "standard_exports_in_run_bundle": true,
+        "daily_ops_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Added an ops wrapper for the daily support knowledge example that keeps ingestion, scheduling, approval, publishing, and notification outside fbt while running doctor, plan, build, artifact inspection, retention inspection, OpenLineage export, and OTel export into a CI-friendly run bundle. The daily ops smoke now executes the wrapper against a copied project."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

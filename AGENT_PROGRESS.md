@@ -574,6 +574,13 @@ land, and how to inspect artifact lineage. `make verify` includes
 `agent-skills-check` to keep the skills pack intentionally limited to that one
 standard entry for now.
 
+`FBT-OPS-003` is done. `examples/daily_qa_ops/ops/run-daily.sh` now shows the
+production-shaped daily support knowledge loop without adding scheduler,
+review, publishing, or runner behavior to fbt core. It requires a source
+readiness marker, then runs `doctor`, `plan`, `build`, artifact inspection,
+retention inspection, OpenLineage export, and OTel export into a CI-friendly
+run bundle. `make verify` covers the wrapper through `daily-ops-smoke`.
+
 ## Verification
 
 Required gate before calling work done:
@@ -584,8 +591,8 @@ make verify
 
 This runs harness, drift, docs validation, release version drift checks, agent
 skills checks, Go formatting/tests, CLI smoke, installer smoke, knowledge-loop
-smoke, practical examples smoke, docs site build, runner conformance, product
-conformance, and distribution smoke checks.
+smoke, practical examples smoke, daily operations smoke, docs site build,
+runner conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 

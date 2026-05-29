@@ -55,4 +55,23 @@ FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact history faq_candidates --p
 grep -q "Artifact: faq_candidates" "$tmpdir/day2-history.txt"
 grep -q "Status      current" "$tmpdir/day2-history.txt"
 
+FBT_SOURCE_ROOT="$ROOT_DIR" \
+  FBT_BIN="go run ./cmd/fbt" \
+  FBT_PROJECT_DIR="$project" \
+  FBT_RUN_ID="smoke-daily-ops" \
+  "$project/ops/run-daily.sh" >"$tmpdir/ops-run.txt"
+grep -q "fbt daily support knowledge run complete" "$tmpdir/ops-run.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/summary.md"
+test -f "$project/target/ops/runs/smoke-daily-ops/doctor.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/plan.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/build.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/manual_update-explain.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/retention.txt"
+test -f "$project/target/ops/runs/smoke-daily-ops/openlineage.ndjson"
+test -f "$project/target/ops/runs/smoke-daily-ops/otel.json"
+test -f "$project/target/ops/latest/summary.md"
+grep -q "Artifact: manual_update" "$project/target/ops/runs/smoke-daily-ops/manual_update-explain.txt"
+grep -q '"eventType":"COMPLETE"' "$project/target/ops/runs/smoke-daily-ops/openlineage.ndjson"
+grep -q '"resourceSpans"' "$project/target/ops/runs/smoke-daily-ops/otel.json"
+
 echo "daily-ops-smoke: ok"

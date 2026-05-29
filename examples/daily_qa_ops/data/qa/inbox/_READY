@@ -1,0 +1,4 @@
+ready_at: replace this marker after the ingestion job prepares the current source window
+expected_inputs:
+  - data/qa/inbox/questions/
+  - data/qa/inbox/answers/

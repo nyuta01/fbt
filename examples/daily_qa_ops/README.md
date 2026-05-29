@@ -30,6 +30,39 @@ Markdown questions + Markdown answers + Markdown product docs
 Use this example when customer questions and support answers accumulate in
 directories and a daily job should produce structured outputs.
 
+## Production Reference Loop
+
+The most production-shaped entrypoint is:
+
+```sh
+examples/daily_qa_ops/ops/run-daily.sh
+```
+
+It is a shell/CI wrapper around fbt, not a new fbt feature. It checks that the
+source window is ready, then writes a run bundle under `target/ops/`:
+
+```text
+target/ops/runs/<run-id>/
+target/ops/latest/
+```
+
+That bundle contains:
+
+| File | Why it exists |
+|---|---|
+| `doctor.txt` | Proves the project, state, and runner setup were ready. |
+| `plan.txt` | Shows what would run, skip, or block before runner execution. |
+| `build.txt` | Shows committed artifact versions and output paths. |
+| `manual_update-explain.txt` | Shows source, asset, runner, policy, eval, and lineage evidence. |
+| `retention.txt` | Shows the local state/artifact archive boundary. |
+| `openlineage.ndjson` | Standard lineage events for external metadata tools. |
+| `otel.json` | OTLP/JSON traces for external observability tools. |
+
+Copy `ops/github-actions-daily-fbt.yml` into `.github/workflows/` when you want
+CI to be the authoritative daily builder. Add publish, pull-request, or Slack
+steps after the fbt loop; fbt intentionally stops at explainable artifacts and
+standard exports.
+
 ## Inputs
 
 | Source | Path | Purpose |
@@ -127,6 +160,12 @@ versions remain in `.fbt/artifacts/`.
 Use source-readiness checks outside fbt as well. For example, have ingestion
 write a `_READY` marker, validate expected counts, or fail the external job
 before calling fbt. fbt's job starts after the files are ready.
+
+The checked-in production wrapper enforces that convention by requiring:
+
+```text
+data/qa/inbox/_READY
+```
 
 ## Day 2 Simulation
 

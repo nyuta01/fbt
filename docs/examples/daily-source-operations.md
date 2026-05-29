@@ -19,6 +19,39 @@ fbt does not own the scheduler, ingestion database, partition engine, approval
 workflow, or publishing destination. It owns the local build receipt for files
 that already exist on disk.
 
+## Reference Production Loop
+
+`examples/daily_qa_ops/ops/run-daily.sh` shows the recommended production
+composition:
+
+```sh
+examples/daily_qa_ops/ops/run-daily.sh
+```
+
+The wrapper runs:
+
+```text
+source readiness marker
+  -> fbt doctor
+  -> fbt plan
+  -> fbt build
+  -> fbt artifact show/explain
+  -> fbt artifact retention
+  -> fbt export openlineage / otel
+```
+
+It writes a CI-friendly run bundle under:
+
+```text
+target/ops/runs/<run-id>/
+target/ops/latest/
+```
+
+Use the bundle as the handoff to Git, PR review, Slack, a knowledge-base
+publisher, Marquez/OpenMetadata-compatible lineage ingestion, or an
+OTLP-compatible observability backend. fbt still does not schedule, approve, or
+publish the artifacts.
+
 ## Example Shape
 
 `examples/daily_qa_ops` models a support knowledge workflow:
@@ -36,6 +69,16 @@ that already exist on disk.
 
 The source and artifact sets are both plural. One daily run can create several
 candidate artifacts and one downstream manual update.
+
+The production wrapper also requires a readiness marker outside the declared
+source directories:
+
+```text
+data/qa/inbox/_READY
+```
+
+Ingestion should write or replace this marker only after today's source window
+has passed its own count, freshness, schema, and completeness checks.
 
 ## Day 1
 
@@ -125,6 +168,17 @@ Change the window outside fbt:
 | Cumulative evidence base | Append files to the inbox directories. | `plan` detects changed descriptors. |
 | Date/service/customer partition | Copy or symlink the selected partition into the inbox. | Select the same transform or tag. |
 | Scheduled run | cron, CI, Airflow, Dagster, or another orchestrator. | `doctor`, `plan`, `build`, `artifact`, `export`. |
+
+## Production Concerns
+
+| Concern | Keep in fbt | Keep outside fbt |
+|---|---|---|
+| Runner quality | Runner protocol call, policy boundary, artifact commit, usage metadata. | Provider retries, model routing, prompt orchestration, credential handling. |
+| Daily source window | Stable source paths and content fingerprints. | Ingestion, date partitions, `_READY` marker, expected counts. |
+| State retention | `artifact retention`, immutable versions, archive boundary. | Storage lifecycle, backup, long-term pruning policy. |
+| Approval and publish | Diff, explain, standard exports. | Git PRs, human review, Slack, wiki/catalog publishing. |
+| Quality checks | Deterministic eval receipts and confidence. | Domain review, LLM judge, semantic evidence scoring, incident ownership. |
+| Team authority | Reproducible CLI commands and local state records. | CI as the authoritative builder and run-bundle archive. |
 
 ## Retention
 

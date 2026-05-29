@@ -1,0 +1,38 @@
+name: daily-fbt-support-knowledge
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 9 * * *"
+
+jobs:
+  daily-support-knowledge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install fbt
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Prepare or verify source window
+        run: |
+          test -f examples/daily_qa_ops/data/qa/inbox/_READY
+
+      - name: Run daily fbt loop
+        env:
+          FBT_PROJECT_DIR: examples/daily_qa_ops
+          FBT_SELECTOR: tag:daily_qa
+          # Add provider credentials here only when fs_project.yml points at
+          # production runners instead of the checked-in demo runners.
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: examples/daily_qa_ops/ops/run-daily.sh
+
+      - name: Upload fbt run evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fbt-daily-support-knowledge
+          path: examples/daily_qa_ops/target/ops/latest/
