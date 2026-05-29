@@ -93,6 +93,8 @@ type EvaluationResult struct {
 	ArtifactVersionID string   `json:"artifact_version_id"`
 	TransformRunID    string   `json:"transform_run_id"`
 	Status            string   `json:"status"`
+	Reason            string   `json:"reason,omitempty"`
+	Hint              string   `json:"hint,omitempty"`
 	Score             *float64 `json:"score,omitempty"`
 	Threshold         *float64 `json:"threshold,omitempty"`
 	GrantsConfidence  string   `json:"grants_confidence,omitempty"`

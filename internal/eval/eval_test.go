@@ -3,6 +3,7 @@ package eval
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/nyuta01/fbt/internal/manifest"
@@ -81,6 +82,15 @@ func TestRunForCandidateSkipsDelegatedEval(t *testing.T) {
 	}
 	if len(outcome.Results) != 1 || outcome.Results[0].Status != "skipped" {
 		t.Fatalf("expected skipped result, got %+v", outcome.Results)
+	}
+	if outcome.Results[0].Reason == "" || !strings.Contains(outcome.Results[0].Reason, "not executed by fbt core") {
+		t.Fatalf("expected skipped reason, got %+v", outcome.Results[0])
+	}
+	if outcome.Results[0].Hint == "" || !strings.Contains(outcome.Results[0].Hint, "external judge transform") {
+		t.Fatalf("expected skipped hint, got %+v", outcome.Results[0])
+	}
+	if outcome.Results[0].GrantsConfidence != "" || outcome.Confidence != "" {
+		t.Fatalf("skipped delegated eval must not grant confidence: outcome=%+v", outcome)
 	}
 }
 

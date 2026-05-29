@@ -48,6 +48,7 @@ type Run struct {
 	CommittedVersions  []string
 	CommittedArtifacts []CommittedArtifact
 	EvaluationResults  []string
+	EvaluationDetails  []state.EvaluationResult
 	PolicyDecisions    []string
 	Usage              map[string]any
 	Provenance         map[string]any
@@ -337,6 +338,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 				return run, err
 			}
 			run.EvaluationResults = append(run.EvaluationResults, result.ResultID)
+			run.EvaluationDetails = append(run.EvaluationDetails, result)
 		}
 		if evalErr != nil {
 			run.Status = "eval_failed"
@@ -452,7 +454,32 @@ func appendTransformRunResult(store state.Store, invocationID string, run Run, s
 	if runErr != nil {
 		record["error"] = safeErrorRecord(runErr, run.Status, secretNames)
 	}
+	if len(run.EvaluationDetails) > 0 {
+		record["evaluation_summaries"] = evaluationSummaries(run.EvaluationDetails)
+	}
 	return store.AppendRunResult(record)
+}
+
+func evaluationSummaries(results []state.EvaluationResult) []map[string]any {
+	summaries := make([]map[string]any, 0, len(results))
+	for _, result := range results {
+		summary := map[string]any{
+			"result_id": result.ResultID,
+			"eval_id":   result.EvalID,
+			"status":    result.Status,
+		}
+		if result.Reason != "" {
+			summary["reason"] = result.Reason
+		}
+		if result.Hint != "" {
+			summary["hint"] = result.Hint
+		}
+		if result.GrantsConfidence != "" {
+			summary["grants_confidence"] = result.GrantsConfidence
+		}
+		summaries = append(summaries, summary)
+	}
+	return summaries
 }
 
 func updateLatestRun(snapshot *state.Snapshot, transformID string, transform manifest.TransformResource, runID, status string, successful bool) {

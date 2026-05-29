@@ -288,7 +288,10 @@ def build_resource_schema() -> dict[str, Any]:
     )
     eval_schema = named_resource(
         {
-            "type": {"enum": eval_types},
+            "type": {
+                "enum": eval_types,
+                "description": "deterministic evals run in fbt core. semantic and llm_judge evals are reserved delegated shapes; MVP builds record them as skipped and grant no confidence. Use an external judge transform for an active model-based quality gate.",
+            },
             "runner": STRING,
             "config": FREE_OBJECT,
             "grants_confidence": STRING,
@@ -388,4 +391,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

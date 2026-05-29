@@ -233,8 +233,10 @@ The runner owns the model call. fbt records the judge report's sources, runner,
 artifact version, policy decision, and lineage. Git, CI, PRs, or publishing
 tooling decide whether the report blocks release.
 
-`semantic` and `llm_judge` eval types are reserved config shapes in the MVP;
-build records them as skipped and grants no confidence from them.
+`semantic` and `llm_judge` eval types are reserved config shapes in the MVP.
+Build records them as skipped, prints the skip reason and external-judge hint,
+shows the skipped eval in `fbt artifact explain`, and grants no confidence from
+them.
 
 ## 9. Review And Publishing Boundary
 

@@ -197,6 +197,7 @@
             "type": "string"
           },
           "type": {
+            "description": "deterministic evals run in fbt core. semantic and llm_judge evals are reserved delegated shapes; MVP builds record them as skipped and grant no confidence. Use an external judge transform for an active model-based quality gate.",
             "enum": [
               "deterministic",
               "llm_judge",

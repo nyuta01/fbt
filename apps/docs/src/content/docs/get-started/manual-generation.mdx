@@ -27,7 +27,10 @@ show multiple source directories producing multiple artifacts in one daily run.
 
 For semantic or evidence-quality checks, add another external-runner transform
 that writes a judge report artifact. `examples/semantic_eval_boundary` shows
-that pattern without putting model-judge logic in fbt core.
+that pattern without putting model-judge logic in fbt core. Reserved
+`semantic` and `llm_judge` eval declarations are not active gates in core; fbt
+records them as skipped, shows the skip reason in build receipts and
+`artifact explain`, and grants no confidence from them.
 
 ## Incident response runbook
 

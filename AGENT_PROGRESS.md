@@ -486,6 +486,12 @@ baseline, stale remaining-question sections were replaced with concrete
 post-MVP boundaries, `validate-docs` checks the replacement spec section, and
 quality-score rows no longer point at the completed spec cleanup task.
 
+`FBT-EVAL-002` is done. Skipped `semantic` and `llm_judge` eval declarations
+now persist reason/hint fields, build output and transform-run receipts show
+the skipped state, `artifact explain` marks those eval dependencies as skipped,
+and docs/schema text points users to external judge transforms for active
+quality gates.
+
 ## Verification
 
 Required gate before calling work done:

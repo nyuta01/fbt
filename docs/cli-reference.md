@@ -187,6 +187,10 @@ outputs: it resolves declared inputs, calls the configured external runner,
 validates output candidates, commits immutable artifact versions, records eval
 results, and writes local state for later inspection and export.
 
+If a transform declares `semantic` or `llm_judge` evals, the build output and
+receipt show those evals as `skipped` with a hint to use an external judge
+transform for an active quality gate.
+
 Lifecycle:
 
 ```text

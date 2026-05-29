@@ -160,7 +160,21 @@ Example failed receipt:
 ```
 
 MVP core executes deterministic evals. Delegated semantic and LLM-judge evals
-may be recorded as skipped until external eval runners are implemented.
+are recorded as skipped until external eval runners are implemented. Skipped
+delegated eval results include `reason` and `hint` fields so users can tell they
+are declarations, not active quality gates.
+
+```json
+{
+  "result_id": "evaluation_result.knowledge_ops.semantic_check.1",
+  "eval_id": "eval.knowledge_ops.semantic_check",
+  "artifact_version_id": "artifact_version.knowledge_ops.case_summaries.sha256_abc",
+  "transform_run_id": "transform_run.run_01H...",
+  "status": "skipped",
+  "reason": "semantic evals are not executed by fbt core",
+  "hint": "Use an external judge transform that produces a report artifact when this should be an active quality gate."
+}
+```
 
 ## Policy Decisions
 

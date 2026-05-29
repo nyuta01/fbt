@@ -433,6 +433,61 @@ func TestRunBuildShowsCommittedArtifactPathAndNext(t *testing.T) {
 	}
 }
 
+func TestRunBuildAndExplainShowSkippedDelegatedEval(t *testing.T) {
+	root := writeCLIProject(t)
+	repoRoot := repoRoot(t)
+	command := filepath.Join(root, "bin", "fbt-openai-runner")
+	writeFile(t, root, "bin/fbt-openai-runner", "#!/bin/sh\nexec go run "+shellQuote(filepath.Join(repoRoot, "tests", "runner_fixtures", "fake"))+"\n")
+	if err := os.Chmod(command, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner"))
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: semantic
+    runner: openai.responses
+    config:
+      rubric: prompts/case_summary.md
+    grants_confidence: semantic
+`)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &stdout, &stderr); code != 0 {
+		t.Fatalf("build failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	buildOut := stdout.String()
+	for _, expected := range []string{
+		"eval",
+		"required_case_sections skipped",
+		"not executed by fbt core",
+		"use external judge transform for active gate",
+	} {
+		if !strings.Contains(buildOut, expected) {
+			t.Fatalf("expected %q in build output:\n%s", expected, buildOut)
+		}
+	}
+
+	var explainOut bytes.Buffer
+	var explainErr bytes.Buffer
+	if code := Run([]string{"artifact", "explain", "case_summaries", "--project-dir", root}, &explainOut, &explainErr); code != 0 {
+		t.Fatalf("artifact explain failed: code=%d stdout=%q stderr=%q", code, explainOut.String(), explainErr.String())
+	}
+	explain := explainOut.String()
+	for _, expected := range []string{
+		"skipped",
+		"eval",
+		"required_case_sections",
+		"type=semantic",
+		"status=skipped",
+		"hint=use external judge transform for active gate",
+	} {
+		if !strings.Contains(explain, expected) {
+			t.Fatalf("expected %q in artifact explain output:\n%s", expected, explain)
+		}
+	}
+}
+
 func TestRunPlanMissingConfigVersion(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "fs_project.yml", "name: demo\n")

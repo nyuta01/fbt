@@ -106,3 +106,8 @@ runner owns the model call, and Git/CI/publishing tooling owns whether the
 report blocks release.
 
 Do not put provider SDKs or model-judge logic in fbt core.
+
+If a project declares `type: semantic` or `type: llm_judge` under `evals`, fbt
+records that eval as `skipped`, writes a reason and external-judge hint into the
+build receipt, and grants no confidence from it. Use the report-artifact pattern
+above when the quality check must actually run.

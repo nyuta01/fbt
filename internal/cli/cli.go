@@ -806,6 +806,9 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 				rows = append(rows, displayRow{Label: "committed", Value: shortVersionID(version)})
 			}
 		}
+		for _, result := range run.EvaluationDetails {
+			rows = append(rows, displayRow{Label: "eval", Value: formatEvaluationResult(result)})
+		}
 		printDisplayRows(stdout, "        ", rows)
 		fmt.Fprintln(stdout)
 	}
@@ -1294,6 +1297,29 @@ func printDisplayRows(stdout io.Writer, indent string, rows []displayRow) {
 	}
 }
 
+func formatEvaluationResult(result state.EvaluationResult) string {
+	parts := []string{shortenResourceID(result.EvalID)}
+	if result.Status != "" {
+		parts = append(parts, result.Status)
+	}
+	summary := strings.Join(parts, " ")
+	if result.Reason != "" {
+		summary += " (" + result.Reason + ")"
+	}
+	if result.Hint != "" {
+		summary += "; " + shortEvaluationHint(result.Hint)
+	}
+	return summary
+}
+
+func shortEvaluationHint(hint string) string {
+	const delegated = "Use an external judge transform that produces a report artifact when this should be an active quality gate."
+	if hint == delegated {
+		return "use external judge transform for active gate"
+	}
+	return hint
+}
+
 func actionLabel(action planner.Action) string {
 	switch action {
 	case planner.ActionRun:
@@ -1626,6 +1652,9 @@ type explanationDependency struct {
 	CurrentVersionID    string `json:"current_version_id,omitempty"`
 	Confidence          string `json:"confidence,omitempty"`
 	RequiredConfidence  string `json:"required_confidence,omitempty"`
+	EvalType            string `json:"eval_type,omitempty"`
+	EvalStatus          string `json:"eval_status,omitempty"`
+	EvalHint            string `json:"eval_hint,omitempty"`
 }
 
 func runArtifactExplain(ctx projectContext, target string, opts options, stdout io.Writer, stderr io.Writer) int {
@@ -1652,6 +1681,18 @@ func runArtifactExplain(ctx projectContext, target string, opts options, stdout 
 		printError("artifact explain", err, stderr, jsonOutput)
 		return 5
 	}
+	evalResults, err := ctx.Store.ReadEvaluationResults()
+	if err != nil {
+		printError("artifact explain", err, stderr, jsonOutput)
+		return 5
+	}
+	var currentPointer *state.ArtifactPointer
+	var currentVersionID string
+	if pointer, ok := snapshot.CurrentArtifacts[artifactID]; ok {
+		copyPointer := pointer
+		currentPointer = &copyPointer
+		currentVersionID = pointer.CurrentVersionID
+	}
 	plan := planner.Build(planner.Inputs{
 		Manifest:         ctx.Manifest,
 		PreviousManifest: previous,
@@ -1671,13 +1712,11 @@ func runArtifactExplain(ctx projectContext, target string, opts options, stdout 
 		Decision:       explanationDecision(node),
 		Inputs:         transform.Inputs,
 		Outputs:        transform.Outputs,
-		Dependencies:   explanationDependencies(ctx.Manifest, previous, snapshot, transform),
+		Dependencies:   explanationDependencies(ctx.Manifest, previous, snapshot, transform, currentVersionID, evalResults),
 		DirtyReasons:   node.DirtyReasons,
 		BlockedReasons: node.BlockedReasons,
 		NextSteps:      contextualizeNextSteps(node.NextSteps, opts),
-	}
-	if pointer, ok := snapshot.CurrentArtifacts[artifactID]; ok {
-		explanation.Current = &pointer
+		Current:        currentPointer,
 	}
 	if latest, ok := snapshot.LatestRuns[transform.UniqueID]; ok {
 		explanation.PreviousRun = &latest
@@ -1709,7 +1748,7 @@ func explanationDecision(node planner.Node) string {
 	}
 }
 
-func explanationDependencies(current manifest.Manifest, previous *manifest.Manifest, snapshot state.Snapshot, transform manifest.TransformResource) []explanationDependency {
+func explanationDependencies(current manifest.Manifest, previous *manifest.Manifest, snapshot state.Snapshot, transform manifest.TransformResource, currentVersionID string, evalResults state.EvaluationResultsIndex) []explanationDependency {
 	var deps []explanationDependency
 	for _, input := range transform.Inputs {
 		dep := explanationDependency{Role: "input", ResourceID: input.UniqueID, Name: input.Name}
@@ -1728,7 +1767,7 @@ func explanationDependencies(current manifest.Manifest, previous *manifest.Manif
 		deps = append(deps, policyExplanationDependency(current, previous, transform.Policy))
 	}
 	for _, evalID := range transform.Evals {
-		deps = append(deps, evalExplanationDependency(current, previous, evalID))
+		deps = append(deps, evalExplanationDependency(current, previous, evalID, currentVersionID, evalResults))
 	}
 	if transform.Runner != "" {
 		deps = append(deps, runnerExplanationDependency(current, previous, transform.Runner))
@@ -1805,13 +1844,24 @@ func policyExplanationDependency(current manifest.Manifest, previous *manifest.M
 	return dep
 }
 
-func evalExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
+func evalExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string, currentVersionID string, evalResults state.EvaluationResultsIndex) explanationDependency {
 	dep := explanationDependency{Role: "eval", ResourceID: id}
 	eval, ok := current.Evals[id]
 	if !ok {
 		return dep
 	}
 	dep.Name = eval.Name
+	dep.EvalType = eval.EvalType
+	if eval.EvalType == "semantic" || eval.EvalType == "llm_judge" {
+		dep.EvalStatus = "skipped"
+		dep.EvalHint = "use external judge transform for active gate"
+	}
+	if result, ok := evaluationResultForVersion(evalResults, id, currentVersionID); ok {
+		dep.EvalStatus = result.Status
+		if result.Hint != "" {
+			dep.EvalHint = shortEvaluationHint(result.Hint)
+		}
+	}
 	dep.Fingerprint = eval.Fingerprint.Value
 	if previous != nil {
 		if prev, ok := previous.Evals[id]; ok {
@@ -1822,6 +1872,22 @@ func evalExplanationDependency(current manifest.Manifest, previous *manifest.Man
 		}
 	}
 	return dep
+}
+
+func evaluationResultForVersion(index state.EvaluationResultsIndex, evalID, artifactVersionID string) (state.EvaluationResult, bool) {
+	if artifactVersionID == "" {
+		return state.EvaluationResult{}, false
+	}
+	var best state.EvaluationResult
+	for _, result := range index.EvaluationResults {
+		if result.EvalID != evalID || result.ArtifactVersionID != artifactVersionID {
+			continue
+		}
+		if best.ResultID == "" || result.ResultID > best.ResultID {
+			best = result
+		}
+	}
+	return best, best.ResultID != ""
 }
 
 func runnerExplanationDependency(current manifest.Manifest, previous *manifest.Manifest, id string) explanationDependency {
@@ -2201,6 +2267,9 @@ func dependencyStatus(dep explanationDependency) string {
 	if dep.Changed != nil && *dep.Changed {
 		status = "changed"
 	}
+	if dep.Role == "eval" && dep.EvalStatus == "skipped" {
+		status = "skipped"
+	}
 	if dep.Role == "input" && strings.HasPrefix(dep.ResourceID, "artifact.") && dep.CurrentVersionID == "" {
 		status = "missing"
 	}
@@ -2223,6 +2292,15 @@ func dependencyDetails(dep explanationDependency) string {
 	}
 	if dep.RequiredConfidence != "" {
 		details = append(details, "requires="+dep.RequiredConfidence)
+	}
+	if dep.EvalType != "" {
+		details = append(details, "type="+dep.EvalType)
+	}
+	if dep.EvalStatus != "" {
+		details = append(details, "status="+dep.EvalStatus)
+	}
+	if dep.EvalHint != "" {
+		details = append(details, "hint="+dep.EvalHint)
 	}
 	if dep.Fingerprint != "" {
 		details = append(details, "fingerprint="+shortDigest(dep.Fingerprint))

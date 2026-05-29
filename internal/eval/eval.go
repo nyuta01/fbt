@@ -63,6 +63,8 @@ func RunForCandidate(root string, transform manifest.TransformResource, evals ma
 			}
 		case "semantic", "llm_judge":
 			result.Status = "skipped"
+			result.Reason = skippedDelegatedReason(evalResource.EvalType)
+			result.Hint = delegatedEvalHint()
 		default:
 			result.Status = "error"
 			if firstErr == nil {
@@ -72,6 +74,21 @@ func RunForCandidate(root string, transform manifest.TransformResource, evals ma
 		outcome.Results = append(outcome.Results, result)
 	}
 	return outcome, firstErr
+}
+
+func skippedDelegatedReason(evalType string) string {
+	switch evalType {
+	case "semantic":
+		return "semantic evals are not executed by fbt core"
+	case "llm_judge":
+		return "llm_judge evals are not executed by fbt core"
+	default:
+		return "delegated eval type is not executed by fbt core"
+	}
+}
+
+func delegatedEvalHint() string {
+	return "Use an external judge transform that produces a report artifact when this should be an active quality gate."
 }
 
 func runDeterministic(root, candidatePath string, config map[string]any) (string, *float64, *float64, error) {

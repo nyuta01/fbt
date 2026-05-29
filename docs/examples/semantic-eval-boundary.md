@@ -61,5 +61,7 @@ Your CI, PR, or publishing workflow can then decide how to use the judge report.
 
 `type: semantic` and `type: llm_judge` remain reserved config shapes. In the
 MVP, fbt records those evals as skipped during build and grants no confidence
-from them. Do not rely on them for gating until a delegated eval-runner protocol
-is specified and implemented.
+from them. The skipped result is visible in build output, state receipts, and
+`fbt artifact explain` with a hint to model the check as an external judge
+transform when it must be an active gate. Do not rely on them for gating until a
+delegated eval-runner protocol is specified and implemented.

@@ -341,10 +341,11 @@ Eval types:
 - `semantic`
 - `llm_judge`
 
-MVP core executes deterministic evals. Other eval types are recorded as skipped
-and grant no confidence until a delegated eval-runner protocol is implemented.
-For model-based judging today, use a normal transform runner that produces a
-judge report artifact.
+MVP core executes deterministic evals. Other eval types are recorded as
+`skipped`, include a reason and hint in `evaluation_results.json` and build
+receipts, and grant no confidence until a delegated eval-runner protocol is
+implemented. For model-based judging today, use a normal transform runner that
+produces a judge report artifact.
 
 ## 10. Runners
 

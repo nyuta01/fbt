@@ -226,11 +226,13 @@ Reserved delegated eval types:
 - `semantic`
 - `llm_judge`
 
-MVP core records `semantic` and `llm_judge` evals as skipped and grants no
-confidence from them. Model-based judging belongs in an external runner
-transform that produces a judge report artifact, or in a future delegated
-eval-runner protocol. Core keeps the receipt, confidence gate, and lineage; it
-does not implement model-judge logic.
+MVP core records `semantic` and `llm_judge` evals as skipped, writes the skip
+reason and external-judge-transform hint into state/build receipts, shows the
+skipped eval in artifact explanation, and grants no confidence from them.
+Model-based judging belongs in an external runner transform that produces a
+judge report artifact, or in a future delegated eval-runner protocol. Core keeps
+the receipt, confidence gate, and lineage; it does not implement model-judge
+logic.
 
 The runnable boundary example is `examples/semantic_eval_boundary`: a generated
 manual artifact feeds an external evidence-quality transform, and fbt records

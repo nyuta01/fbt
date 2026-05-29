@@ -286,6 +286,73 @@ func TestRunBuildRecordsEvalAndConfidence(t *testing.T) {
 	}
 }
 
+func TestRunBuildRecordsSkippedDelegatedEvalHint(t *testing.T) {
+	root := writeBuildProject(t)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: semantic
+    runner: openai.responses
+    config:
+      rubric: prompts/case_summary.md
+    grants_confidence: semantic
+`)
+
+	result, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err != nil {
+		t.Fatalf("run build: %v", err)
+	}
+	if len(result.Runs) != 1 || len(result.Runs[0].EvaluationDetails) != 1 {
+		t.Fatalf("expected evaluation details, got %+v", result.Runs)
+	}
+	detail := result.Runs[0].EvaluationDetails[0]
+	if detail.Status != "skipped" || detail.Reason == "" || detail.Hint == "" {
+		t.Fatalf("expected skipped delegated eval detail, got %+v", detail)
+	}
+
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	evals, err := store.ReadEvaluationResults()
+	if err != nil {
+		t.Fatalf("read eval results: %v", err)
+	}
+	if len(evals.EvaluationResults) != 1 {
+		t.Fatalf("expected one eval result, got %+v", evals.EvaluationResults)
+	}
+	for _, result := range evals.EvaluationResults {
+		if result.Status != "skipped" || !strings.Contains(result.Reason, "not executed by fbt core") || !strings.Contains(result.Hint, "external judge transform") {
+			t.Fatalf("unexpected skipped eval result: %+v", result)
+		}
+		if result.GrantsConfidence != "" {
+			t.Fatalf("skipped eval should not grant confidence: %+v", result)
+		}
+	}
+	snapshot, err := store.ReadState()
+	if err != nil {
+		t.Fatalf("read state: %v", err)
+	}
+	if got := snapshot.CurrentArtifacts["artifact.knowledge_ops.case_summaries"].Confidence; got != "structural" {
+		t.Fatalf("skipped semantic eval should not upgrade confidence, got %q", got)
+	}
+
+	var foundSummary bool
+	for _, record := range readRunRecords(t, root) {
+		if record["record_type"] != "transform_run" || record["status"] != "success" {
+			continue
+		}
+		summaries, ok := record["evaluation_summaries"].([]any)
+		if !ok || len(summaries) != 1 {
+			t.Fatalf("expected evaluation summary receipt, got %+v", record)
+		}
+		summary, ok := summaries[0].(map[string]any)
+		if !ok || summary["status"] != "skipped" || summary["reason"] == "" || summary["hint"] == "" {
+			t.Fatalf("unexpected evaluation summary receipt: %+v", summaries)
+		}
+		foundSummary = true
+	}
+	if !foundSummary {
+		t.Fatalf("expected transform_run evaluation summary receipt")
+	}
+}
+
 func TestRunBuildEvalFailureDoesNotCommitOutput(t *testing.T) {
 	root := writeBuildProject(t)
 	writeFile(t, root, "evals/support.yml", `evals:

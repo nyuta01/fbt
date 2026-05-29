@@ -3820,7 +3820,7 @@
       "id": "FBT-EVAL-002",
       "title": "Make skipped semantic and LLM-judge evals visible in user-facing UX",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-EVAL-001",
@@ -3832,9 +3832,12 @@
         "internal/build/",
         "internal/cli/",
         "docs/project-config-spec.md",
+        "docs/cli-reference.md",
         "docs/spec.md",
+        "docs/state-and-run-results-spec.md",
         "schemas/",
         "examples/semantic_eval_boundary/",
+        "docs/examples/semantic-eval-boundary.md",
         "apps/docs/src/content/docs/get-started/manual-generation.mdx",
         "docs/exec-plans/active/FBT-EVAL-002-plan.md",
         "docs/exec-plans/feature-list.json",
@@ -3842,12 +3845,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "skipped_eval_receipt_hint": false,
-        "cli_or_artifact_explain_visibility": false,
-        "docs_and_schema_description_updated": false,
-        "make_verify": false
+        "skipped_eval_receipt_hint": true,
+        "cli_or_artifact_explain_visibility": true,
+        "docs_and_schema_description_updated": true,
+        "make_verify": true
       },
-      "notes": "`semantic` and `llm_judge` evals are intentionally recorded as skipped and grant no confidence, but users can misread that as an active quality gate. Make the skipped status and external-judge-transform recommendation visible in receipts, CLI inspection, and docs."
+      "notes": "Skipped semantic/LLM-judge evals now persist reason and hint fields, build output and transform-run receipts show the skipped state, artifact explain marks delegated eval dependencies as skipped, and docs/schema text points users to external judge transforms for active gates."
     },
     {
       "id": "FBT-PDCA-001",
