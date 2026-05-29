@@ -368,6 +368,12 @@ Runner resolution is defined in
 with explicit `command` take precedence over plugin manifests and `PATH`
 conventions.
 
+Teams that need reproducible runner/adapter identity may also commit an
+optional `fbt.lock.json` next to `fs_project.yml`. The lockfile is validation
+metadata only: fbt core may read it for `doctor`, dirty-state, and build
+compatibility checks, but it must not download, install, or update runners. See
+[Runner Lockfile Spec](runner-lockfile-spec.md).
+
 ## 11. Selectors
 
 ```yaml

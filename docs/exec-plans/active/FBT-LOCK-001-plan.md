@@ -4,22 +4,22 @@
 
 Official adapters can be installed and released, but a project cannot yet pin
 the exact runner or adapter source, version, checksum, and protocol
-compatibility in a local contract.
+compatibility in a local contract without risking scope creep toward package
+management.
 
 ## Decision
 
-Design an optional `fbt.lock.json` model for runner and adapter reproducibility.
-Keep installation and dependency resolution outside core; fbt should only read,
-validate, and explain lockfile expectations when present.
+Define `fbt.lock.json` as an optional validator-only contract. It can pin
+runner/adapter identity and integrity metadata, but installation, update,
+resolution, and registry access remain outside core.
 
 ## Permanent Fix
 
-Specify the lockfile shape, the dirty/doctor behavior when runner identity
-drifts, and conformance coverage that proves core remains a validator rather
-than a package manager.
+Added the lockfile spec, JSON schema, discovery/config/schema/adapter docs, and
+`runner-lockfile-spec-check` so the validator-only boundary is mechanically
+guarded by `make verify`.
 
 ## Next Check
 
-Update specs/docs, add focused validation behavior if accepted, and run
-`make verify`.
-
+`make verify` must pass; future implementation should add doctor/build behavior
+against this contract without adding downloads or dependency resolution to core.

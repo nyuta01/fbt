@@ -492,6 +492,12 @@ the skipped state, `artifact explain` marks those eval dependencies as skipped,
 and docs/schema text points users to external judge transforms for active
 quality gates.
 
+`FBT-LOCK-001` is done as a design task. `docs/runner-lockfile-spec.md` and
+`schemas/fbt-lock-v1.schema.json` define optional validator-only
+`fbt.lock.json` semantics, docs link the contract from runner discovery,
+project config, adapter packaging, schema/versioning, and README, and
+`make verify` now includes `runner-lockfile-spec-check`.
+
 ## Verification
 
 Required gate before calling work done:

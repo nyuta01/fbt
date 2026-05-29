@@ -407,6 +407,7 @@ docs generator.
 | [Runner Protocol Spec](runner-protocol-spec.md) | External runner protocol |
 | [Schema and Versioning Spec](schema-and-versioning-spec.md) | Config versioning, schema compatibility, artifact types, descriptor rules |
 | [Runner Discovery Spec](runner-discovery-spec.md) | Runner resolution, plugin manifests, diagnostics |
+| [Runner Lockfile Spec](runner-lockfile-spec.md) | Optional runner/adapter reproducibility contract |
 | [Security and Conformance Spec](security-and-conformance-spec.md) | Security model and conformance scenarios |
 
 ## 19. Post-MVP Follow-Up Boundaries

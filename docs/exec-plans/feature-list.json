@@ -3755,7 +3755,7 @@
       "id": "FBT-LOCK-001",
       "title": "Design optional runner and adapter lockfile semantics",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-026",
@@ -3764,25 +3764,26 @@
       "plan_url": "docs/exec-plans/active/FBT-LOCK-001-plan.md",
       "paths": [
         "docs/runner-discovery-spec.md",
+        "docs/runner-lockfile-spec.md",
         "docs/runner-adapters.md",
         "docs/project-config-spec.md",
         "docs/schema-and-versioning-spec.md",
         "schemas/",
-        "internal/runner/",
-        "internal/cli/",
-        "tests/conformance/",
+        "scripts/check-runner-lockfile-spec.py",
+        "scripts/validate_docs.py",
+        "Makefile",
         "docs/exec-plans/active/FBT-LOCK-001-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "lockfile_contract_specified": false,
-        "doctor_or_conformance_behavior_defined": false,
-        "no_package_manager_in_core": false,
-        "make_verify": false
+        "lockfile_contract_specified": true,
+        "doctor_or_conformance_behavior_defined": true,
+        "no_package_manager_in_core": true,
+        "make_verify": true
       },
-      "notes": "Runner/adapters are installable and releasable, but projects cannot yet pin runner source/version/checksum in a local lockfile. Design an optional `fbt.lock.json` contract and validation path without adding package installation or dependency resolution to core."
+      "notes": "Added `docs/runner-lockfile-spec.md`, `schemas/fbt-lock-v1.schema.json`, docs references, and `make runner-lockfile-spec-check`. The contract defines optional validator-only `fbt.lock.json` semantics, doctor/build expectations, dirty-state participation, conformance expectations, and explicit no package-manager behavior."
     },
     {
       "id": "FBT-SEC-002",

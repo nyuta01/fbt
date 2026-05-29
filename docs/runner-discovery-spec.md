@@ -210,9 +210,19 @@ Runner authors should use `make runner-conformance` with
 Core records runner identity in manifest, run results, and transform effective
 fingerprints. A runner identity change marks dependent transforms dirty.
 
-MVP does not require a committed lockfile. A future `fbt.lock.json` may pin
-runner package source, version, and digest for teams that need stronger
-reproducibility.
+Projects may optionally commit `fbt.lock.json` to pin expected runner package
+source, version, protocol version, manifest digest, checksums, and capabilities.
+The lockfile contract is defined in
+[Runner Lockfile Spec](runner-lockfile-spec.md).
+
+MVP lockfile behavior remains validator-only:
+
+- absence of `fbt.lock.json` is valid
+- `fbt doctor` owns lockfile diagnostics when the file is present
+- `plan` and `build` should treat lockfile content as runner identity input
+- `build` should fail before runner execution on selected locked-runner
+  incompatibility
+- core must not download, install, update, or resolve runner packages
 
 ## 10. Demo Runner UX
 

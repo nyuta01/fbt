@@ -434,6 +434,24 @@ Recommended release metadata:
 - credential environment variable names
 - checksum or signature for distributed binaries when available
 
+## 9.1 Optional Lockfile Metadata
+
+Adapter packages should publish enough metadata for a project-owned
+`fbt.lock.json` entry:
+
+- source address or module path
+- adapter version or module-scoped release tag
+- command name
+- supported runner protocol version
+- logical runner names
+- capability summary
+- plugin or adapter manifest digest when available
+- Go module checksum or binary checksums when available
+
+The lockfile is consumed by fbt core as validation metadata only. Adapter
+installation, update, dependency resolution, and registry access remain
+out-of-band. See [Runner Lockfile Spec](runner-lockfile-spec.md).
+
 ## 10. Opt-In Smoke Matrix
 
 `make verify` stays deterministic and service-free. To validate installed

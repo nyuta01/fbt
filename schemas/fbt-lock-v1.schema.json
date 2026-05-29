@@ -1,0 +1,93 @@
+{
+  "$id": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "fbt_schema_version": {
+      "const": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+      "type": "string"
+    },
+    "lockfile_version": {
+      "const": 1,
+      "type": "integer"
+    },
+    "meta": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "runners": {
+      "additionalProperties": {
+        "$ref": "#/$defs/runner_lock"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "fbt_schema_version",
+    "lockfile_version",
+    "runners"
+  ],
+  "title": "fbt runner lockfile v1",
+  "type": "object",
+  "$defs": {
+    "capabilities": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "output_candidates": {
+          "type": "boolean"
+        },
+        "transform_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "runner_lock": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "$ref": "#/$defs/capabilities"
+        },
+        "checksums": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "command": {
+          "type": "string"
+        },
+        "manifest_digest": {
+          "pattern": "^sha256:[0-9a-fA-F]+$",
+          "type": "string"
+        },
+        "meta": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "protocol_version": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version"
+      ],
+      "type": "object"
+    }
+  }
+}

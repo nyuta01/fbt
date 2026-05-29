@@ -35,6 +35,7 @@ REQUIRED_DOCS = [
     "docs/runner-protocol-spec.md",
     "docs/schema-and-versioning-spec.md",
     "docs/runner-discovery-spec.md",
+    "docs/runner-lockfile-spec.md",
     "docs/security-and-conformance-spec.md",
     "docs/usage-guide.md",
     "docs/examples/knowledge-loop-example.md",
