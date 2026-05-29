@@ -4154,6 +4154,39 @@
       "notes": "Added a root install.sh that detects OS/architecture, downloads the matching GitHub Release archive, verifies SHA256SUMS, installs to a user-local bin directory, and prints the installed version. README and docs now lead with the one-command install path, and make verify includes install-script-smoke against a local file:// release archive."
     },
     {
+      "id": "FBT-SKILLS-001",
+      "title": "Add standard agent skill pack",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-008"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-SKILLS-001-plan.md",
+      "paths": [
+        "skills/README.md",
+        "skills/LICENSE",
+        "skills/package.json",
+        "skills/.claude-plugin/marketplace.json",
+        "skills/fbt-quickstart/SKILL.md",
+        "scripts/check-agent-skills.py",
+        "Makefile",
+        "README.md",
+        "docs/design-doc.md",
+        "docs/exec-plans/active/FBT-SKILLS-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "single_standard_skill": true,
+        "skills_metadata": true,
+        "agent_skills_check": true,
+        "make_verify": true
+      },
+      "notes": "Added a skills.sh-compatible product-level skills pack with exactly one standard skill, fbt-quickstart, plus package metadata and a deterministic agent-skills-check in make verify. No project-local skill commands were added to fbt core."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

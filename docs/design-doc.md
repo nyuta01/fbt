@@ -211,6 +211,7 @@ internal/lineage    OpenLineage and OTel exports
 internal/diff       artifact diffs
 examples/runner_adapters/ optional external runner adapter examples
 tests/runner_fixtures/    protocol fixtures used by tests
+skills/             optional skills.sh-compatible product knowledge for agents
 ```
 
 ## 10. Current MVP

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://claude-plugins.dev/schemas/marketplace.json",
+  "name": "fbt",
+  "displayName": "fbt Agent Skills",
+  "description": "Skills for using fbt, a local-first file build tool for generated artifacts.",
+  "homepage": "https://github.com/nyuta01/fbt",
+  "license": "Apache-2.0",
+  "author": "fbt",
+  "skills": [
+    {
+      "path": "fbt-quickstart"
+    }
+  ]
+}

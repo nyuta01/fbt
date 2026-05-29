@@ -566,6 +566,14 @@ archive, verifies `SHA256SUMS`, installs to `$HOME/.local/bin` by default, and
 prints `fbt version`. `make verify` now includes `install-script-smoke`, which
 tests the installer against a local file:// release archive.
 
+`FBT-SKILLS-001` is done. The repository now ships a skills.sh-compatible
+product-level skills pack under `skills/` with one standard skill:
+`fbt-quickstart`. The skill teaches the fbt mental model, one offline support
+template loop, what each command proves, where generated files and receipts
+land, and how to inspect artifact lineage. `make verify` includes
+`agent-skills-check` to keep the skills pack intentionally limited to that one
+standard entry for now.
+
 ## Verification
 
 Required gate before calling work done:
@@ -574,10 +582,10 @@ Required gate before calling work done:
 make verify
 ```
 
-This runs harness, drift, docs validation, release version drift checks, Go
-formatting/tests, CLI smoke, installer smoke, knowledge-loop smoke, practical
-examples smoke, docs site build, runner conformance, product conformance, and
-distribution smoke checks.
+This runs harness, drift, docs validation, release version drift checks, agent
+skills checks, Go formatting/tests, CLI smoke, installer smoke, knowledge-loop
+smoke, practical examples smoke, docs site build, runner conformance, product
+conformance, and distribution smoke checks.
 
 ## Next Steps
 

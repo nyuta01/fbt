@@ -1,0 +1,33 @@
+{
+  "name": "fbt-agent-skills",
+  "version": "0.1.0",
+  "description": "Distributable agent skills for using the fbt CLI. Compatible with skills.sh and TanStack Intent.",
+  "keywords": [
+    "fbt",
+    "agent-skills",
+    "claude-skills",
+    "tanstack-intent",
+    "ai-agent",
+    "file-build-tool"
+  ],
+  "homepage": "https://github.com/nyuta01/fbt/tree/main/skills",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nyuta01/fbt.git",
+    "directory": "skills"
+  },
+  "license": "Apache-2.0",
+  "author": {
+    "name": "fbt",
+    "url": "https://github.com/nyuta01/fbt"
+  },
+  "files": [
+    "*/SKILL.md",
+    "README.md",
+    "LICENSE",
+    ".claude-plugin/"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
