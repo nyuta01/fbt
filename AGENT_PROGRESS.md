@@ -178,6 +178,10 @@ assets, transform recipes, runner commands, artifact paths, checks, and receipt
 locations so users can see what source/instruction/runner produces which
 artifact.
 
+README input/output snippets (`FBT-DOCS-UX-011`) is done: examples now show the
+actual support ticket record and generated Markdown excerpt, plus incident
+evidence excerpts and the expected procedure-style runbook shape.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.

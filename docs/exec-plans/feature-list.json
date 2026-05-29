@@ -2782,6 +2782,28 @@
       "notes": "README now maps concrete support and incident files to source declarations, instruction assets, transform recipes, runners, artifacts, checks, and receipts so first-time users can see what actually becomes what."
     },
     {
+      "id": "FBT-DOCS-UX-011",
+      "title": "Show README input-to-output content snippets",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-010"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-011-plan.md",
+      "paths": [
+        "README.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-011-plan.md",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
+      ],
+      "verification": {
+        "validate_docs": true,
+        "make_verify": true
+      },
+      "notes": "README now shows source content excerpts next to generated artifact excerpts for the offline support loop and the real incident runbook workflow."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
