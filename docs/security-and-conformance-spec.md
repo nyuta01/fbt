@@ -102,12 +102,12 @@ When a transform omits policy:
 - source writes are denied
 - network is denied, except when a runner type explicitly requires network and
   project policy allows it
-- shell tools are denied for `llm` and `agent` transforms
+- shell tools are denied for `llm` transforms and denied by explicit policy for
+  `agent` transforms
 - timeout and output-size defaults are applied by core
 
-Agent transforms should declare an explicit policy. Missing policy for an agent
-transform is a parse warning in draft mode and should become a parse error before
-stable v1.
+Agent transforms must declare an explicit policy. Missing policy for an agent
+transform is a parse error with `AGENT_POLICY_MISSING`.
 
 ## 7. Path Rules
 
@@ -164,6 +164,7 @@ scenario classes.
 | `CONF-RUNNER-002` | runner | runner lacks required capability | validation fails before commit |
 | `CONF-SEC-001` | path | runner declares output outside work directory | output is denied before descriptor computation; no pointer update |
 | `CONF-SEC-002` | policy | transform requires network but policy denies it | transform is blocked with exit code `3` |
+| `CONF-SEC-003` | policy | `type: agent` transform omits `policy` | project parsing fails with exit code `2` and `AGENT_POLICY_MISSING` |
 | `CONF-STATE-001` | state | runner fails after writing partial output | official pointer remains unchanged |
 | `CONF-STATE-002` | state | same digest is committed twice | commit is idempotent |
 | `CONF-REDACT-001` | redaction | runner reports env var names and values | values are not persisted |
@@ -195,6 +196,7 @@ Current executable coverage:
 - docs-site build succeeds after the build loop
 - docs-site output does not include the redaction marker
 - policy-denied output is not committed to the official artifact path
+- agent transforms without explicit policy fail project parsing
 - prompt/asset changes make dependent transforms dirty again
 - OpenLineage export contains standard event keys and fbt facets without raw
   source content

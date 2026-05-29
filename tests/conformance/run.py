@@ -392,12 +392,25 @@ def scenario_policy_denied(ctx: Context) -> None:
     assert_contains(run_results, '"kind":"policy_denied"', "denied run results")
 
 
+def scenario_agent_policy_required(ctx: Context) -> None:
+    project = ctx.tmpdir / "agent-policy-required"
+    init_project(project)
+    transform_path = project / "transforms" / "support" / "weekly_insights.yml"
+    content = transform_path.read_text(encoding="utf-8")
+    transform_path.write_text(content.replace("    policy: support_agent_scope\n", ""), encoding="utf-8")
+
+    result = fbt(["plan", "--project-dir", str(project), "--select", "weekly_insights"], expect=2)
+    assert_contains(result.stderr, "AGENT_POLICY_MISSING", "agent missing policy stderr")
+    assert_contains(result.stderr, "must declare an explicit policy", "agent missing policy stderr")
+
+
 SCENARIOS = [
     Scenario("config version diagnostics", scenario_config_version),
     Scenario("strict YAML diagnostics", scenario_strict_yaml),
     Scenario("standard exports and dirty planning", scenario_standard_exports),
     Scenario("runner failure receipts", scenario_runner_failures),
     Scenario("policy denied receipts", scenario_policy_denied),
+    Scenario("agent policy required", scenario_agent_policy_required),
 ]
 
 
@@ -420,4 +433,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

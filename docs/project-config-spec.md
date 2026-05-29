@@ -409,7 +409,7 @@ Project parsing validates at least:
 - No duplicate declared outputs
 - Existing transform asset paths
 - Source path existence according to source policy
-- Write-scope policy for agent transforms
+- Required explicit policy for agent transforms
 - Supported `config_version`
 - Supported artifact type aliases
 - Resolvable runner command or plugin manifest

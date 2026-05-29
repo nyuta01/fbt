@@ -3789,7 +3789,7 @@
       "id": "FBT-SEC-002",
       "title": "Require explicit policy for agent transforms",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-SEC-001",
@@ -3810,12 +3810,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "agent_missing_policy_parse_error": false,
-        "examples_and_docs_policy_explicit": false,
-        "conformance_negative_case": false,
-        "make_verify": false
+        "agent_missing_policy_parse_error": true,
+        "examples_and_docs_policy_explicit": true,
+        "conformance_negative_case": true,
+        "make_verify": true
       },
-      "notes": "Agent transforms currently warn when policy is missing. For a safer stable baseline, make explicit policy mandatory for `type: agent` transforms while keeping `llm` and `command` behavior unchanged."
+      "notes": "`type: agent` transforms now fail parsing with `AGENT_POLICY_MISSING` when `policy` is omitted. Parser tests and structured conformance cover the negative case, and security/project-config docs plus docs-site snippets state that agent transforms require explicit policy."
     },
     {
       "id": "FBT-EVAL-002",

@@ -498,6 +498,11 @@ quality gates.
 project config, adapter packaging, schema/versioning, and README, and
 `make verify` now includes `runner-lockfile-spec-check`.
 
+`FBT-SEC-002` is done. `type: agent` transforms now fail parsing with
+`AGENT_POLICY_MISSING` when `policy` is omitted, parser tests and structured
+conformance cover the negative case, and security/project-config docs plus
+docs-site snippets state that agent transforms require explicit policy.
+
 ## Verification
 
 Required gate before calling work done:

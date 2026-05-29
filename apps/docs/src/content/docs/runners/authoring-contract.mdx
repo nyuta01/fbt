@@ -94,8 +94,11 @@ transforms:
   - name: weekly_support_insights
     type: agent
     runner: company.agent
+    inputs:
+      - ref: case_summaries
     outputs:
       - name: weekly_support_insights
         type: markdown
         path: target/artifacts/support/weekly_insights.md
+    policy: support_agent_scope
 ```

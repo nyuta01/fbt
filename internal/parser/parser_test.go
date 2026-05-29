@@ -183,6 +183,32 @@ func TestParseProjectRejectsUnresolvedRefs(t *testing.T) {
 	}
 }
 
+func TestParseProjectRejectsAgentTransformWithoutPolicy(t *testing.T) {
+	root := writeValidProject(t)
+	writeFile(t, root, "transforms/case.yml", `transforms:
+  - name: weekly_support_insights
+    type: agent
+    runner: openai.responses
+    inputs:
+      - source: support.raw_tickets
+    outputs:
+      - name: weekly_support_insights
+        type: markdown
+        path: target/artifacts/support/weekly_insights.md
+    assets:
+      - ref: case_summary_prompt
+`)
+
+	result, err := ParseProject(Options{ProjectDir: root})
+	if err == nil {
+		t.Fatal("expected parse error")
+	}
+	diagnostic := findDiagnostic(t, result.Diagnostics, "AGENT_POLICY_MISSING")
+	if diagnostic.Severity != SeverityError {
+		t.Fatalf("expected error severity, got %+v", diagnostic)
+	}
+}
+
 func TestParseProjectRejectsReviewFields(t *testing.T) {
 	root := writeValidProject(t)
 	writeFile(t, root, "policies/support.yml", `policies:

@@ -95,6 +95,10 @@ transforms:
       - ref: incident_runbook_format
 ```
 
+For `type: agent` transforms, add an explicit `policy`. Missing policy is a
+parse error because fbt must know the agent's read, write, network, tool, and
+limit boundaries before invoking an external agent runner.
+
 Now the loop is:
 
 ```sh

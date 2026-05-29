@@ -792,7 +792,7 @@ func (r *Result) validateTransform(transform Transform, sourceIDs map[string]Sou
 			r.addError("POLICY_REF_UNRESOLVED", fmt.Sprintf("transform %q references missing policy %q", transform.Name, transform.Policy), transform.File, transform.Name)
 		}
 	} else if transform.Type == "agent" {
-		r.addWarning("AGENT_POLICY_MISSING", fmt.Sprintf("agent transform %q should declare an explicit policy", transform.Name), transform.File, transform.Name)
+		r.addError("AGENT_POLICY_MISSING", fmt.Sprintf("agent transform %q must declare an explicit policy", transform.Name), transform.File, transform.Name)
 	}
 	for _, evalName := range transform.Evals {
 		if _, ok := evals[evalName]; !ok {
