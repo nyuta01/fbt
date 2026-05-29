@@ -2297,7 +2297,7 @@
       "id": "FBT-BUILD-002",
       "title": "Persist failed build and transform receipts",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-BUILD-001"
@@ -2314,12 +2314,12 @@
         "tests"
       ],
       "verification": {
-        "go_test": false,
-        "conformance": false,
-        "cli_smoke": false,
-        "make_verify": false
+        "go_test": true,
+        "conformance": true,
+        "cli_smoke": true,
+        "make_verify": true
       },
-      "notes": "Build receipts must explain failed runner, policy, eval, cancellation, and interrupted runs. Failed invocations should append completion records and transform failure records without moving official artifact pointers."
+      "notes": "Failed builds now append invocation_completed and transform_run receipts with safe error kind/message for runner setup, capability, protocol, output-contract, policy, eval, and cancellation failures. Failed receipts do not advance artifact versions or current artifact pointers, and OTel exports include failed spans plus exception events."
     },
     {
       "id": "FBT-CONFIG-001",

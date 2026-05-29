@@ -118,6 +118,62 @@ func TestOTLPTraces(t *testing.T) {
 	}
 }
 
+func TestOTLPTracesIncludesFailedTransformErrors(t *testing.T) {
+	payload := OTLPTraces(OTLPInput{
+		Manifest: manifest.Manifest{
+			Metadata: manifest.Metadata{ProjectName: "knowledge_ops"},
+			Transforms: map[string]manifest.TransformResource{
+				"transform.knowledge_ops.case_summaries": {
+					UniqueID: "transform.knowledge_ops.case_summaries",
+					Name:     "case_summaries",
+					Runner:   "runner.knowledge_ops.openai.responses",
+				},
+			},
+		},
+		FBTVersion: "test",
+		RunResults: []map[string]any{
+			{
+				"record_type":   "invocation_started",
+				"invocation_id": "inv_failed",
+				"started_at":    "2026-05-28T00:00:00Z",
+				"command":       "build",
+			},
+			{
+				"record_type":   "transform_run",
+				"invocation_id": "inv_failed",
+				"run_id":        "transform_run.run_failed",
+				"transform_id":  "transform.knowledge_ops.case_summaries",
+				"status":        "eval_failed",
+				"started_at":    "2026-05-28T00:00:01Z",
+				"completed_at":  "2026-05-28T00:00:02Z",
+				"error": map[string]any{
+					"kind":    "eval_failed",
+					"message": "eval failed: required sections",
+				},
+			},
+			{
+				"record_type":   "invocation_completed",
+				"invocation_id": "inv_failed",
+				"completed_at":  "2026-05-28T00:00:03Z",
+				"status":        "failed",
+			},
+		},
+	})
+	spans := payload.ResourceSpans[0].ScopeSpans[0].Spans
+	if len(spans) != 2 {
+		t.Fatalf("expected invocation and transform spans, got %+v", spans)
+	}
+	if spans[0].Status.Code != 2 || spans[1].Status.Code != 2 {
+		t.Fatalf("expected failed statuses, got %+v %+v", spans[0].Status, spans[1].Status)
+	}
+	if !hasAttribute(spans[1].Attributes, "error.type", "eval_failed") {
+		t.Fatalf("missing error attribute: %+v", spans[1].Attributes)
+	}
+	if len(spans[1].Events) != 1 || spans[1].Events[0].Name != "exception" {
+		t.Fatalf("missing exception event: %+v", spans[1].Events)
+	}
+}
+
 func hasAttribute(attributes []KeyValue, key, contains string) bool {
 	for _, attribute := range attributes {
 		if attribute.Key != key {

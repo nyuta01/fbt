@@ -1,6 +1,6 @@
 # FBT-BUILD-002 Persist Failed Build And Transform Receipts
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -26,13 +26,14 @@ raw model output, credentials, or unredacted tool payloads.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
-
 - Append `transform_run` records for failed, cancelled, blocked, policy-denied,
-  and eval-failed attempts when a run was started.
+  and eval-failed attempts when a run was started. Implemented for failed
+  runner setup/capability checks, runner protocol errors, output-contract
+  violations, policy denial, eval failure, and cancellation.
 - Append `invocation_completed` with failed/cancelled/blocked status on every
   build exit path after `invocation_started`.
-- Export failed-run spans/events through OTel where safe.
+- Export failed-run spans/events through OTel where safe, including error type,
+  error message, and an `exception` span event.
 - Add conformance coverage proving failed runs explain what happened and do not
   update current artifact pointers.
 
@@ -46,3 +47,5 @@ make verify
 
 Expected result: deterministic failure scenarios leave inspectable receipts and
 do not corrupt official artifact state.
+
+Latest result: passed.

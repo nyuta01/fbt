@@ -224,6 +224,14 @@ func transformSpans(input OTLPInput, invocation *invocationGroup) []Span {
 				attrs["fbt.provenance."+key] = value
 			}
 		}
+		if errRecord, ok := record["error"].(map[string]any); ok {
+			attrs["error.type"] = stringField(errRecord, "kind")
+			attrs["error.message"] = stringField(errRecord, "message")
+		}
+		events := spanEvents(record["events"], start)
+		if errEvent, ok := errorSpanEvent(record["error"], end); ok {
+			events = append(events, errEvent)
+		}
 		spans = append(spans, Span{
 			TraceID:           traceID(invocation.id),
 			SpanID:            spanID("transform:" + stringField(record, "run_id")),
@@ -233,7 +241,7 @@ func transformSpans(input OTLPInput, invocation *invocationGroup) []Span {
 			StartTimeUnixNano: unixNano(start),
 			EndTimeUnixNano:   unixNano(end),
 			Attributes:        attributes(attrs),
-			Events:            spanEvents(record["events"], start),
+			Events:            events,
 			Status:            status(stringField(record, "status")),
 		})
 	}
@@ -310,6 +318,21 @@ func spanEvents(raw any, fallbackTime string) []SpanEvent {
 		})
 	}
 	return events
+}
+
+func errorSpanEvent(raw any, fallbackTime string) (SpanEvent, bool) {
+	errRecord, ok := raw.(map[string]any)
+	if !ok {
+		return SpanEvent{}, false
+	}
+	return SpanEvent{
+		TimeUnixNano: unixNano(fallbackTime),
+		Name:         "exception",
+		Attributes: attributes(map[string]any{
+			"exception.type":    stringField(errRecord, "kind"),
+			"exception.message": stringField(errRecord, "message"),
+		}),
+	}, true
 }
 
 func transformSpanName(transformID string, transform manifest.TransformResource) string {

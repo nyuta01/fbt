@@ -371,10 +371,11 @@ docs generator.
 3. An LLM transform can generate Markdown artifacts through an external runner.
 4. An agent transform can generate a report from multiple artifacts.
 5. Transform assets, model, tool calls, tokens, and cost are recorded when runners report them.
-6. `transform_run` and `artifact_version` are recorded in state and run results.
+6. Successful and failed `transform_run` receipts are recorded in run results.
 7. Changes to source, transform assets, or policy trigger downstream dirty selection.
 8. Policy or confidence requirements can block downstream work.
-9. Interrupted runs do not corrupt official artifact pointers.
+9. Failed, denied, cancelled, or interrupted runs do not corrupt official
+   artifact pointers.
 10. Artifact inspection and standard exports expose lineage and artifact state.
 
 ## 18. User-Facing Specs

@@ -71,6 +71,39 @@ an error.
 records plus transform run records. Runner protocol events are stored after
 redaction and can be exported to OpenTelemetry.
 
+Every build that writes `invocation_started` must also append
+`invocation_completed` with `success`, `failed`, `cancelled`, or `blocked`.
+When a transform attempt starts, fbt appends a `transform_run` receipt even if
+the runner, output contract, policy check, eval, or cancellation fails.
+
+Failed transform receipts include a safe `error.kind` and `error.message`.
+Common kinds are `runner_capability_incompatible`,
+`runner_protocol_error`, `runner_contract_violation`, `policy_denied`,
+`eval_failed`, `cancelled`, and `failed`. Failed receipts may reference
+policy decisions, eval results, runner events, usage, and provenance when those
+were available before failure. They must not move current artifact pointers or
+write artifact versions.
+
+Example failed receipt:
+
+```json
+{
+  "record_type": "transform_run",
+  "invocation_id": "inv_01H...",
+  "run_id": "transform_run.run_01H...",
+  "transform_id": "transform.knowledge_ops.case_summaries",
+  "status": "policy_denied",
+  "started_at": "2026-05-28T10:30:00Z",
+  "completed_at": "2026-05-28T10:30:02Z",
+  "committed_versions": [],
+  "policy_decisions": ["policy_decision.knowledge_ops.case_summaries.1"],
+  "error": {
+    "kind": "policy_denied",
+    "message": "policy denied output case_summaries: output path target/artifacts/support/case_summaries/ is outside declared write scope"
+  }
+}
+```
+
 ## Eval Results
 
 ```json

@@ -169,7 +169,7 @@ func (c *Client) RunTransform(ctx context.Context, params RunTransformParams) (R
 	var result RunTransformResult
 	outcome := RunOutcome{}
 	if err := c.call(ctx, "fbt/runTransform", params, &result, &outcome); err != nil {
-		return RunOutcome{}, err
+		return outcome, err
 	}
 	outcome.Result = result
 	return outcome, nil

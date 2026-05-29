@@ -3,6 +3,7 @@ package build
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -59,7 +60,7 @@ type outputCandidate struct {
 	DeclaredPath string `json:"declared_path"`
 }
 
-func RunBuild(ctx context.Context, options Options) (Result, error) {
+func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 	if options.FBTVersion == "" {
 		options.FBTVersion = versioninfo.Version
 	}
@@ -83,7 +84,7 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 	defer lock.Release()
 
 	invocationID := newID("inv")
-	result := Result{InvocationID: invocationID}
+	result = Result{InvocationID: invocationID}
 	var previous *manifest.Manifest
 	if prev, err := store.ReadManifest(); err == nil {
 		previous = &prev
@@ -95,16 +96,34 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 	if err := store.WriteManifest(currentManifest); err != nil {
 		return result, err
 	}
+	invocationStartedAt := time.Now().UTC()
 	if err := store.AppendRunResult(map[string]any{
 		"record_type":   "invocation_started",
 		"invocation_id": invocationID,
-		"started_at":    time.Now().UTC().Format(time.RFC3339),
+		"started_at":    invocationStartedAt.Format(time.RFC3339),
 		"command":       "build",
 		"project_name":  parseResult.Config.Name,
 		"target_name":   "local",
 	}); err != nil {
 		return result, err
 	}
+	invocationStarted := true
+	stateWritten := false
+	defer func() {
+		if !invocationStarted {
+			return
+		}
+		if !stateWritten && len(result.Runs) > 0 {
+			if writeErr := store.WriteState(snapshot); writeErr != nil && err == nil {
+				err = writeErr
+			}
+		}
+		completedAt := time.Now().UTC()
+		completionErr := appendInvocationCompleted(store, invocationID, invocationStatus(err, result.Plan), result, completedAt)
+		if completionErr != nil && err == nil {
+			err = completionErr
+		}
+	}()
 
 	selected, err := selectedTransformIDs(currentManifest, options.Select)
 	if err != nil {
@@ -128,49 +147,61 @@ func RunBuild(ctx context.Context, options Options) (Result, error) {
 			result.Plan.Summary.Blocked++
 			continue
 		}
-		run, err := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, *node, invocationID)
-		if err != nil {
-			return result, err
+		run, runErr := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, *node, invocationID)
+		if run.TransformRunID != "" {
+			result.Runs = append(result.Runs, run)
 		}
-		result.Runs = append(result.Runs, run)
+		if runErr != nil {
+			return result, runErr
+		}
 	}
 
 	if err := store.WriteState(snapshot); err != nil {
 		return result, err
 	}
-	status := "success"
-	if plan.Summary.Blocked > 0 {
-		status = "blocked"
-	}
-	if err := store.AppendRunResult(map[string]any{
-		"record_type":   "invocation_completed",
-		"invocation_id": invocationID,
-		"completed_at":  time.Now().UTC().Format(time.RFC3339),
-		"status":        status,
-		"summary": map[string]any{
-			"selected": plan.Summary.Selected,
-			"success":  len(result.Runs),
-			"blocked":  plan.Summary.Blocked,
-			"skipped":  plan.Summary.Skipped,
-		},
-	}); err != nil {
-		return result, err
-	}
+	stateWritten = true
 	return result, nil
 }
 
-func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, node planner.Node, invocationID string) (Run, error) {
+func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, node planner.Node, invocationID string) (run Run, err error) {
 	transformID := node.TransformID
 	transform := m.Transforms[transformID]
+	transformRunID := newID("transform_run.run")
+	startedAt := time.Now().UTC()
+	run = Run{
+		TransformID:    transformID,
+		TransformRunID: transformRunID,
+		Status:         "started",
+		StartedAt:      startedAt.Format(time.RFC3339Nano),
+	}
+	receiptWritten := false
+	var secretNames []string
+	defer func() {
+		if err == nil || receiptWritten {
+			return
+		}
+		if run.Status == "" || run.Status == "started" || run.Status == "success" {
+			run.Status = failureStatus(err)
+		}
+		if run.CompletedAt == "" {
+			run.CompletedAt = time.Now().UTC().Format(time.RFC3339Nano)
+		}
+		updateLatestRun(snapshot, transformID, transform, run.TransformRunID, run.Status, false)
+		if receiptErr := appendTransformRunResult(store, invocationID, run, startedAt, err, secretNames); receiptErr != nil {
+			err = fmt.Errorf("%w; additionally failed to persist transform run receipt: %v", err, receiptErr)
+		}
+	}()
+
 	runnerName := strings.TrimPrefix(transform.Runner, "runner."+parseResult.Config.Name+".")
 	discovery := runner.NewDiscovery(parseResult.ProjectDir, parseResult.Config)
 	resolved, err := discovery.Resolve(runnerName)
 	if err != nil {
-		return Run{}, err
+		return run, err
 	}
+	secretNames = append(secretNames, resolved.Env...)
 	client, err := runner.StartProtocolClient(ctx, resolved)
 	if err != nil {
-		return Run{}, err
+		return run, err
 	}
 	defer client.Close()
 	initResult, err := client.Initialize(ctx, protocol.InitializeParams{
@@ -182,10 +213,10 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
 	})
 	if err != nil {
-		return Run{}, err
+		return run, err
 	}
 	if diagnostics := runner.ValidateCapabilities(initResult, []runner.CapabilityRequirement{capabilityRequirement(transformID, transform)}); runner.HasErrors(diagnostics) {
-		return Run{}, runner.CapabilityError(diagnostics)
+		return run, runner.CapabilityError(diagnostics)
 	}
 	policyResource := policyForTransform(m, transform)
 	runCtx := ctx
@@ -197,23 +228,21 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		}
 	}
 
-	transformRunID := newID("transform_run.run")
 	workRootRel := filepath.Join(".fbt", "work", invocationID, transform.Name)
 	workRoot := filepath.Join(parseResult.ProjectDir, workRootRel)
 	workTemp := filepath.Join(workRoot, "tmp")
 	workOutputs := filepath.Join(workRoot, "outputs")
 	if err := os.MkdirAll(workTemp, 0o755); err != nil {
-		return Run{}, err
+		return run, err
 	}
 	if err := os.MkdirAll(workOutputs, 0o755); err != nil {
-		return Run{}, err
+		return run, err
 	}
 	artifactVersions, err := store.ReadArtifactVersions()
 	if err != nil {
-		return Run{}, err
+		return run, err
 	}
 
-	startedAt := time.Now().UTC()
 	transformPayload := map[string]any{
 		"unique_id": transform.UniqueID,
 		"name":      transform.Name,
@@ -241,83 +270,86 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			"outputs": workOutputs,
 		},
 	})
+	run.Events = redactedProtocolEvents(outcome.Events)
 	if err != nil {
-		return Run{}, err
+		return run, err
+	}
+	run.Status = outcome.Result.Status
+	if run.Status == "" {
+		run.Status = "success"
+	}
+	run.Usage = outcome.Result.Usage
+	run.Provenance = outcome.Result.Provenance
+	if run.Status != "success" {
+		return run, fmt.Errorf("runner returned status %s", run.Status)
 	}
 	candidates, err := decodeOutputCandidates(outcome)
 	if err != nil {
-		return Run{}, err
+		return run, err
 	}
 	declared := declaredOutputs(transform)
-	run := Run{
-		TransformID:    transformID,
-		TransformRunID: transformRunID,
-		Status:         outcome.Result.Status,
-		StartedAt:      startedAt.Format(time.RFC3339Nano),
-		Usage:          outcome.Result.Usage,
-		Provenance:     outcome.Result.Provenance,
-		Events:         redactedProtocolEvents(outcome.Events),
-	}
 	for _, candidate := range candidates {
 		if err := security.RequireWithin(workOutputs, candidate.Path); err != nil {
-			return Run{}, fmt.Errorf("output candidate outside work outputs: %w", err)
+			return run, fmt.Errorf("output candidate outside work outputs: %w", err)
 		}
 		output, ok := declared[candidate.Name]
 		if !ok {
-			return Run{}, fmt.Errorf("undeclared output candidate: %s", candidate.Name)
+			return run, fmt.Errorf("undeclared output candidate: %s", candidate.Name)
 		}
 		relCandidate, err := filepath.Rel(parseResult.ProjectDir, candidate.Path)
 		if err != nil {
-			return Run{}, err
+			return run, err
 		}
 		descriptor, err := artifact.Describe(parseResult.ProjectDir, relCandidate, output.ArtifactType)
 		if err != nil {
-			return Run{}, err
+			return run, err
 		}
 		semanticDescriptor, err := artifact.SemanticDescriptor(parseResult.ProjectDir, relCandidate, output.ArtifactType)
 		if err != nil {
-			return Run{}, err
+			return run, err
 		}
 		versionID, err := artifact.VersionID(parseResult.Config.Name, output.Name, descriptor.Digest)
 		if err != nil {
-			return Run{}, err
+			return run, err
 		}
 		decision := policy.EvaluateCommit(parseResult.ProjectDir, parseResult.Config.ArtifactPath, policyResource, output, descriptor)
 		policyDecision := buildPolicyDecision(parseResult.Config.Name, transformID, transformRunID, versionID, output.Name, policyResource, decision)
 		if err := store.PutPolicyDecision(policyDecision); err != nil {
-			return Run{}, err
+			return run, err
 		}
 		run.PolicyDecisions = append(run.PolicyDecisions, policyDecision.DecisionID)
 		if decision.Status != "allowed" {
-			return Run{}, fmt.Errorf("policy denied output %s: %s", output.Name, firstFailedCheck(decision))
+			run.Status = "policy_denied"
+			return run, fmt.Errorf("policy denied output %s: %s", output.Name, firstFailedCheck(decision))
 		}
 		evalOutcome, evalErr := evalmgr.RunForCandidate(parseResult.ProjectDir, transform, m.Evals, versionID, transformRunID, candidate.Path)
 		for _, result := range evalOutcome.Results {
 			if err := store.PutEvaluationResult(result); err != nil {
-				return Run{}, err
+				return run, err
 			}
 			run.EvaluationResults = append(run.EvaluationResults, result.ResultID)
 		}
 		if evalErr != nil {
-			return Run{}, evalErr
+			run.Status = "eval_failed"
+			return run, evalErr
 		}
 		versionStorageRel := filepath.ToSlash(filepath.Join(".fbt", "artifacts", versionID, "content"))
 		versionStorageAbs := filepath.Join(parseResult.ProjectDir, versionStorageRel)
 		artifactVersions, err := store.ReadArtifactVersions()
 		if err != nil {
-			return Run{}, err
+			return run, err
 		}
 		existingVersion, versionExists := artifactVersions.ArtifactVersions[versionID]
 		if versionExists {
 			versionStorageRel = existingVersion.StoragePath
 		} else {
 			if err := commitPath(candidate.Path, versionStorageAbs); err != nil {
-				return Run{}, err
+				return run, err
 			}
 		}
 		logicalAbs := filepath.Join(parseResult.ProjectDir, output.DeclaredPath)
 		if err := commitPath(candidate.Path, logicalAbs); err != nil {
-			return Run{}, err
+			return run, err
 		}
 		confidence := "structural"
 		if evalOutcome.Confidence != "" {
@@ -339,7 +371,7 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 			version = existingVersion
 		} else {
 			if err := store.PutArtifactVersion(version); err != nil {
-				return Run{}, err
+				return run, err
 			}
 		}
 		snapshot.CurrentArtifacts[output.UniqueID] = state.ArtifactPointer{
@@ -353,33 +385,178 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		}
 		run.CommittedVersions = append(run.CommittedVersions, versionID)
 	}
-	snapshot.LatestRuns[transformID] = state.LatestRun{
-		LatestRunID:                transformRunID,
-		LatestSuccessfulRunID:      transformRunID,
-		LatestStatus:               outcome.Result.Status,
-		LatestEffectiveFingerprint: transform.Fingerprint["effective"],
-	}
+	updateLatestRun(snapshot, transformID, transform, transformRunID, run.Status, true)
 	completedAt := time.Now().UTC()
 	run.CompletedAt = completedAt.Format(time.RFC3339Nano)
-	if err := store.AppendRunResult(map[string]any{
+	receiptWritten = true
+	if err := appendTransformRunResult(store, invocationID, run, startedAt, nil, nil); err != nil {
+		return run, err
+	}
+	return run, nil
+}
+
+func appendInvocationCompleted(store state.Store, invocationID, status string, result Result, completedAt time.Time) error {
+	return store.AppendRunResult(map[string]any{
+		"record_type":   "invocation_completed",
+		"invocation_id": invocationID,
+		"completed_at":  completedAt.Format(time.RFC3339),
+		"status":        status,
+		"summary": map[string]any{
+			"selected": result.Plan.Summary.Selected,
+			"success":  countRuns(result.Runs, "success"),
+			"failed":   countFailedRuns(result.Runs),
+			"blocked":  result.Plan.Summary.Blocked,
+			"skipped":  result.Plan.Summary.Skipped,
+		},
+	})
+}
+
+func appendTransformRunResult(store state.Store, invocationID string, run Run, startedAt time.Time, runErr error, secretNames []string) error {
+	completedAt := run.CompletedAt
+	if completedAt == "" {
+		completedAt = time.Now().UTC().Format(time.RFC3339Nano)
+	}
+	record := map[string]any{
 		"record_type":        "transform_run",
 		"invocation_id":      invocationID,
-		"run_id":             transformRunID,
-		"transform_id":       transformID,
-		"status":             outcome.Result.Status,
+		"run_id":             run.TransformRunID,
+		"transform_id":       run.TransformID,
+		"status":             run.Status,
 		"started_at":         run.StartedAt,
-		"completed_at":       run.CompletedAt,
-		"duration_ms":        completedAt.Sub(startedAt).Milliseconds(),
+		"completed_at":       completedAt,
+		"duration_ms":        durationMillis(startedAt, completedAt),
 		"committed_versions": run.CommittedVersions,
 		"evaluation_results": run.EvaluationResults,
 		"policy_decisions":   run.PolicyDecisions,
 		"usage":              run.Usage,
 		"provenance":         run.Provenance,
 		"events":             run.Events,
-	}); err != nil {
-		return Run{}, err
 	}
-	return run, nil
+	if runErr != nil {
+		record["error"] = safeErrorRecord(runErr, run.Status, secretNames)
+	}
+	return store.AppendRunResult(record)
+}
+
+func updateLatestRun(snapshot *state.Snapshot, transformID string, transform manifest.TransformResource, runID, status string, successful bool) {
+	previous := snapshot.LatestRuns[transformID]
+	latest := state.LatestRun{
+		LatestRunID:                runID,
+		LatestSuccessfulRunID:      previous.LatestSuccessfulRunID,
+		LatestStatus:               status,
+		LatestEffectiveFingerprint: previous.LatestEffectiveFingerprint,
+	}
+	if successful {
+		latest.LatestSuccessfulRunID = runID
+		latest.LatestEffectiveFingerprint = transform.Fingerprint["effective"]
+	}
+	snapshot.LatestRuns[transformID] = latest
+}
+
+func invocationStatus(err error, plan planner.Plan) string {
+	if err != nil {
+		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+			return "cancelled"
+		}
+		return "failed"
+	}
+	if plan.Summary.Blocked > 0 {
+		return "blocked"
+	}
+	return "success"
+}
+
+func failureStatus(err error) string {
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return "cancelled"
+	}
+	return "failed"
+}
+
+func countRuns(runs []Run, status string) int {
+	var count int
+	for _, run := range runs {
+		if run.Status == status {
+			count++
+		}
+	}
+	return count
+}
+
+func countFailedRuns(runs []Run) int {
+	var count int
+	for _, run := range runs {
+		if run.Status != "" && run.Status != "success" && run.Status != "blocked" && run.Status != "skipped" {
+			count++
+		}
+	}
+	return count
+}
+
+func durationMillis(startedAt time.Time, completedAt string) int64 {
+	completed, err := time.Parse(time.RFC3339Nano, completedAt)
+	if err != nil {
+		completed, err = time.Parse(time.RFC3339, completedAt)
+	}
+	if err != nil {
+		return 0
+	}
+	return completed.Sub(startedAt).Milliseconds()
+}
+
+func safeErrorRecord(err error, status string, secretNames []string) map[string]any {
+	message := err.Error()
+	if len(secretNames) > 0 {
+		message = policy.RedactSecrets(message, envSecretValues(secretNames))
+	}
+	return map[string]any{
+		"kind":    errorKind(err, status),
+		"message": message,
+	}
+}
+
+func errorKind(err error, status string) string {
+	switch status {
+	case "policy_denied":
+		return "policy_denied"
+	case "eval_failed":
+		return "eval_failed"
+	case "cancelled":
+		return "cancelled"
+	}
+	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
+		return "cancelled"
+	}
+	if errors.Is(err, runner.ErrCapabilityIncompatible) {
+		return "runner_capability_incompatible"
+	}
+	var rpcErr protocol.JSONRPCError
+	if errors.As(err, &rpcErr) {
+		return "runner_protocol_error"
+	}
+	message := err.Error()
+	switch {
+	case strings.Contains(message, "output candidate outside work outputs"):
+		return "runner_contract_violation"
+	case strings.Contains(message, "undeclared output candidate"):
+		return "runner_contract_violation"
+	case strings.Contains(message, "policy denied"):
+		return "policy_denied"
+	case strings.Contains(message, "eval failed"):
+		return "eval_failed"
+	default:
+		return "failed"
+	}
+}
+
+func envSecretValues(names []string) map[string]string {
+	values := map[string]string{}
+	for _, name := range names {
+		if value, ok := os.LookupEnv(name); ok {
+			values[name] = value
+		}
+	}
+	return values
 }
 
 func capabilityRequirement(transformID string, transform manifest.TransformResource) runner.CapabilityRequirement {

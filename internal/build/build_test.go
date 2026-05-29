@@ -122,6 +122,24 @@ func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 			t.Fatalf("unexpected denied policy decision: %+v", decision)
 		}
 	}
+	records := readRunRecords(t, root)
+	if !hasRunRecord(records, "transform_run", "policy_denied", "policy_denied") {
+		t.Fatalf("expected policy_denied transform receipt, got %+v", records)
+	}
+	if !hasRunRecord(records, "invocation_completed", "failed", "") {
+		t.Fatalf("expected failed invocation receipt, got %+v", records)
+	}
+	snapshot, readErr := store.ReadState()
+	if readErr != nil {
+		t.Fatalf("read state: %v", readErr)
+	}
+	if _, ok := snapshot.CurrentArtifacts["artifact.knowledge_ops.case_summaries"]; ok {
+		t.Fatalf("policy denial must not update current artifact pointers: %+v", snapshot.CurrentArtifacts)
+	}
+	latest := snapshot.LatestRuns["transform.knowledge_ops.case_summaries"]
+	if latest.LatestStatus != "policy_denied" || latest.LatestSuccessfulRunID != "" {
+		t.Fatalf("expected latest failed run without successful pointer, got %+v", latest)
+	}
 }
 
 func TestRunBuildRejectsIncompatibleRunnerCapabilities(t *testing.T) {
@@ -217,6 +235,13 @@ func TestRunBuildEvalFailureDoesNotCommitOutput(t *testing.T) {
 		if result.Status != "fail" {
 			t.Fatalf("unexpected eval result: %+v", result)
 		}
+	}
+	records := readRunRecords(t, root)
+	if !hasRunRecord(records, "transform_run", "eval_failed", "eval_failed") {
+		t.Fatalf("expected eval_failed transform receipt, got %+v", records)
+	}
+	if !hasRunRecord(records, "invocation_completed", "failed", "") {
+		t.Fatalf("expected failed invocation receipt, got %+v", records)
 	}
 }
 
@@ -514,6 +539,32 @@ func shellQuote(value string) string {
 func contains(values []string, want string) bool {
 	for _, value := range values {
 		if value == want {
+			return true
+		}
+	}
+	return false
+}
+
+func readRunRecords(t *testing.T, root string) []map[string]any {
+	t.Helper()
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	records, err := store.ReadRunResults()
+	if err != nil {
+		t.Fatalf("read run results: %v", err)
+	}
+	return records
+}
+
+func hasRunRecord(records []map[string]any, recordType, status, errorKind string) bool {
+	for _, record := range records {
+		if record["record_type"] != recordType || record["status"] != status {
+			continue
+		}
+		if errorKind == "" {
+			return true
+		}
+		errorRecord, ok := record["error"].(map[string]any)
+		if ok && errorRecord["kind"] == errorKind {
 			return true
 		}
 	}

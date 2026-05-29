@@ -88,6 +88,8 @@ if [[ "$capability_mismatch_code" -ne 6 ]]; then
   exit 1
 fi
 grep -q "runner capability incompatible" "$tmpdir/build-capability-mismatch.err"
+grep -q '"record_type":"invocation_completed".*"status":"failed"' "$capability_mismatch/.fbt/state/run_results.jsonl"
+grep -q '"kind":"runner_capability_incompatible"' "$capability_mismatch/.fbt/state/run_results.jsonl"
 
 candidate_escape="$tmpdir/candidate-escape"
 "$FBT_BIN" init "$candidate_escape" --template support >"$tmpdir/init-candidate-escape.txt"
@@ -110,6 +112,8 @@ if [[ -e "$candidate_escape/target/artifacts/support/case_summaries/index.md" ]]
   echo "outside-work output candidate was committed" >&2
   exit 1
 fi
+grep -q '"record_type":"invocation_completed".*"status":"failed"' "$candidate_escape/.fbt/state/run_results.jsonl"
+grep -q '"kind":"runner_contract_violation"' "$candidate_escape/.fbt/state/run_results.jsonl"
 
 "$FBT_BIN" export openlineage --project-dir "$happy" --output "$tmpdir/openlineage.ndjson" >"$tmpdir/export-openlineage.txt"
 "$FBT_BIN" export otel --project-dir "$happy" --output "$tmpdir/otel.json" >"$tmpdir/export-otel.txt"
@@ -207,5 +211,8 @@ if [[ -e "$denied/target/artifacts/support/case_summaries/index.md" ]]; then
 fi
 test -f "$denied/.fbt/state/policy_decisions.json"
 grep -q '"status": "denied"' "$denied/.fbt/state/policy_decisions.json"
+grep -q '"record_type":"invocation_completed".*"status":"failed"' "$denied/.fbt/state/run_results.jsonl"
+grep -q '"status":"policy_denied"' "$denied/.fbt/state/run_results.jsonl"
+grep -q '"kind":"policy_denied"' "$denied/.fbt/state/run_results.jsonl"
 
 echo "conformance: ok"

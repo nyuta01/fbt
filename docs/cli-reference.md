@@ -171,6 +171,12 @@ Lifecycle:
 parse -> plan -> run external runner -> eval -> commit -> write state
 ```
 
+If the runner, output contract, policy check, eval, or cancellation fails after
+an invocation has started, `build` still appends failed receipts to
+`.fbt/state/run_results.jsonl`. The failed receipt records a safe error kind
+and message, but official artifact pointers and artifact versions are not
+advanced.
+
 When selected transforms depend on each other, `build` runs them in dependency
 order within the same invocation. A downstream selected transform waits for the
 upstream selected transform to commit its artifact, then runs if confidence and
