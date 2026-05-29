@@ -46,6 +46,10 @@ project-config-schema-check: ## Verify generated project-config JSON Schemas.
 adapter-release-plan-check: ## Verify official adapter release docs and workflow.
 	@$(PYTHON) scripts/check-adapter-release-plan.py
 
+.PHONY: security-profiles-check
+security-profiles-check: ## Verify external OS sandbox profile docs.
+	@$(PYTHON) scripts/check-security-profiles.py
+
 .PHONY: fmt
 fmt: ## Format Go source.
 	@$(GOFMT) -w $(GOFMT_DIRS)
@@ -170,5 +174,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

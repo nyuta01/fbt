@@ -50,7 +50,8 @@ MVP core must enforce:
 - timeout, output-size, and declared cost limits are checked when data is available
 
 Core cannot fully sandbox arbitrary external processes in MVP. OS-level
-sandboxing is a post-MVP hardening layer.
+sandboxing is an external execution profile, documented in
+`docs/security/os-sandbox-profiles.md`, and must remain outside fbt core.
 
 ## 4. Runner Responsibilities
 
@@ -128,9 +129,28 @@ Downstream transforms may require a current upstream artifact and a minimum fbt
 confidence class such as `structural` or `semantic`. Human approval and release
 state are intentionally outside core.
 
-## 9. Conformance Scenarios
+## 9. External OS Sandbox Profiles
 
-The MVP conformance suite in `tests/conformance/run.sh` runs deterministic
+OS-level sandboxing is an external execution profile, not an in-core feature.
+Use containers, CI job isolation, Linux namespace/seccomp wrappers, macOS local
+isolation wrappers, network-denied environments, or organization-managed
+execution profiles around the fbt process and runner commands when stronger
+process isolation is required.
+
+The fbt boundary remains:
+
+```text
+fbt core policy/commit checks + adapter fail-closed mapping + external OS sandbox
+```
+
+Do not add provider SDKs, agent runtimes, daemons, privileged launchers, or
+kernel sandbox management to fbt core to satisfy high-security execution needs.
+Those controls belong to the runner package, CI job, container image, host
+policy, or orchestration layer.
+
+## 10. Conformance Scenarios
+
+The MVP conformance suite in `tests/conformance/run.py` runs deterministic
 local scenarios without external services. It should include the following
 scenario classes.
 
@@ -158,7 +178,7 @@ scenario classes.
 | `CONF-ADAPTER-004` | runner adapter | CLI-agent adapter receives an fbt policy it cannot enforce | strict runner conformance fails before invoking the external CLI and returns a structured policy error |
 | `CONF-ADAPTER-005` | runner adapter | CLI-agent adapter receives a staged input file above its explicit size limit | adapter tests fail before invoking the external CLI and return an actionable error naming the oversized file and limit |
 
-## 10. Verification Target
+## 11. Verification Target
 
 Once product implementation begins, `make verify` should grow a deterministic
 conformance target that runs these scenarios without external services.

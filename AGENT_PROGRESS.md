@@ -181,6 +181,12 @@ release metadata. `make verify` includes `adapter-release-plan-check`, and
 `.github/workflows/release-adapters.yml` runs release-plan, official-adapter,
 and clean-install checks on adapter/SDK release tags.
 
+`FBT-SEC-001` is done. `docs/security/os-sandbox-profiles.md` documents local,
+CI, container, network-denied, Linux namespace/seccomp, and macOS local
+isolation profiles while keeping OS sandboxing outside core. The docs site has a
+security profile reference page, runner adapter docs link to the profile, and
+`make verify` includes `security-profiles-check`.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

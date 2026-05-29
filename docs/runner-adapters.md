@@ -297,6 +297,29 @@ runners:
 Only environment variable names are stored. Values stay in the user's shell,
 secret manager, CI environment, or adapter-specific credential mechanism.
 
+## 5.1 OS Sandbox Profiles
+
+fbt core does not implement an OS sandbox. Adapter packages and launch
+environments own process, filesystem, and network isolation that goes beyond
+the fbt runner protocol.
+
+For high-security use, combine:
+
+```text
+fbt policy + adapter fail-closed mapping + OS sandbox profile
+```
+
+Use the profiles in `docs/security/os-sandbox-profiles.md` when running
+adapters inside CI jobs, containers, Linux namespace/seccomp wrappers, macOS
+local isolation wrappers, or network-denied environments. In every profile,
+keep source and instruction paths read-only where possible, keep `target/` and
+`.fbt/` writable together, and pass only the credential environment variables
+the selected adapter needs.
+
+An adapter that cannot represent the requested fbt policy must fail before
+invoking the provider SDK or agent CLI. OS sandboxing is still the outer
+process boundary; adapter fail-closed mapping is not a kernel sandbox.
+
 ## 6. Plugin Manifest
 
 Adapter packages may include `fbt_plugin.yml` so fbt can discover them from

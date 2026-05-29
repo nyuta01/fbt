@@ -1,0 +1,34 @@
+---
+title: Security profiles
+description: External OS sandbox profiles for fbt and runner commands.
+---
+
+fbt keeps its own boundary small: parse project files, plan transforms, call
+external runners, validate output candidates, commit artifact versions, and
+record receipts.
+
+fbt core does not implement an OS sandbox. Process, filesystem, and network
+isolation belong to the environment that launches fbt and runner commands.
+
+Use external profiles when the runner is an LLM provider adapter, CLI agent,
+document converter, OCR tool, or internal executable with a larger trust
+surface than fbt core:
+
+| Profile | Use it for | Boundary |
+|---|---|---|
+| Local trusted runner | Demo runners or trusted internal scripts. | No OS isolation. |
+| CI sandbox | Ephemeral job execution. | CI permissions, secrets, and workspace isolation. |
+| Container with read-only sources | Strong filesystem and network controls. | Read-only source mounts, writable `target/` and `.fbt/`. |
+| Network-denied run | Command transforms that should not call external services. | Container, VM, or host firewall. |
+| Linux namespace/seccomp wrapper | Local Linux process isolation without a full workflow engine. | Namespace, mount, capability, and seccomp controls. |
+| macOS local isolation | Organization-managed macOS wrappers. | Version-specific local sandbox profile. |
+
+The high-security mental model is:
+
+```text
+fbt policy + adapter fail-closed mapping + OS sandbox profile
+```
+
+The full guide lives at `docs/security/os-sandbox-profiles.md` in the
+repository.
+

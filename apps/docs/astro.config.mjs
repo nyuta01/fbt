@@ -90,6 +90,7 @@ export default defineConfig({
           items: [
             { label: "Project config", slug: "reference/project-config" },
             { label: "Runner protocol", slug: "reference/runner-protocol" },
+            { label: "Security profiles", slug: "reference/security" },
             { label: "Release", slug: "reference/release" },
             { label: "Glossary", slug: "reference/glossary" },
           ],

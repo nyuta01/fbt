@@ -3663,7 +3663,7 @@
       "id": "FBT-SEC-001",
       "title": "Document OS sandbox execution profiles for high-security use",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-022",
@@ -3682,12 +3682,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "os_sandbox_profiles_documented": false,
-        "core_boundary_not_expanded": false,
-        "security_docs_scan": false,
-        "make_verify": false
+        "os_sandbox_profiles_documented": true,
+        "core_boundary_not_expanded": true,
+        "security_docs_scan": true,
+        "make_verify": true
       },
-      "notes": "fbt policy and adapter safety checks are strong, but OS-level sandboxing remains external. Document practical execution profiles for containers, CI sandboxes, macOS/Linux isolation, and network controls without adding an in-core sandbox."
+      "notes": "Added `docs/security/os-sandbox-profiles.md`, docs-site security profile page, security spec and adapter docs updates, plus `make security-profiles-check` inside `make verify`. OS process/network isolation remains external to fbt core."
     },
     {
       "id": "FBT-PDCA-001",
