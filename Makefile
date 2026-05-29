@@ -154,8 +154,8 @@ runner-scaffold-conformance: ## Run conformance against the copyable runner scaf
 	@$(PYTHON) tests/runner-conformance/run.py --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example --strict --agent-adapter
 
 .PHONY: conformance
-conformance: build ## Run deterministic MVP conformance scenarios.
-	@FBT_BIN="$(CURDIR)/bin/fbt" bash tests/conformance/run.sh
+conformance: build ## Run structured deterministic MVP conformance scenarios.
+	@FBT_BIN="$(CURDIR)/bin/fbt" $(PYTHON) tests/conformance/run.py
 
 .PHONY: dist-check
 dist-check: ## Build and smoke the local release binary.

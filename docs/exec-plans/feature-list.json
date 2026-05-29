@@ -3576,7 +3576,7 @@
       "id": "FBT-CONF-002",
       "title": "Move product conformance scenarios from shell to a structured harness",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-CONF-001"
@@ -3592,12 +3592,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "structured_conformance_harness": false,
-        "legacy_shell_scenarios_migrated_or_wrapped": false,
-        "make_conformance": false,
-        "make_verify": false
+        "structured_conformance_harness": true,
+        "legacy_shell_scenarios_migrated_or_wrapped": true,
+        "make_conformance": true,
+        "make_verify": true
       },
-      "notes": "`make conformance` currently works, but product conformance is still mostly shell-script driven. Move scenarios into a structured harness with clearer fixtures, assertions, and failure reporting while keeping the same deterministic coverage."
+      "notes": "Moved product conformance scenarios into `tests/conformance/run.py`, kept `tests/conformance/run.sh` as a thin compatibility wrapper, and updated `make conformance` to call the structured harness. `make conformance`, the wrapper, and `make verify` passed."
     },
     {
       "id": "FBT-SCHEMA-001",

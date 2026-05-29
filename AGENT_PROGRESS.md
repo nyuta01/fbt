@@ -162,6 +162,12 @@ found was copied examples needing `FBT_SOURCE_ROOT` declared and set for
 repository-local demo wrappers; `examples/README.md` now documents that copied
 example path.
 
+`FBT-CONF-002` is done. Product conformance now runs through
+`tests/conformance/run.py`, a structured Python harness with named scenarios
+and assertion-level failure messages. `tests/conformance/run.sh` remains as a
+thin compatibility wrapper, while `make conformance` invokes the structured
+harness directly.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
