@@ -141,10 +141,13 @@ exports and a smoke summary for release/docs evidence. The target is outside
 `make verify`, and core still exposes only `fbt export openlineage` and
 `fbt export otel`.
 
-A follow-up CLI UX audit is now captured as todo tasks. The highest-priority
-items are help text and flag-scope clarity (`FBT-UX-009`), actionable common
-errors (`FBT-UX-010`), and copy-paste-safe next commands (`FBT-UX-011`). The
-remaining backlog focuses on showing build output paths (`FBT-UX-012`),
+A follow-up CLI UX audit is now captured as structured tasks. Help text and
+flag-scope clarity (`FBT-UX-009`) is done: root, artifact, export, plan, build,
+and retention help now explain what each command returns, and help regression
+tests cover the key wording. The remaining highest-priority items are
+actionable common errors (`FBT-UX-010`) and copy-paste-safe next commands
+(`FBT-UX-011`). The remaining backlog focuses on showing build output paths
+(`FBT-UX-012`),
 scannable artifact/retention output (`FBT-UX-013`), state/artifact directory
 semantics (`FBT-CONFIG-003`), runner terminology (`FBT-RUNNER-011`), standard
 export command UX (`FBT-STD-008`), and grouped doctor diagnostics

@@ -8,7 +8,7 @@ tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
 go run ./cmd/fbt --help >"$tmpdir/help.txt"
-grep -q "file build tool" "$tmpdir/help.txt"
+grep -q "versioned filesystem artifacts" "$tmpdir/help.txt"
 if grep -q "Planned commands" "$tmpdir/help.txt"; then
   echo "help should not list placeholder commands" >&2
   exit 1

@@ -20,11 +20,74 @@ func TestRunHelp(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d", code)
 	}
-	if !strings.Contains(stdout.String(), "file build tool") {
+	if !strings.Contains(stdout.String(), "versioned filesystem artifacts") {
 		t.Fatalf("help output missing product description: %q", stdout.String())
 	}
 	if stderr.Len() != 0 {
 		t.Fatalf("expected empty stderr, got %q", stderr.String())
+	}
+}
+
+func TestRunHelpDescribesCommandOutputs(t *testing.T) {
+	cases := []struct {
+		name     string
+		args     []string
+		expected []string
+	}{
+		{
+			name: "root flags",
+			args: []string{"--help"},
+			expected: []string{
+				"builds versioned filesystem artifacts",
+				"Select transforms for plan/build",
+				"immutable artifact storage stays under .fbt/artifacts",
+			},
+		},
+		{
+			name: "artifact subcommands",
+			args: []string{"artifact", "--help"},
+			expected: []string{
+				"Show the current artifact version and metadata",
+				"Explain why an artifact will run, skip, or block",
+				"Report local state and artifact storage usage",
+			},
+		},
+		{
+			name: "standard exports",
+			args: []string{"export", "--help"},
+			expected: []string{
+				"RunEvent NDJSON",
+				"OTLP/JSON execution traces",
+				"stdout for normal shell piping",
+			},
+		},
+		{
+			name: "openlineage details",
+			args: []string{"export", "openlineage", "--help"},
+			expected: []string{
+				"OpenLineage-compatible RunEvent NDJSON",
+				"written to stdout",
+				"lineage backend",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout bytes.Buffer
+			var stderr bytes.Buffer
+			if code := Run(tc.args, &stdout, &stderr); code != 0 {
+				t.Fatalf("expected exit code 0, got %d; stderr=%q", code, stderr.String())
+			}
+			for _, expected := range tc.expected {
+				if !strings.Contains(stdout.String(), expected) {
+					t.Fatalf("expected %q in help output:\n%s", expected, stdout.String())
+				}
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("expected empty stderr, got %q", stderr.String())
+			}
+		})
 	}
 }
 

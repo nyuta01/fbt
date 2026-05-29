@@ -77,9 +77,9 @@ fbt build --project-dir knowledge_ops --select weekly_support_insights
 | `fbt artifact show` | Inspect path, digest, runner, model, confidence, and descriptors. |
 | `fbt artifact history` | List versions for a logical artifact. |
 | `fbt artifact explain` | Explain why an artifact will run, skip, or block. |
-| `fbt artifact retention` | Inspect local state/artifact growth without deleting files. |
-| `fbt export openlineage` | Export artifact lineage as OpenLineage NDJSON. |
-| `fbt export otel` | Export local execution traces as OTLP/JSON. |
+| `fbt artifact retention` | Report `.fbt/state` and `.fbt/artifacts` growth without deleting files. |
+| `fbt export openlineage` | Write OpenLineage RunEvent NDJSON from local artifact lineage. |
+| `fbt export otel` | Write OTLP/JSON traces from local run receipts. |
 
 The public CLI is intentionally small. `doctor` owns readiness diagnostics,
 `plan` previews without writes, and `build` owns runner execution, evals, state

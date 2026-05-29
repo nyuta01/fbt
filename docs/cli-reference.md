@@ -31,8 +31,8 @@ fbt export openlineage
 | Flag | Meaning |
 |---|---|
 | `--project-dir PATH` | Directory containing `fs_project.yml`; defaults to the current directory |
-| `--state-dir PATH` | Local state directory; defaults to `.fbt/state` |
-| `--select EXPR` | Select transforms for `plan` and `build` |
+| `--state-dir PATH` | Override the local state directory; defaults to `.fbt/state` and does not move immutable artifact storage under `.fbt/artifacts` |
+| `--select EXPR` | Select transforms for `plan` and `build`; inspection commands reject it |
 | `--json` | Machine-readable JSON output |
 
 MVP does not accept `--exclude`, `--target`, `--vars`, `--dry-run`,
@@ -203,7 +203,8 @@ MVP supports raw text diff and Markdown heading-aware diff.
 
 ### 5.5 fbt artifact
 
-Inspect artifacts and versions.
+Inspect generated artifacts and versions. The subcommands are intentionally
+split by the question they answer.
 
 ```sh
 fbt artifact ls
@@ -213,6 +214,15 @@ fbt artifact explain TARGET
 fbt artifact history TARGET
 fbt artifact retention
 ```
+
+| Subcommand | Answers |
+|---|---|
+| `ls` | Which artifacts have recorded versions? |
+| `path TARGET` | Where is the current logical file and immutable snapshot? |
+| `show TARGET` | What is the current artifact version, digest, runner, model, confidence, and metadata? |
+| `explain TARGET` | Why would this artifact run, skip, or block right now? |
+| `history TARGET` | Which versions have been recorded for this artifact? |
+| `retention` | How large are local state and immutable artifact history? |
 
 `artifact path` prints the logical output path and immutable storage path for
 the current or selected version. `artifact show` includes artifact version,
@@ -244,9 +254,11 @@ fbt export openlineage [--output PATH]
 fbt export otel [--output PATH]
 ```
 
-`fbt export openlineage` writes OpenLineage-compatible RunEvent NDJSON for
-artifact lineage. `fbt export otel` writes OTLP/JSON-compatible trace payloads
-for local execution telemetry.
+`fbt export openlineage` writes OpenLineage-compatible RunEvent NDJSON from
+local artifact lineage. `fbt export otel` writes OTLP/JSON-compatible trace
+payloads from local run receipts. Without `--output`, both commands write to
+stdout so they can be piped to a backend-specific uploader. With `--output`,
+fbt writes the file and prints a short human summary.
 
 fbt-specific confidence, eval, descriptor, runner/model, and policy metadata
 are included as `fbt_` custom facets or span attributes. Raw artifact content,

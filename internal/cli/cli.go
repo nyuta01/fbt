@@ -71,8 +71,15 @@ func newRootCommand(stdout io.Writer, stderr io.Writer) *cobra.Command {
 	opts := options{}
 	versionFlag := false
 	root := &cobra.Command{
-		Use:           "fbt",
-		Short:         "fbt - file build tool",
+		Use:   "fbt",
+		Short: "fbt - file build tool",
+		Long: "fbt builds versioned filesystem artifacts from declared source files through external runners.\n\n" +
+			"Typical flow:\n" +
+			"  fbt doctor\n" +
+			"  fbt plan --select TARGET\n" +
+			"  fbt build --select TARGET\n" +
+			"  fbt artifact show TARGET\n\n" +
+			"Use --json for automation. The human output is optimized for scanning local project state.",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -90,8 +97,8 @@ func newRootCommand(stdout io.Writer, stderr io.Writer) *cobra.Command {
 	root.CompletionOptions.DisableDefaultCmd = true
 	root.Flags().BoolVarP(&versionFlag, "version", "v", false, "Print version")
 	root.PersistentFlags().StringVar(&opts.ProjectDir, "project-dir", "", "Directory containing fs_project.yml")
-	root.PersistentFlags().StringVar(&opts.StateDir, "state-dir", "", "Local state directory")
-	root.PersistentFlags().StringVar(&opts.Select, "select", "", "Select transforms for plan and build")
+	root.PersistentFlags().StringVar(&opts.StateDir, "state-dir", "", "Override .fbt/state; immutable artifact storage stays under .fbt/artifacts")
+	root.PersistentFlags().StringVar(&opts.Select, "select", "", "Select transforms for plan/build; rejected by inspection commands")
 	root.PersistentFlags().BoolVar(&opts.JSON, "json", false, "Print machine-readable JSON")
 
 	root.AddCommand(newVersionCommand(&opts, stdout, stderr))
@@ -108,7 +115,7 @@ func newRootCommand(stdout io.Writer, stderr io.Writer) *cobra.Command {
 func newVersionCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Print version",
+		Short: "Print fbt version metadata",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return exitCode(runVersion(*opts, stdout, stderr))
@@ -141,8 +148,11 @@ func newInitCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Co
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "init [PROJECT_NAME]",
-		Short: "Create a project",
-		Args:  cobra.MaximumNArgs(1),
+		Short: "Create a new fbt project",
+		Long: "Create a new fbt project with fs_project.yml and resource directories.\n\n" +
+			"Templates such as support and incident include deterministic demo runners so\n" +
+			"the project can be planned and built locally before replacing runner commands.",
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			callArgs := append([]string{}, args...)
 			if template != "" {
@@ -163,7 +173,10 @@ func newDoctorCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.
 	return &cobra.Command{
 		Use:   "doctor",
 		Short: "Check project and runner readiness",
-		Args:  cobra.NoArgs,
+		Long: "Check whether the current project can be used by fbt.\n\n" +
+			"Doctor parses project config, checks local state access, resolves configured\n" +
+			"runners, and initializes protocol-compatible runners when available.",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return exitCode(runDoctor(*opts, args, stdout, stderr))
 		},
@@ -175,7 +188,11 @@ func newPlanCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Co
 	cmd := &cobra.Command{
 		Use:   "plan",
 		Short: "Preview run, skip, and blocked transforms",
-		Args:  cobra.NoArgs,
+		Long: "Preview selected transform work without writing state or starting runners.\n\n" +
+			"Plan compares project definitions, source fingerprints, previous state,\n" +
+			"upstream artifact versions, and confidence requirements, then prints why\n" +
+			"each selected transform will run, skip, or block.",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return exitCode(runPlan(*opts, boolFlagArgs("force", force), stdout, stderr))
 		},
@@ -189,7 +206,11 @@ func newBuildCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.C
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build selected artifacts and write receipts",
-		Args:  cobra.NoArgs,
+		Long: "Build selected artifacts through external runners and write local receipts.\n\n" +
+			"Build invokes protocol-compatible runners, validates output candidates,\n" +
+			"commits immutable artifact versions, updates current artifact pointers,\n" +
+			"and records run receipts under .fbt/state.",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return exitCode(runBuild(*opts, boolFlagArgs("force", force), stdout, stderr))
 		},
@@ -202,7 +223,8 @@ func newDiffCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.Co
 	var against string
 	cmd := &cobra.Command{
 		Use:   "diff TARGET",
-		Short: "Compare artifact versions",
+		Short: "Compare current and previous artifact versions",
+		Long:  "Compare a current artifact version with the previous version or an explicit artifact version reference.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			callArgs := append([]string{}, args...)
@@ -220,28 +242,29 @@ func newArtifactCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobr
 	cmd := &cobra.Command{
 		Use:   "artifact",
 		Short: "Inspect artifact paths, versions, and lineage",
+		Long:  "Inspect generated artifacts, current versions, history, lineage reasoning, and local storage growth.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return exitCode(runArtifact(*opts, []string{"ls"}, stdout, stderr))
 		},
 	}
-	cmd.AddCommand(newArtifactSubcommand("ls", "", cobra.NoArgs, opts, stdout, stderr))
-	cmd.AddCommand(newArtifactSubcommand("path", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
-	cmd.AddCommand(newArtifactSubcommand("show", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
-	cmd.AddCommand(newArtifactSubcommand("explain", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
-	cmd.AddCommand(newArtifactSubcommand("history", "TARGET", cobra.ExactArgs(1), opts, stdout, stderr))
-	cmd.AddCommand(newArtifactSubcommand("retention", "", cobra.NoArgs, opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("ls", "", "List artifacts with recorded versions", cobra.NoArgs, opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("path", "TARGET", "Print current logical and immutable artifact paths", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("show", "TARGET", "Show the current artifact version and metadata", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("explain", "TARGET", "Explain why an artifact will run, skip, or block", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("history", "TARGET", "List recorded versions for an artifact", cobra.ExactArgs(1), opts, stdout, stderr))
+	cmd.AddCommand(newArtifactSubcommand("retention", "", "Report local state and artifact storage usage", cobra.NoArgs, opts, stdout, stderr))
 	return cmd
 }
 
-func newArtifactSubcommand(name, useArgs string, args cobra.PositionalArgs, opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
+func newArtifactSubcommand(name, useArgs, short string, args cobra.PositionalArgs, opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
 	use := name
 	if useArgs != "" {
 		use += " " + useArgs
 	}
 	return &cobra.Command{
 		Use:   use,
-		Short: "Inspect artifacts",
+		Short: short,
 		Args:  args,
 		RunE: func(cmd *cobra.Command, cmdArgs []string) error {
 			callArgs := append([]string{name}, cmdArgs...)
@@ -254,7 +277,11 @@ func newExportCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.
 	cmd := &cobra.Command{
 		Use:   "export",
 		Short: "Write standard lineage or trace records",
-		Args:  cobra.NoArgs,
+		Long: "Write standard records from local fbt state.\n\n" +
+			"Use openlineage to produce RunEvent NDJSON for lineage tools, or otel to\n" +
+			"produce OTLP/JSON traces for observability tools. Without --output, records\n" +
+			"are written to stdout for normal shell piping.",
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},
@@ -266,9 +293,26 @@ func newExportCommand(opts *options, stdout io.Writer, stderr io.Writer) *cobra.
 
 func newExportFormatCommand(format string, opts *options, stdout io.Writer, stderr io.Writer) *cobra.Command {
 	var output string
+	short := "Write " + format + " records from local run history"
+	long := "Write " + format + " records from local fbt state.\n\n" +
+		"Without --output, records are written to stdout. With --output, fbt writes\n" +
+		"the file and prints a short summary for humans."
+	if format == "openlineage" {
+		short = "Write OpenLineage RunEvent NDJSON"
+		long = "Write OpenLineage-compatible RunEvent NDJSON from local artifact lineage.\n\n" +
+			"Without --output, events are written to stdout for piping into Marquez,\n" +
+			"OpenMetadata ingestion, or another lineage backend."
+	}
+	if format == "otel" {
+		short = "Write OTLP/JSON execution traces"
+		long = "Write OpenTelemetry OTLP/JSON traces from local fbt run receipts.\n\n" +
+			"Without --output, the trace payload is written to stdout for piping or\n" +
+			"posting to an OTLP-compatible collector."
+	}
 	cmd := &cobra.Command{
 		Use:   format,
-		Short: "Export " + format,
+		Short: short,
+		Long:  long,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			callArgs := []string{format}
