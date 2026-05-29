@@ -28,19 +28,22 @@ type Diagnostic struct {
 }
 
 type Resolved struct {
-	Name        string         `json:"name"`
-	Type        string         `json:"type"`
-	Protocol    string         `json:"protocol"`
-	Command     string         `json:"command"`
-	Args        []string       `json:"args,omitempty"`
-	CWD         string         `json:"cwd,omitempty"`
-	CommandPath string         `json:"command_path,omitempty"`
-	Source      Source         `json:"source"`
-	PluginName  string         `json:"plugin_name,omitempty"`
-	Version     string         `json:"version,omitempty"`
-	Env         []string       `json:"env,omitempty"`
-	Config      map[string]any `json:"config,omitempty"`
-	Diagnostics []Diagnostic   `json:"diagnostics,omitempty"`
+	Name           string            `json:"name"`
+	Type           string            `json:"type"`
+	Protocol       string            `json:"protocol"`
+	Command        string            `json:"command"`
+	Args           []string          `json:"args,omitempty"`
+	CWD            string            `json:"cwd,omitempty"`
+	CommandPath    string            `json:"command_path,omitempty"`
+	Source         Source            `json:"source"`
+	PluginName     string            `json:"plugin_name,omitempty"`
+	Version        string            `json:"version,omitempty"`
+	ManifestPath   string            `json:"manifest_path,omitempty"`
+	ManifestDigest string            `json:"manifest_digest,omitempty"`
+	Checksums      map[string]string `json:"checksums,omitempty"`
+	Env            []string          `json:"env,omitempty"`
+	Config         map[string]any    `json:"config,omitempty"`
+	Diagnostics    []Diagnostic      `json:"diagnostics,omitempty"`
 }
 
 type Discovery struct {
@@ -219,17 +222,20 @@ func (d Discovery) resolvePlugin(name, root string, source Source) (Resolved, bo
 func resolvedFromPlugin(name string, manifest plugin.Manifest, provided plugin.ProvidedRunner, source Source) Resolved {
 	commandPath := resolveConfiguredCommand(manifest.RootDir, manifest.Command)
 	return Resolved{
-		Name:        name,
-		Type:        provided.Type,
-		Protocol:    manifest.Protocol,
-		Command:     manifest.Command,
-		Args:        append([]string(nil), manifest.Args...),
-		CWD:         resolveConfiguredCWD(manifest.RootDir, manifest.CWD, ""),
-		CommandPath: commandPath,
-		Source:      source,
-		PluginName:  manifest.Name,
-		Version:     manifest.Version,
-		Env:         append([]string(nil), manifest.Env...),
+		Name:           name,
+		Type:           provided.Type,
+		Protocol:       manifest.Protocol,
+		Command:        manifest.Command,
+		Args:           append([]string(nil), manifest.Args...),
+		CWD:            resolveConfiguredCWD(manifest.RootDir, manifest.CWD, ""),
+		CommandPath:    commandPath,
+		Source:         source,
+		PluginName:     manifest.Name,
+		Version:        manifest.Version,
+		ManifestPath:   manifest.Path,
+		ManifestDigest: fileDigest(manifest.Path),
+		Checksums:      copyStringMap(manifest.Checksum),
+		Env:            append([]string(nil), manifest.Env...),
 	}
 }
 

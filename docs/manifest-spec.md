@@ -312,11 +312,22 @@ effective = hash(
     "usage_reporting": true,
     "cost_estimation": true
   },
+  "lockfile": {
+    "entry_digest": "sha256:lock-entry...",
+    "source": "github.com/nyuta01/fbt/adapters/openai",
+    "version": "adapters/openai/v0.1.0",
+    "protocol_version": "0.1",
+    "command": "fbt-runner-openai"
+  },
   "fingerprint": {
     "identity": "sha256:runner..."
   }
 }
 ```
+
+When `fbt.lock.json` is valid and contains a matching runner entry, the runner
+fingerprint includes that lock entry digest. Changing the lock entry makes
+dependent transforms dirty with `runner identity changed`.
 
 ## 15. Graph Maps
 

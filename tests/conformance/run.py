@@ -297,6 +297,88 @@ exec go run "{ROOT_DIR}/tests/runner_fixtures/fake" "$@"
     assert_contains(run_results, '"kind":"runner_contract_violation"', "candidate run results")
 
 
+def write_runner_lock(project: Path, *, llm_command: str = "bin/fbt-demo-llm-runner", pin: str = "one") -> None:
+    write(
+        project / "fbt.lock.json",
+        json.dumps(
+            {
+                "fbt_schema_version": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+                "lockfile_version": 1,
+                "runners": {
+                    "demo.llm": {
+                        "protocol_version": "0.1",
+                        "command": llm_command,
+                        "capabilities": {
+                            "transform_types": ["llm"],
+                            "artifact_types": ["markdown_directory"],
+                            "output_candidates": True,
+                        },
+                        "meta": {"pin": pin},
+                    },
+                    "demo.agent": {
+                        "protocol_version": "0.1",
+                        "command": "bin/fbt-demo-agent-runner",
+                        "capabilities": {
+                            "transform_types": ["agent"],
+                            "artifact_types": ["markdown"],
+                            "output_candidates": True,
+                        },
+                    },
+                },
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+
+
+def scenario_runner_lockfile(ctx: Context) -> None:
+    locked = ctx.tmpdir / "runner-lock"
+    init_project(locked)
+    write_runner_lock(locked)
+    doctor = fbt(["doctor", "--project-dir", str(locked)])
+    assert_contains(doctor.stdout, "RUNNER_LOCK_OK", "runner lock doctor stdout")
+    fbt(["build", "--project-dir", str(locked), "--select", "case_summaries"])
+
+    write_runner_lock(locked, pin="two")
+    plan = fbt(["plan", "--project-dir", str(locked), "--select", "case_summaries"])
+    assert_contains(plan.stdout, "runner identity changed", "runner lock dirty plan")
+
+    coverage = ctx.tmpdir / "runner-lock-coverage"
+    init_project(coverage)
+    write(
+        coverage / "fbt.lock.json",
+        json.dumps(
+            {
+                "fbt_schema_version": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+                "lockfile_version": 1,
+                "runners": {"unused.runner": {"protocol_version": "0.1"}},
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    coverage_doctor = fbt(["doctor", "--project-dir", str(coverage)])
+    assert_contains(coverage_doctor.stdout, "RUNNER_LOCK_MISSING", "runner lock coverage stdout")
+    assert_contains(coverage_doctor.stdout, "RUNNER_LOCK_UNUSED", "runner lock coverage stdout")
+
+    mismatch = ctx.tmpdir / "runner-lock-mismatch"
+    init_project(mismatch)
+    write_runner_lock(mismatch, llm_command="wrong-runner")
+    result = fbt(["build", "--project-dir", str(mismatch), "--select", "case_summaries"], expect=6)
+    assert_contains(result.stderr, "runner lock incompatible", "runner lock mismatch stderr")
+    assert_no_path(mismatch / "target" / "artifacts" / "support" / "case_summaries" / "index.md")
+
+    malformed = ctx.tmpdir / "runner-lock-malformed"
+    init_project(malformed)
+    write(
+        malformed / "fbt.lock.json",
+        '{"fbt_schema_version":"https://schemas.fbt.dev/fbt/runner-lock/v2.json","lockfile_version":2,"runners":{}}\n',
+    )
+    malformed_doctor = fbt(["doctor", "--project-dir", str(malformed)], expect=6)
+    assert_contains(malformed_doctor.stdout, "RUNNER_LOCK_SCHEMA_UNSUPPORTED", "runner lock malformed stdout")
+
+
 def validate_exports(openlineage_path: Path, otel_path: Path, redaction_marker: str) -> None:
     openlineage_text = openlineage_path.read_text(encoding="utf-8")
     otel_text = otel_path.read_text(encoding="utf-8")
@@ -409,6 +491,7 @@ SCENARIOS = [
     Scenario("strict YAML diagnostics", scenario_strict_yaml),
     Scenario("standard exports and dirty planning", scenario_standard_exports),
     Scenario("runner failure receipts", scenario_runner_failures),
+    Scenario("runner lockfile diagnostics", scenario_runner_lockfile),
     Scenario("policy denied receipts", scenario_policy_denied),
     Scenario("agent policy required", scenario_agent_policy_required),
 ]

@@ -767,7 +767,7 @@ func runBuild(opts options, args []string, stdout io.Writer, stderr io.Writer) i
 	})
 	if err != nil {
 		printError("build", err, stderr, opts.JSON)
-		if errors.Is(err, runnermgr.ErrCapabilityIncompatible) {
+		if errors.Is(err, runnermgr.ErrCapabilityIncompatible) || errors.Is(err, runnermgr.ErrLockIncompatible) {
 			return 6
 		}
 		if isSelectionError(err) {
@@ -1022,48 +1022,120 @@ func runnerDoctorChecks(projectDir string, cfg config.ProjectConfig, m manifest.
 	if err != nil {
 		return []doctorCheck{doctorError("runner_discovery", "RUNNER_DISCOVERY_ERROR", err.Error())}
 	}
+	lock, lockPresent, lockErr := runnermgr.ReadLockfile(projectDir)
+	if lockErr != nil {
+		return append(runnerDoctorChecksWithoutLock(resolved, m), doctorError("runner_lock", "RUNNER_LOCK_SCHEMA_UNSUPPORTED", lockErr.Error()))
+	}
+	if len(resolved) == 0 {
+		checks := []doctorCheck{doctorOK("runner_discovery", "RUNNER_DISCOVERY_EMPTY", "no runners configured")}
+		if lockPresent {
+			checks = append(checks, runnerLockCoverageChecks(lock, resolved)...)
+		}
+		return checks
+	}
+	var checks []doctorCheck
+	if lockPresent {
+		checks = append(checks, runnerLockCoverageChecks(lock, resolved)...)
+	}
+	for _, runner := range resolved {
+		diagnostics := runnermgr.Diagnose(runner)
+		lockDiagnostics := []runnermgr.Diagnostic{}
+		if lockPresent {
+			lockDiagnostics = append(lockDiagnostics, runnermgr.ValidateLockResolved(lock, runner)...)
+			checks = append(checks, runnerDiagnosticsAsDoctorChecks(runner.Name, lockDiagnostics)...)
+		}
+		if runnermgr.HasErrors(diagnostics) {
+			checks = append(checks, runnerDiagnosticsAsDoctorChecks(runner.Name, diagnostics)...)
+			continue
+		}
+		checks = append(checks, runnerDiagnosticsAsDoctorChecks(runner.Name, diagnostics)...)
+		protocolChecks, protocolDiagnostics := runnerProtocolDoctorChecks(runner, capabilityRequirementsForRunner(m, runner.Name), lock, lockPresent)
+		checks = append(checks, protocolChecks...)
+		if lockPresent {
+			lockDiagnostics = append(lockDiagnostics, protocolDiagnostics...)
+			if _, ok := lock.Runners[runner.Name]; ok && !runnermgr.HasErrors(lockDiagnostics) {
+				checks = append(checks, runnerDiagnosticAsDoctorCheck(runner.Name, runnermgr.LockOKDiagnostic()))
+			}
+		}
+	}
+	return checks
+}
+
+func runnerDoctorChecksWithoutLock(resolved []runnermgr.Resolved, m manifest.Manifest) []doctorCheck {
 	if len(resolved) == 0 {
 		return []doctorCheck{doctorOK("runner_discovery", "RUNNER_DISCOVERY_EMPTY", "no runners configured")}
 	}
 	var checks []doctorCheck
 	for _, runner := range resolved {
 		diagnostics := runnermgr.Diagnose(runner)
+		checks = append(checks, runnerDiagnosticsAsDoctorChecks(runner.Name, diagnostics)...)
 		if runnermgr.HasErrors(diagnostics) {
-			for _, diagnostic := range diagnostics {
-				status := "ok"
-				if diagnostic.Severity == "error" {
-					status = "error"
-				}
-				checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: status, Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
-			}
 			continue
 		}
-		for _, diagnostic := range diagnostics {
-			checks = append(checks, doctorCheck{Name: "runner." + runner.Name, Status: "ok", Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
-		}
-		checks = append(checks, runnerProtocolDoctorChecks(runner, capabilityRequirementsForRunner(m, runner.Name))...)
+		protocolChecks, _ := runnerProtocolDoctorChecks(runner, capabilityRequirementsForRunner(m, runner.Name), runnermgr.Lockfile{}, false)
+		checks = append(checks, protocolChecks...)
 	}
 	return checks
 }
 
-func runnerProtocolDoctorChecks(resolved runnermgr.Resolved, requirements []runnermgr.CapabilityRequirement) []doctorCheck {
+func runnerLockCoverageChecks(lock runnermgr.Lockfile, resolved []runnermgr.Resolved) []doctorCheck {
 	var checks []doctorCheck
-	for _, diagnostic := range runnerProtocolDiagnostics(resolved, requirements) {
-		status := "ok"
-		if diagnostic.Severity == "error" {
-			status = "error"
-		}
-		checks = append(checks, doctorCheck{Name: "runner." + resolved.Name, Status: status, Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message})
+	for _, diagnostic := range runnermgr.ValidateLockCoverage(lock, resolved) {
+		checks = append(checks, runnerDiagnosticAsDoctorCheck(diagnostic.RunnerName, diagnostic.Diagnostic))
 	}
 	return checks
 }
 
-func runnerProtocolDiagnostics(resolved runnermgr.Resolved, requirements []runnermgr.CapabilityRequirement) []runnermgr.Diagnostic {
+func runnerDiagnosticsAsDoctorChecks(runnerName string, diagnostics []runnermgr.Diagnostic) []doctorCheck {
+	var checks []doctorCheck
+	for _, diagnostic := range diagnostics {
+		checks = append(checks, runnerDiagnosticAsDoctorCheck(runnerName, diagnostic))
+	}
+	return checks
+}
+
+func runnerDiagnosticAsDoctorCheck(runnerName string, diagnostic runnermgr.Diagnostic) doctorCheck {
+	return doctorCheck{Name: "runner." + runnerName, Status: doctorStatus(diagnostic.Severity), Code: diagnostic.Code, Severity: diagnostic.Severity, Message: diagnostic.Message}
+}
+
+func doctorStatus(severity string) string {
+	switch severity {
+	case "error":
+		return "error"
+	case "warning":
+		return "warning"
+	default:
+		return "ok"
+	}
+}
+
+func runnerProtocolDoctorChecks(resolved runnermgr.Resolved, requirements []runnermgr.CapabilityRequirement, lock runnermgr.Lockfile, lockPresent bool) ([]doctorCheck, []runnermgr.Diagnostic) {
+	var checks []doctorCheck
+	initResult, diagnostics, ok := runnerProtocolInitializeResult(resolved)
+	for _, diagnostic := range diagnostics {
+		checks = append(checks, runnerDiagnosticAsDoctorCheck(resolved.Name, diagnostic))
+	}
+	if !ok {
+		return checks, nil
+	}
+	capabilityDiagnostics := runnermgr.ValidateCapabilities(initResult, requirements)
+	for _, diagnostic := range capabilityDiagnostics {
+		checks = append(checks, runnerDiagnosticAsDoctorCheck(resolved.Name, diagnostic))
+	}
+	var lockDiagnostics []runnermgr.Diagnostic
+	if lockPresent {
+		lockDiagnostics = runnermgr.ValidateLockInitialized(lock, resolved.Name, initResult)
+		checks = append(checks, runnerDiagnosticsAsDoctorChecks(resolved.Name, lockDiagnostics)...)
+	}
+	return checks, lockDiagnostics
+}
+
+func runnerProtocolInitializeResult(resolved runnermgr.Resolved) (protocol.InitializeResult, []runnermgr.Diagnostic, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	client, err := runnermgr.StartProtocolClient(ctx, resolved)
 	if err != nil {
-		return []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_START_ERROR", Message: err.Error()}}
+		return protocol.InitializeResult{}, []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_START_ERROR", Message: err.Error()}}, false
 	}
 	defer client.Close()
 	initResult, err := client.Initialize(ctx, protocol.InitializeParams{
@@ -1075,11 +1147,9 @@ func runnerProtocolDiagnostics(resolved runnermgr.Resolved, requirements []runne
 		CapabilityRequest: []string{"run_transform", "stream_events", "output_candidates", "cancellation"},
 	})
 	if err != nil {
-		return []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_INIT_ERROR", Message: err.Error()}}
+		return protocol.InitializeResult{}, []runnermgr.Diagnostic{{Severity: "error", Code: "RUNNER_PROTOCOL_INIT_ERROR", Message: err.Error()}}, false
 	}
-	diagnostics := []runnermgr.Diagnostic{{Severity: "info", Code: "RUNNER_PROTOCOL_OK", Message: "runner protocol initialize succeeded"}}
-	diagnostics = append(diagnostics, runnermgr.ValidateCapabilities(initResult, requirements)...)
-	return diagnostics
+	return initResult, []runnermgr.Diagnostic{{Severity: "info", Code: "RUNNER_PROTOCOL_OK", Message: "runner protocol initialize succeeded"}}, true
 }
 
 func capabilityRequirementsForRunner(m manifest.Manifest, runnerName string) []runnermgr.CapabilityRequirement {
@@ -2607,6 +2677,8 @@ func errorMessageHint(message string) string {
 		return "use `fbt plan` to preview without writing state or starting runners."
 	case strings.Contains(message, "runner closed stdout before response") || strings.Contains(message, "failed to read runner response") || strings.Contains(message, "failed to write runner request") || strings.Contains(message, "runner stderr:"):
 		return "check the configured runner command with `fbt doctor`; inspect runner stderr and verify credentials or CLI setup."
+	case strings.Contains(message, "runner lock incompatible"):
+		return "run `fbt doctor` to see runner lockfile drift, then update the runner installation or fbt.lock.json outside fbt."
 	default:
 		return ""
 	}

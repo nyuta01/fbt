@@ -120,11 +120,11 @@ the runner, output contract, policy check, eval, or cancellation fails.
 
 Failed transform receipts include a safe `error.kind` and `error.message`.
 Common kinds are `runner_capability_incompatible`,
-`runner_protocol_error`, `runner_contract_violation`, `policy_denied`,
-`eval_failed`, `cancelled`, and `failed`. Failed receipts may reference
-policy decisions, eval results, runner events, usage, and provenance when those
-were available before failure. They must not move current artifact pointers or
-write artifact versions.
+`runner_lock_incompatible`, `runner_protocol_error`,
+`runner_contract_violation`, `policy_denied`, `eval_failed`, `cancelled`, and
+`failed`. Failed receipts may reference policy decisions, eval results, runner
+events, usage, and provenance when those were available before failure. They
+must not move current artifact pointers or write artifact versions.
 
 Example failed receipt:
 

@@ -139,6 +139,10 @@ func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 	if err != nil {
 		return result, err
 	}
+	runnerLock, runnerLockPresent, err := runner.ReadLockfile(parseResult.ProjectDir)
+	if err != nil {
+		return result, err
+	}
 	plan := planner.Build(planner.Inputs{Manifest: currentManifest, PreviousManifest: previous, State: snapshot, Selected: selected, Force: options.Force})
 	result.Plan = plan
 
@@ -157,7 +161,7 @@ func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 			result.Plan.Summary.Blocked++
 			continue
 		}
-		run, runErr := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, *node, invocationID)
+		run, runErr := executeTransform(ctx, parseResult, currentManifest, store, &snapshot, *node, invocationID, runnerLock, runnerLockPresent)
 		if run.TransformRunID != "" {
 			result.Runs = append(result.Runs, run)
 		}
@@ -173,7 +177,7 @@ func RunBuild(ctx context.Context, options Options) (result Result, err error) {
 	return result, nil
 }
 
-func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, node planner.Node, invocationID string) (run Run, err error) {
+func executeTransform(ctx context.Context, parseResult parser.Result, m manifest.Manifest, store state.Store, snapshot *state.Snapshot, node planner.Node, invocationID string, runnerLock runner.Lockfile, runnerLockPresent bool) (run Run, err error) {
 	transformID := node.TransformID
 	transform := m.Transforms[transformID]
 	transformRunID := newID("transform_run.run")
@@ -209,6 +213,11 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 		return run, err
 	}
 	secretNames = append(secretNames, resolved.Env...)
+	if runnerLockPresent {
+		if diagnostics := runner.ValidateLockResolved(runnerLock, resolved); runner.HasErrors(diagnostics) {
+			return run, runner.LockError(diagnostics)
+		}
+	}
 	client, err := runner.StartProtocolClient(ctx, resolved)
 	if err != nil {
 		return run, err
@@ -224,6 +233,11 @@ func executeTransform(ctx context.Context, parseResult parser.Result, m manifest
 	})
 	if err != nil {
 		return run, err
+	}
+	if runnerLockPresent {
+		if diagnostics := runner.ValidateLockInitialized(runnerLock, resolved.Name, initResult); runner.HasErrors(diagnostics) {
+			return run, runner.LockError(diagnostics)
+		}
 	}
 	if diagnostics := runner.ValidateCapabilities(initResult, []runner.CapabilityRequirement{capabilityRequirement(transformID, transform)}); runner.HasErrors(diagnostics) {
 		return run, runner.CapabilityError(diagnostics)
@@ -573,6 +587,9 @@ func errorKind(err error, status string) string {
 	}
 	if errors.Is(err, runner.ErrCapabilityIncompatible) {
 		return "runner_capability_incompatible"
+	}
+	if errors.Is(err, runner.ErrLockIncompatible) {
+		return "runner_lock_incompatible"
 	}
 	var rpcErr protocol.JSONRPCError
 	if errors.As(err, &rpcErr) {

@@ -911,6 +911,108 @@ func TestRunRunnerDoctorWithProjectCommand(t *testing.T) {
 	}
 }
 
+func TestRunDoctorShowsRunnerLockDiagnostics(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "fbt.lock.json", cliRunnerLockJSON("bin/fbt-openai-runner", "", `,
+    "unused.runner": {
+      "protocol_version": "0.1"
+    }`))
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"doctor", "--project-dir", root}, &stdout, &stderr); code != 0 {
+		t.Fatalf("doctor failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "RUNNER_LOCK_OK") || !strings.Contains(stdout.String(), "warning RUNNER_LOCK_UNUSED") {
+		t.Fatalf("expected lock ok and unused warning, got %q", stdout.String())
+	}
+
+	writeFile(t, root, "fbt.lock.json", `{
+  "fbt_schema_version": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+  "lockfile_version": 1,
+  "runners": {
+    "unused.runner": {
+      "protocol_version": "0.1"
+    }
+  }
+}`)
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"doctor", "--project-dir", root}, &stdout, &stderr); code != 0 {
+		t.Fatalf("doctor with coverage warnings failed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "warning RUNNER_LOCK_MISSING") || !strings.Contains(stdout.String(), "warning RUNNER_LOCK_UNUSED") {
+		t.Fatalf("expected missing and unused lock warnings, got %q", stdout.String())
+	}
+
+	writeFile(t, root, "fbt.lock.json", cliRunnerLockJSON("wrong-runner", "", ""))
+	stdout.Reset()
+	stderr.Reset()
+	if code := Run([]string{"doctor", "--project-dir", root}, &stdout, &stderr); code != 6 {
+		t.Fatalf("expected lock mismatch doctor exit 6, got %d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "error RUNNER_LOCK_MISMATCH") {
+		t.Fatalf("expected lock mismatch diagnostic, got %q", stdout.String())
+	}
+}
+
+func TestRunBuildFailsOnRunnerLockMismatchBeforeArtifactCommit(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+	writeFile(t, root, "fbt.lock.json", cliRunnerLockJSON("wrong-runner", "", ""))
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &stdout, &stderr); code != 6 {
+		t.Fatalf("expected lock mismatch build exit 6, got %d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stderr.String(), "runner lock incompatible") || !strings.Contains(stderr.String(), "runner lock mismatch for command") {
+		t.Fatalf("expected runner lock error, got %q", stderr.String())
+	}
+	if _, err := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(err) {
+		t.Fatalf("artifact should not be committed on lock mismatch, stat err=%v", err)
+	}
+	runResults := readFile(t, filepath.Join(root, ".fbt", "state", "run_results.jsonl"))
+	if !strings.Contains(runResults, `"kind":"runner_lock_incompatible"`) {
+		t.Fatalf("expected lock failure receipt, got %s", runResults)
+	}
+}
+
+func TestRunPlanTreatsRunnerLockChangeAsRunnerIdentity(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+	writeFile(t, root, "fbt.lock.json", cliRunnerLockJSON("bin/fbt-openai-runner", `"meta": {"pin": "one"}`, ""))
+
+	var buildOut bytes.Buffer
+	var buildErr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &buildOut, &buildErr); code != 0 {
+		t.Fatalf("build failed: code=%d stdout=%q stderr=%q", code, buildOut.String(), buildErr.String())
+	}
+	writeFile(t, root, "fbt.lock.json", cliRunnerLockJSON("bin/fbt-openai-runner", `"meta": {"pin": "two"}`, ""))
+
+	var planOut bytes.Buffer
+	var planErr bytes.Buffer
+	if code := Run([]string{"plan", "--project-dir", root, "--select", "case_summaries"}, &planOut, &planErr); code != 0 {
+		t.Fatalf("plan failed: code=%d stdout=%q stderr=%q", code, planOut.String(), planErr.String())
+	}
+	if !strings.Contains(planOut.String(), "runner identity changed") {
+		t.Fatalf("expected runner identity dirty reason, got %q", planOut.String())
+	}
+}
+
 func TestRunDoctorShowsMixedRunnerDiagnosticStatuses(t *testing.T) {
 	root := writeCLIProject(t)
 	command := filepath.Join(root, "bin", "fbt-openai-runner")
@@ -1104,6 +1206,28 @@ func installFakeCLIRunner(t *testing.T, root string) {
 		t.Fatal(err)
 	}
 	writeFile(t, root, "fs_project.yml", strings.ReplaceAll(readFile(t, filepath.Join(root, "fs_project.yml")), "command: fbt-openai-runner", "command: bin/fbt-openai-runner"))
+}
+
+func cliRunnerLockJSON(command, entryExtra, extraRunners string) string {
+	extra := ""
+	if strings.TrimSpace(entryExtra) != "" {
+		extra = ",\n      " + entryExtra
+	}
+	return `{
+  "fbt_schema_version": "https://schemas.fbt.dev/fbt/runner-lock/v1.json",
+  "lockfile_version": 1,
+  "runners": {
+    "openai.responses": {
+      "protocol_version": "0.1",
+      "command": "` + command + `",
+      "capabilities": {
+        "transform_types": ["llm"],
+        "artifact_types": ["markdown_directory"],
+        "output_candidates": true
+      }` + extra + `
+    }` + extraRunners + `
+  }
+}`
 }
 
 func writeFile(t *testing.T, root, relative, content string) {

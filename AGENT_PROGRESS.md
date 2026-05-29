@@ -503,6 +503,13 @@ quality gates.
 project config, adapter packaging, schema/versioning, and README, and
 `make verify` now includes `runner-lockfile-spec-check`.
 
+`FBT-LOCK-002` is done. Core now reads `fbt.lock.json` as validation metadata
+only: `doctor` reports lockfile schema, missing, unused, mismatch, checksum,
+protocol, and capability diagnostics; selected `build` fails before
+`fbt/runTransform` on incompatible locked runners; valid matching lock entries
+participate in runner fingerprints so lock changes make dependent transforms
+dirty. No command downloads, installs, updates, or resolves runner packages.
+
 `FBT-SEC-002` is done. `type: agent` transforms now fail parsing with
 `AGENT_POLICY_MISSING` when `policy` is omitted, parser tests and structured
 conformance cover the negative case, and security/project-config docs plus
@@ -522,18 +529,14 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. `FBT-UX-016`: show source-file add/change/delete details in dirty
-   explanations for high-volume daily source directories.
-2. `FBT-LOCK-002`: implement validator-only `fbt.lock.json` diagnostics and
-   build preflight checks without package installation behavior.
-3. `FBT-STATE-004`: specify orphaned resource and artifact semantics for
+1. `FBT-STATE-004`: specify orphaned resource and artifact semantics for
    deleted or renamed declarations.
-4. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
+2. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
    with deterministic evals and runner-owned judge reports.
-5. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
-6. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
+3. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
+4. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
    any destructive cleanup command exists.
-7. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

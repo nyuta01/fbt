@@ -3889,7 +3889,7 @@
       "id": "FBT-LOCK-002",
       "title": "Implement validator-only runner lockfile diagnostics",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-LOCK-001",
@@ -3900,24 +3900,27 @@
         "docs/runner-lockfile-spec.md",
         "schemas/fbt-lock-v1.schema.json",
         "internal/runner/",
+        "internal/build/",
         "internal/cli/",
         "internal/manifest/",
         "internal/planner/",
         "tests/conformance/",
         "docs/cli-reference.md",
+        "docs/runner-discovery-spec.md",
+        "docs/state-and-run-results-spec.md",
         "docs/exec-plans/active/FBT-LOCK-002-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "doctor_lockfile_diagnostics": false,
-        "build_preflight_mismatch_failure": false,
-        "lockfile_dirty_state_participation": false,
-        "no_download_or_install_behavior": false,
-        "make_verify": false
+        "doctor_lockfile_diagnostics": true,
+        "build_preflight_mismatch_failure": true,
+        "lockfile_dirty_state_participation": true,
+        "no_download_or_install_behavior": true,
+        "make_verify": true
       },
-      "notes": "The lockfile contract is specified but not yet enforced. Implement read-only diagnostics and preflight validation for runner drift while keeping package installation, updates, and dependency resolution outside core."
+      "notes": "Implemented validator-only fbt.lock.json parsing, doctor diagnostics, selected build preflight failures, runner fingerprint dirty-state participation, comparable local checksum validation, and conformance coverage while keeping installs, updates, downloads, and package resolution outside core."
     },
     {
       "id": "FBT-STATE-004",

@@ -13,6 +13,7 @@ import (
 
 	"github.com/nyuta01/fbt/internal/config"
 	"github.com/nyuta01/fbt/internal/parser"
+	runnermgr "github.com/nyuta01/fbt/internal/runner"
 	versioninfo "github.com/nyuta01/fbt/internal/version"
 )
 
@@ -164,7 +165,19 @@ type RunnerResource struct {
 	Env          []string       `json:"env,omitempty"`
 	Config       map[string]any `json:"config,omitempty"`
 	Capabilities map[string]any `json:"capabilities,omitempty"`
+	Lockfile     *RunnerLock    `json:"lockfile,omitempty"`
 	Fingerprint  Fingerprint    `json:"fingerprint"`
+}
+
+type RunnerLock struct {
+	EntryDigest     string            `json:"entry_digest"`
+	Source          string            `json:"source,omitempty"`
+	Version         string            `json:"version,omitempty"`
+	ProtocolVersion string            `json:"protocol_version,omitempty"`
+	Command         string            `json:"command,omitempty"`
+	ManifestDigest  string            `json:"manifest_digest,omitempty"`
+	Checksums       map[string]string `json:"checksums,omitempty"`
+	Capabilities    map[string]any    `json:"capabilities,omitempty"`
 }
 
 type FileResource struct {
@@ -191,10 +204,15 @@ func Build(parseResult parser.Result, options BuildOptions) (Manifest, error) {
 	if options.TargetName == "" {
 		options.TargetName = "local"
 	}
+	var runnerLock *runnermgr.Lockfile
+	if lock, ok, err := runnermgr.ReadLockfile(parseResult.ProjectDir); err == nil && ok {
+		runnerLock = &lock
+	}
 
 	builder := manifestBuilder{
-		project: parseResult.Config.Name,
-		root:    parseResult.ProjectDir,
+		project:    parseResult.Config.Name,
+		root:       parseResult.ProjectDir,
+		runnerLock: runnerLock,
 		manifest: Manifest{
 			Metadata: Metadata{
 				FBTSchemaVersion: SchemaVersion,
@@ -257,9 +275,10 @@ func Build(parseResult parser.Result, options BuildOptions) (Manifest, error) {
 }
 
 type manifestBuilder struct {
-	project  string
-	root     string
-	manifest Manifest
+	project    string
+	root       string
+	runnerLock *runnermgr.Lockfile
+	manifest   Manifest
 }
 
 func (b *manifestBuilder) addSource(source parser.Source) {
@@ -374,6 +393,7 @@ func (b *manifestBuilder) addEval(eval parser.Eval) {
 
 func (b *manifestBuilder) addRunner(runner config.RunnerConfig) {
 	id := RunnerID(b.project, runner.Name)
+	lock := b.runnerLockMetadata(runner.Name)
 	b.manifest.Runners[id] = RunnerResource{
 		UniqueID:     id,
 		ResourceType: "runner",
@@ -386,7 +406,28 @@ func (b *manifestBuilder) addRunner(runner config.RunnerConfig) {
 		Env:          sortedCopy(runner.Env),
 		Config:       runner.Config,
 		Capabilities: runner.Capabilities,
-		Fingerprint:  Fingerprint{Method: "identity", Value: hashJSON(runner)},
+		Lockfile:     lock,
+		Fingerprint:  Fingerprint{Method: "identity", Value: hashJSON(map[string]any{"runner": runner, "lockfile": lock})},
+	}
+}
+
+func (b *manifestBuilder) runnerLockMetadata(runnerName string) *RunnerLock {
+	if b.runnerLock == nil {
+		return nil
+	}
+	entry, ok := b.runnerLock.Runners[runnerName]
+	if !ok {
+		return nil
+	}
+	return &RunnerLock{
+		EntryDigest:     b.runnerLock.EntryDigest(runnerName),
+		Source:          entry.Source,
+		Version:         entry.Version,
+		ProtocolVersion: entry.ProtocolVersion,
+		Command:         entry.Command,
+		ManifestDigest:  entry.ManifestDigest,
+		Checksums:       copyStringMap(entry.Checksums),
+		Capabilities:    lockCapabilitiesMap(entry.Capabilities),
 	}
 }
 
@@ -695,4 +736,32 @@ func appendUnique(values []string, value string) []string {
 		}
 	}
 	return append(values, value)
+}
+
+func copyStringMap(values map[string]string) map[string]string {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(values))
+	for key, value := range values {
+		out[key] = value
+	}
+	return out
+}
+
+func lockCapabilitiesMap(capabilities runnermgr.LockCapabilities) map[string]any {
+	out := map[string]any{}
+	if len(capabilities.TransformTypes) > 0 {
+		out["transform_types"] = sortedCopy(capabilities.TransformTypes)
+	}
+	if len(capabilities.ArtifactTypes) > 0 {
+		out["artifact_types"] = sortedCopy(capabilities.ArtifactTypes)
+	}
+	if capabilities.OutputCandidates != nil {
+		out["output_candidates"] = *capabilities.OutputCandidates
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
 }

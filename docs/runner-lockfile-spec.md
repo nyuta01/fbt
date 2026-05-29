@@ -96,25 +96,26 @@ preserve but not interpret `meta`.
 
 Core behavior is validation and explanation only:
 
-- `fbt doctor` should parse `fbt.lock.json` and report malformed JSON,
+- `fbt doctor` parses `fbt.lock.json` and reports malformed JSON,
   unsupported schema versions, unknown logical runners, unused lock entries, and
   mismatches between locked expectations and resolved runner identity.
-- `fbt doctor` should report checksum expectations when it can compare them
-  locally, but it must not download missing checksums or contact registries.
-- `fbt plan` and `fbt build` should treat the lockfile digest as part of runner
-  identity. A lockfile change should make dependent transforms dirty.
-- `fbt build` should fail before runner execution when a present lockfile says
-  the selected runner is incompatible with the resolved runner or negotiated
-  protocol version.
-- `fbt export` should expose lockfile-derived runner identity through existing
-  runner metadata when available.
+- `fbt doctor` reports checksum expectations when it can compare them locally,
+  such as command or plugin manifest checksums, but it must not download missing
+  checksums or contact registries.
+- `fbt plan` and `fbt build` treat the lockfile entry digest as part of runner
+  identity. A matching lock entry change makes dependent transforms dirty.
+- `fbt build` fails before `fbt/runTransform` when a present lockfile says the
+  selected runner is incompatible with the resolved command, local checksum,
+  negotiated protocol version, or negotiated capabilities.
+- Manifest runner resources expose lockfile-derived runner identity when a
+  valid matching lock entry is available.
 
 The absence of `fbt.lock.json` is valid. Projects can stay lightweight and rely
 on runner config, plugin manifests, `PATH`, and conformance checks.
 
 ## 6. Doctor Diagnostics
 
-Recommended diagnostic codes:
+Diagnostic codes:
 
 | Code | Severity | Meaning |
 |---|---|---|
@@ -128,7 +129,7 @@ These diagnostics are part of `doctor`; they are not install or update actions.
 
 ## 7. Conformance Expectations
 
-Future conformance fixtures should prove:
+Conformance fixtures prove:
 
 - a valid lockfile does not require network access
 - malformed or unsupported lockfiles fail deterministically

@@ -215,12 +215,12 @@ source, version, protocol version, manifest digest, checksums, and capabilities.
 The lockfile contract is defined in
 [Runner Lockfile Spec](runner-lockfile-spec.md).
 
-MVP lockfile behavior remains validator-only:
+MVP lockfile behavior is validator-only:
 
 - absence of `fbt.lock.json` is valid
 - `fbt doctor` owns lockfile diagnostics when the file is present
-- `plan` and `build` should treat lockfile content as runner identity input
-- `build` should fail before runner execution on selected locked-runner
+- `plan` and `build` treat valid matching lock entries as runner identity input
+- `build` fails before runner execution on selected locked-runner
   incompatibility
 - core must not download, install, update, or resolve runner packages
 

@@ -203,6 +203,11 @@ parse -> plan -> run external runner -> eval -> commit -> write state
 Human build output includes the transform run ID, each committed artifact path,
 the committed version, and a contextual `fbt artifact show TARGET` next command.
 
+If `fbt.lock.json` is present, `build` validates the selected runner's locked
+command, local checksums when comparable, negotiated protocol version, and
+capabilities before `fbt/runTransform`. A mismatch fails before the artifact is
+committed and records a failed receipt.
+
 If the runner, output contract, policy check, eval, or cancellation fails after
 an invocation has started, `build` still appends failed receipts to
 `.fbt/state/run_results.jsonl`. The failed receipt records a safe error kind
@@ -278,9 +283,11 @@ fbt doctor
 ```
 
 Checks project config parsing, state writability/lock acquisition, runner
-discovery, executable availability, and runner protocol `initialize`.
-Human output groups checks by Project, State, and Runners so multi-runner
-projects remain scannable. `--json` preserves the flat `checks` array for
+discovery, executable availability, runner lockfile drift when `fbt.lock.json`
+is present, and runner protocol `initialize`. Human output groups checks by
+Project, State, and Runners so multi-runner projects remain scannable. Lockfile
+warnings such as missing or unused entries do not fail doctor; lockfile schema
+and mismatch errors do. `--json` preserves the flat `checks` array for
 automation.
 
 ### 5.7 Standard exports
