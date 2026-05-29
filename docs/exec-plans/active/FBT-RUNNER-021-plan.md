@@ -10,17 +10,19 @@ outside the source checkout.
 
 ## Decision
 
-Choose a release layout that keeps the monorepo but makes official adapter
-commands installable from a clean environment. The fix must not pull adapter
-dependencies into fbt core and must keep `make verify` deterministic.
+Keep the monorepo and nested adapter modules, but remove local SDK `replace`
+directives from adapter `go.mod` files. Use `go.work` only for local
+development. Adapter modules depend on a normal VCS-resolved `sdk/go` module
+version, and release docs now require module-scoped tags for nested modules.
 
 ## Permanent Fix
 
-Add a non-workspace install smoke for at least command and OpenAI adapters, and
-document the exact supported install path. Keep local workspace convenience only
-where it does not contradict remote installation.
+Added `make adapter-install-smoke`, which clones the current committed
+repository into a temporary bare VCS remote, disables `go.work`, rewrites the
+GitHub URL to that bare clone, and verifies all official adapter commands can
+be installed with `go install module@commit`.
 
 ## Next Check
 
-Run clean-environment `go install` checks for official adapters, then
-`make verify`.
+Done. `GOWORK=off` adapter tests pass, `make verify` passes, and
+`make adapter-install-smoke` passes against the committed tree.

@@ -207,7 +207,7 @@ maintaining incompatible abstractions in multiple languages.
 Keep MVP installation out-of-band:
 
 ```sh
-go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@main
 ```
 
 or:
@@ -219,6 +219,12 @@ brew install nyuta01/tap/fbt-runner-openai
 `fbt plugin install` should remain reserved until fbt can verify source,
 version, checksum/signature, OS/arch compatibility, and manifest contents
 without turning core into a package manager.
+
+For tagged releases, each nested module needs its own module-scoped tag. The
+OpenAI adapter version `v0.1.0` is backed by the repository tag
+`adapters/openai/v0.1.0`; the Go runner SDK version `v0.1.0` is backed by
+`sdk/go/v0.1.0`. Adapter `go.mod` files must not contain local `replace`
+directives because `go install module@version` rejects them.
 
 ## 5. Official Adapter Contract
 

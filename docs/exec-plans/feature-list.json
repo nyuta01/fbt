@@ -3098,7 +3098,7 @@
       "id": "FBT-RUNNER-021",
       "title": "Make official adapter modules remotely installable",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-015",
@@ -3110,25 +3110,32 @@
       "paths": [
         "sdk/go/go.mod",
         "adapters/command/go.mod",
+        "adapters/command/go.sum",
         "adapters/openai/go.mod",
+        "adapters/openai/go.sum",
         "adapters/codex-cli/go.mod",
+        "adapters/codex-cli/go.sum",
         "adapters/claude-code/go.mod",
+        "adapters/claude-code/go.sum",
+        "go.work.sum",
         "docs/runner-adapters.md",
         "docs/research/official-runner-adapter-design-report.md",
         "Makefile",
+        "scripts/smoke-adapter-install.sh",
         "docs/exec-plans/active/FBT-RUNNER-021-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "remote_go_install_command": false,
-        "remote_go_install_openai": false,
-        "remote_go_install_codex_cli": false,
-        "remote_go_install_claude_code": false,
-        "make_verify": false
+        "go_work_off_adapter_tests": true,
+        "adapter_install_smoke_command": true,
+        "adapter_install_smoke_openai": true,
+        "adapter_install_smoke_codex_cli": true,
+        "adapter_install_smoke_claude_code": true,
+        "make_verify": true
       },
-      "notes": "The documented `go install github.com/nyuta01/fbt/adapters/...@version` path currently fails outside the repository because adapter go.mod files contain local replace directives for sdk/go. Fix release/install mechanics before calling adapters official distribution units."
+      "notes": "Official adapter go.mod files no longer contain local SDK replace directives. Each adapter records the VCS-resolved sdk/go dependency, and `make adapter-install-smoke` verifies clean `go install module@commit` for all official adapter commands through a temporary bare VCS remote."
     },
     {
       "id": "FBT-RUNNER-022",

@@ -125,6 +125,22 @@ Installation is out-of-band in MVP. Acceptable distribution paths include:
 fbt core must not download packages, vendor provider SDKs, or mutate
 `fs_project.yml` as part of installation in MVP.
 
+Official Go adapter modules must be installable from a clean environment without
+the repository's `go.work` file or local `replace` directives. Source users can
+install a current adapter command directly from the VCS module path:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@main
+```
+
+Release tags for nested modules must be cut per module path, for example
+`adapters/openai/v0.1.0` for the OpenAI adapter and `sdk/go/v0.1.0` for the Go
+runner SDK. The user-facing install command still uses the module version:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@v0.1.0
+```
+
 ## 5. Project Config
 
 Projects may reference an adapter directly:

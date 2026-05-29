@@ -74,8 +74,7 @@ inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
 The latest full review added a new post-MVP hardening backlog. The highest
-priority open tasks are remote-installable official adapters
-(`FBT-RUNNER-021`) and real CLI-agent policy enforcement (`FBT-RUNNER-022`).
+priority open task is real CLI-agent policy enforcement (`FBT-RUNNER-022`).
 Follow-up runner robustness tasks cover large JSON-RPC JSONL messages
 (`FBT-RUNNER-023`), visible staged-input truncation failures
 (`FBT-RUNNER-024`), and bounded stderr/exit diagnostics for runner protocol
@@ -86,6 +85,13 @@ regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
 regressions cover denied oversized directory outputs and verify they do not
 advance current artifact pointers.
+
+`FBT-RUNNER-021` is done. Official adapter modules no longer carry local
+`replace ../../sdk/go` directives. They depend on a normal VCS-resolved
+`sdk/go` module version, keep local development convenience through `go.work`,
+and `make adapter-install-smoke` verifies clean `go install module@commit`
+installation for command, OpenAI, Codex CLI, and Claude Code adapters through a
+temporary bare VCS remote.
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform

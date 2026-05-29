@@ -111,6 +111,10 @@ real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 runner-adapter-smoke: build ## Run opt-in smoke matrix against installed runner adapters.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-runner-adapters.sh
 
+.PHONY: adapter-install-smoke
+adapter-install-smoke: ## Verify official adapter commands install from a clean VCS module fetch.
+	@bash scripts/smoke-adapter-install.sh
+
 .PHONY: standard-backend-smoke
 standard-backend-smoke: build ## Run opt-in smoke against standard visualization backends.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-standard-backends.sh
