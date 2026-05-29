@@ -136,6 +136,12 @@ transform to create an evidence quality report. `make verify` includes
 `semantic-eval-boundary-smoke`, proving fbt records the report artifact and
 lineage without owning model-judge logic in core.
 
+`FBT-REL-004` is done. README, docs-site installation/release pages, and
+`docs/release.md` now describe the end-user install path for core archives,
+checksum verification, source builds, separately installed official adapters,
+adapter version pinning expectations, and source/installed/live verification
+commands.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

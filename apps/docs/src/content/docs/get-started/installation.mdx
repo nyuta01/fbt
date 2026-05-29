@@ -17,6 +17,14 @@ Download the archive for your platform and verify it with `SHA256SUMS`.
 shasum -a 256 -c SHA256SUMS
 ```
 
+Then put the `fbt` binary on `PATH` and verify it:
+
+```sh
+fbt version
+fbt init /tmp/fbt-install-check --template support
+fbt doctor --project-dir /tmp/fbt-install-check
+```
+
 ## Build from source
 
 ```sh
@@ -25,6 +33,43 @@ cd fbt
 make build
 ./bin/fbt version
 ```
+
+## Install official adapters
+
+fbt core does not include provider SDKs or agent runtimes. Install only the
+runner commands you need:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/command/cmd/fbt-runner-command@main
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@main
+go install github.com/nyuta01/fbt/adapters/codex-cli/cmd/fbt-runner-codex-cli@main
+go install github.com/nyuta01/fbt/adapters/claude-code/cmd/fbt-runner-claude-code@main
+```
+
+For reproducible environments, pin a commit or an adapter module tag when one
+is released. The adapter command and fbt core communicate through the runner
+protocol; adapter installation stays out-of-band.
+
+## Verify adapters
+
+From a source checkout, verify official adapters without live provider calls:
+
+```sh
+make official-adapter-smoke
+make adapter-install-smoke
+```
+
+For installed commands, use the opt-in smoke matrix. This validates protocol
+conformance, `doctor`, and `plan` without a live build:
+
+```sh
+export OPENAI_API_KEY=...
+FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false' \
+make runner-adapter-smoke
+```
+
+Add `FBT_RUNNER_ADAPTER_SMOKE_BUILD=1` only when you intentionally want to call
+the real provider or agent and commit a temporary artifact.
 
 ## Verify the checkout
 

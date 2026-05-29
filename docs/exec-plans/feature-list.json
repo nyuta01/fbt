@@ -3482,7 +3482,7 @@
       "id": "FBT-REL-004",
       "title": "Simplify end-user install path for core and adapters",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-REL-003",
@@ -3502,12 +3502,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "install_docs_scan": false,
-        "dist_check": false,
-        "adapter_install_smoke": false,
-        "make_verify": false
+        "install_docs_scan": true,
+        "dist_check": true,
+        "adapter_install_smoke": true,
+        "make_verify": true
       },
-      "notes": "The v0.1.0 release artifacts exist, but the end-user install path should be simpler across core and official adapters, with copy-paste install commands, checksum guidance, and clear versioning expectations."
+      "notes": "Install and release docs now cover core archive checksum verification, source builds, separate official adapter install commands, adapter version pinning expectations, and source/installed/live verification commands."
     },
     {
       "id": "FBT-STATE-003",

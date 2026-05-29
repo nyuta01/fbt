@@ -74,9 +74,9 @@ which checks ran, and which artifact version is now current.
 
 ## Install
 
-Download the current macOS, Linux, or Windows archive from
-[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0), or build
-from source:
+Download the current CLI archive from
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.1.0), verify
+`SHA256SUMS`, or build from source:
 
 ```bash
 git clone https://github.com/nyuta01/fbt.git
@@ -84,6 +84,8 @@ cd fbt
 make build
 ./bin/fbt version
 ```
+
+Install provider/agent adapters separately; see the [installation guide](apps/docs/src/content/docs/get-started/installation.mdx).
 
 ## First Successful Loop
 
@@ -213,7 +215,4 @@ inspectable local record.
 
 Start with the [usage guide](docs/usage-guide.md), [manual generation guide](apps/docs/src/content/docs/get-started/manual-generation.mdx), and [CLI reference](docs/cli-reference.md). The published docs site is [nyuta01.github.io/fbt](https://nyuta01.github.io/fbt/).
 
-For implementation contracts, read [design](docs/design-doc.md),
-[spec](docs/spec.md), [project config](docs/project-config-spec.md),
-[schema/versioning](docs/schema-and-versioning-spec.md), [runner discovery](docs/runner-discovery-spec.md),
-[runner protocol](docs/runner-protocol-spec.md), and [security/conformance](docs/security-and-conformance-spec.md).
+Implementation contracts: [design](docs/design-doc.md), [spec](docs/spec.md), [project config](docs/project-config-spec.md), [schema/versioning](docs/schema-and-versioning-spec.md), [runner discovery](docs/runner-discovery-spec.md), [runner protocol](docs/runner-protocol-spec.md), and [security/conformance](docs/security-and-conformance-spec.md).

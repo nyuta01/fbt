@@ -27,3 +27,27 @@ git tag -v v0.1.0
 ```
 
 The release tag is signed with Git SSH signing.
+
+## Adapter versioning
+
+Official adapters are separate runner commands. The source tree currently
+contains:
+
+```text
+adapters/command/cmd/fbt-runner-command
+adapters/openai/cmd/fbt-runner-openai
+adapters/codex-cli/cmd/fbt-runner-codex-cli
+adapters/claude-code/cmd/fbt-runner-claude-code
+```
+
+Source users can install current adapter commands with `go install ...@main`.
+For reproducible production environments, pin a commit or a future
+module-scoped adapter tag such as `adapters/openai/v0.1.0`.
+
+Adapter releases must state:
+
+- supported fbt runner protocol version
+- command names and logical runner names
+- required environment variable names
+- provider or agent CLI version tested by the adapter
+- checksum or signature for distributed binaries when available
