@@ -5,6 +5,17 @@ description: The fs_project.yml shape.
 
 Every project starts with `fs_project.yml`.
 
+Editor and CI validation can use the generated schemas:
+
+```text
+schemas/project-config-v1.schema.json
+schemas/resource-file-v1.schema.json
+```
+
+`project-config-v1.schema.json` is for `fs_project.yml`.
+`resource-file-v1.schema.json` is for files under `sources/`, `transforms/`,
+`assets/`, `policies/`, and `evals/`.
+
 ```yaml
 name: knowledge_ops
 config_version: 1
@@ -113,3 +124,10 @@ examples/incident_response_runbook/transforms/incident/runbook.yml
 
 The full source-of-truth spec lives in `docs/project-config-spec.md` in the
 repository.
+
+Regenerate or check the schemas from a source checkout:
+
+```sh
+python3 scripts/generate-project-config-schema.py --write
+make project-config-schema-check
+```

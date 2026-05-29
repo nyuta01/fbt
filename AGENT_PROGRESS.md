@@ -168,6 +168,12 @@ and assertion-level failure messages. `tests/conformance/run.sh` remains as a
 thin compatibility wrapper, while `make conformance` invokes the structured
 harness directly.
 
+`FBT-SCHEMA-001` is done. `schemas/project-config-v1.schema.json` covers
+`fs_project.yml`, and `schemas/resource-file-v1.schema.json` covers resource
+YAML files. `scripts/generate-project-config-schema.py` reads parser/config Go
+source for field sets and registries, and `make verify` now includes
+`project-config-schema-check` to catch schema drift.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

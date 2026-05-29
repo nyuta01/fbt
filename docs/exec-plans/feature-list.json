@@ -3603,7 +3603,7 @@
       "id": "FBT-SCHEMA-001",
       "title": "Generate JSON Schema for project configuration",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-CONFIG-002",
@@ -3622,12 +3622,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "project_config_schema_generated": false,
-        "schema_matches_parser_contract": false,
-        "schema_docs_linked": false,
-        "make_verify": false
+        "project_config_schema_generated": true,
+        "schema_matches_parser_contract": true,
+        "schema_docs_linked": true,
+        "make_verify": true
       },
-      "notes": "YAML diagnostics are strong, but editor completion and external validation still need a generated JSON Schema that matches the implemented config parser and documented project-config contract."
+      "notes": "Added generated schemas for `fs_project.yml` and resource YAML under `schemas/`, generator/check script `scripts/generate-project-config-schema.py`, docs links, and `make project-config-schema-check` inside `make verify`."
     },
     {
       "id": "FBT-REL-005",

@@ -1,0 +1,560 @@
+{
+  "$defs": {
+    "artifact_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "binary",
+            "directory",
+            "docx",
+            "docx_directory",
+            "html",
+            "json",
+            "jsonl_directory",
+            "markdown",
+            "markdown_directory",
+            "pdf",
+            "text",
+            "xlsx",
+            "xlsx_directory"
+          ]
+        },
+        {
+          "pattern": "^x\\..+",
+          "type": "string"
+        }
+      ],
+      "description": "Built-in artifact type alias or extension type starting with x."
+    },
+    "runner": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "capabilities": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "command": {
+          "type": "string"
+        },
+        "config": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "stdio_jsonrpc"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "protocol",
+        "command"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://schemas.fbt.dev/fbt/resource-file/v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Schema for YAML files under source, transform, asset, policy, and eval paths.",
+  "minProperties": 1,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "contract": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "binary",
+                  "directory",
+                  "docx",
+                  "docx_directory",
+                  "html",
+                  "json",
+                  "jsonl_directory",
+                  "markdown",
+                  "markdown_directory",
+                  "pdf",
+                  "text",
+                  "xlsx",
+                  "xlsx_directory"
+                ]
+              },
+              {
+                "pattern": "^x\\..+",
+                "type": "string"
+              }
+            ],
+            "description": "Built-in artifact type alias or extension type starting with x."
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "path"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "assets": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "variables": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "path"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "evals": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "grants_confidence": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "runner": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "deterministic",
+              "llm_judge",
+              "semantic"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "policies": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "limits": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "network": {
+            "type": "boolean"
+          },
+          "read": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tools": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "write": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "runners": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "args": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "capabilities": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "command": {
+            "type": "string"
+          },
+          "config": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "env": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "protocol": {
+            "enum": [
+              "stdio_jsonrpc"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "protocol",
+          "command"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "sources": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "artifacts": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "meta": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "tags": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "tests": {
+                  "items": {},
+                  "type": "array"
+                },
+                "type": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "binary",
+                        "directory",
+                        "docx",
+                        "docx_directory",
+                        "html",
+                        "json",
+                        "jsonl_directory",
+                        "markdown",
+                        "markdown_directory",
+                        "pdf",
+                        "text",
+                        "xlsx",
+                        "xlsx_directory"
+                      ]
+                    },
+                    {
+                      "pattern": "^x\\..+",
+                      "type": "string"
+                    }
+                  ],
+                  "description": "Built-in artifact type alias or extension type starting with x."
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "path"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "description": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "artifacts"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "transforms": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "agent": {
+            "type": "string"
+          },
+          "assets": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "path": {
+                  "type": "string"
+                },
+                "ref": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "command": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "contract": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "evals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "inputs": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "ref": {
+                  "type": "string"
+                },
+                "require": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "confidence": {
+                      "type": "string"
+                    },
+                    "evals": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "source": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "meta": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "model": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "name": {
+            "type": "string"
+          },
+          "outputs": {
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "contract": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "type": {
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "binary",
+                        "directory",
+                        "docx",
+                        "docx_directory",
+                        "html",
+                        "json",
+                        "jsonl_directory",
+                        "markdown",
+                        "markdown_directory",
+                        "pdf",
+                        "text",
+                        "xlsx",
+                        "xlsx_directory"
+                      ]
+                    },
+                    {
+                      "pattern": "^x\\..+",
+                      "type": "string"
+                    }
+                  ],
+                  "description": "Built-in artifact type alias or extension type starting with x."
+                }
+              },
+              "required": [
+                "name",
+                "type",
+                "path"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "policy": {
+            "type": "string"
+          },
+          "runner": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tools": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "enum": [
+              "agent",
+              "command",
+              "compose",
+              "extract",
+              "llm",
+              "template"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "runner",
+          "outputs"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "title": "fbt resource file v1",
+  "type": "object"
+}

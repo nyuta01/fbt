@@ -1,0 +1,281 @@
+{
+  "$defs": {
+    "artifact_type": {
+      "anyOf": [
+        {
+          "enum": [
+            "binary",
+            "directory",
+            "docx",
+            "docx_directory",
+            "html",
+            "json",
+            "jsonl_directory",
+            "markdown",
+            "markdown_directory",
+            "pdf",
+            "text",
+            "xlsx",
+            "xlsx_directory"
+          ]
+        },
+        {
+          "pattern": "^x\\..+",
+          "type": "string"
+        }
+      ],
+      "description": "Built-in artifact type alias or extension type starting with x."
+    },
+    "runner": {
+      "additionalProperties": false,
+      "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "capabilities": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "command": {
+          "type": "string"
+        },
+        "config": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "cwd": {
+          "type": "string"
+        },
+        "env": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "stdio_jsonrpc"
+          ],
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "protocol",
+        "command"
+      ],
+      "type": "object"
+    },
+    "selector_definition": {
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "enum": [
+            "tag",
+            "name"
+          ],
+          "type": "string"
+        },
+        "union": {
+          "items": {
+            "$ref": "#/$defs/selector_definition"
+          },
+          "type": "array"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "transform_type": {
+      "enum": [
+        "agent",
+        "command",
+        "compose",
+        "extract",
+        "llm",
+        "template"
+      ]
+    }
+  },
+  "$id": "https://schemas.fbt.dev/fbt/project-config/v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "required": [
+        "config_version"
+      ]
+    },
+    {
+      "required": [
+        "config-version"
+      ]
+    }
+  ],
+  "description": "Schema for fs_project.yml. Resource YAML schemas live in resource-file-v1.schema.json.",
+  "properties": {
+    "artifact-path": {
+      "deprecated": true,
+      "type": "string"
+    },
+    "artifact_path": {
+      "type": "string"
+    },
+    "asset-paths": {
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "asset_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "config-version": {
+      "const": 1,
+      "deprecated": true,
+      "type": "integer"
+    },
+    "config_version": {
+      "const": 1,
+      "type": "integer"
+    },
+    "eval-paths": {
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "eval_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "execution": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "local",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": {
+      "type": "string"
+    },
+    "policy-paths": {
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "policy_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "runners": {
+      "items": {
+        "$ref": "#/$defs/runner"
+      },
+      "type": "array"
+    },
+    "selectors": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "definition": {
+            "$ref": "#/$defs/selector_definition"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "definition"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "source-paths": {
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "source_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "state": {
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "const": "local",
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "target-path": {
+      "deprecated": true,
+      "type": "string"
+    },
+    "target_path": {
+      "type": "string"
+    },
+    "transform-paths": {
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "transform_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "vars": {
+      "additionalProperties": true,
+      "type": "object"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "title": "fbt project config v1",
+  "type": "object"
+}

@@ -21,6 +21,22 @@ Project and resource YAML is strict. Unknown fields fail with
 as `meta`, `contract`, runner `config`, policy `tools`, policy `limits`, eval
 `config`, or model parameters.
 
+Machine-readable JSON Schemas are generated from the implemented parser
+contract:
+
+| File | Applies to |
+|---|---|
+| `schemas/project-config-v1.schema.json` | `fs_project.yml` |
+| `schemas/resource-file-v1.schema.json` | YAML files under source, transform, asset, policy, and eval paths |
+
+Run `make project-config-schema-check` or `make verify` to confirm the checked
+in schemas match the generator and the parser field contract. Regenerate them
+with:
+
+```sh
+python3 scripts/generate-project-config-schema.py --write
+```
+
 ## 2. Standard Layout
 
 ```text
