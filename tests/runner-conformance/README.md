@@ -53,6 +53,28 @@ adapter. The harness sends a policy the official adapters intentionally cannot
 enforce, expects a structured JSON-RPC policy error, and verifies guarded source,
 logical artifact, and `.fbt/state` files were not modified.
 
+## Production Reliability
+
+The strict harness is the first production reliability gate: output containment,
+guard-file safety, redaction marker checks, events, and output-candidate
+notifications. Official CLI-agent adapter tests add oversized source and asset
+coverage so adapters fail before external CLI invocation rather than staging
+truncated evidence.
+
+Use the negative policy failure path to prove fail-closed behavior:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command 'fbt-runner-codex-cli' \
+  --transform-type agent \
+  --strict \
+  --agent-adapter \
+  --expect-policy-failure
+```
+
+For end-to-end production shape, run `make production-pilot-smoke`; it exercises
+official adapters through the daily support loop and keeps live calls opt-in.
+
 The JSON fixtures in `fixtures/` show the canonical minimal request shapes. The
 harness generates temporary absolute work paths at runtime, so fixture paths are
 illustrative rather than used as static golden input.

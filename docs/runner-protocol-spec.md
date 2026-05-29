@@ -82,6 +82,25 @@ Discovery and future plugin installation semantics are defined in
 
 The JSON-RPC envelope is stable. Provider-specific details live in `metadata`, `attributes`, or `extensions`.
 
+### Production Reliability
+
+Production runners should fail closed. If a runner cannot enforce a requested
+network, tool, timeout, cost, sandbox, or source-size policy, it should return a
+structured JSON-RPC error before invoking the provider or agent.
+
+Production runners should also classify failures in `error.data` when possible:
+
+- `retryable: true` for transient provider, rate-limit, timeout, or runtime
+  failures that a user may retry with `fbt build --failed`
+- `retryable: false` for policy denials, malformed requests, output-boundary
+  errors, unsupported capability, or unsafe configuration
+
+Runners should report provider metadata in events or results when available:
+runner name/version, provider, model, token usage, estimated cost, elapsed time,
+and redacted trace/tool-call context. These values help fbt receipts,
+OpenLineage events, and OTel traces explain which external runtime produced an
+artifact without storing secrets or raw sensitive source content.
+
 ## 3. Transport and Framing
 
 Initial transport: stdio.

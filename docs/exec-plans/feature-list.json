@@ -4281,22 +4281,36 @@
       "id": "FBT-RUNNER-027",
       "title": "Harden production runner reliability contract",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-025",
         "FBT-RUNNER-026",
         "FBT-PROD-001"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-027-plan.md",
       "paths": [
         "adapters/",
         "docs/runner-adapters.md",
+        "docs/runner-production-reliability.md",
         "docs/runner-protocol-spec.md",
-        "tests/runner-conformance/"
+        "tests/runner-conformance/",
+        "scripts/check-runner-production-reliability.py",
+        "Makefile",
+        "docs/exec-plans/active/FBT-RUNNER-027-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Define and test production runner behavior for input-size failure, retryable vs non-retryable errors, provider/model/cost metadata, redaction, timeout mapping, and fail-closed policy handling without moving provider SDK behavior into fbt core."
+      "verification": {
+        "production_reliability_contract": true,
+        "protocol_spec_updated": true,
+        "adapter_docs_updated": true,
+        "conformance_docs_updated": true,
+        "runner_production_reliability_check": true,
+        "make_verify": true
+      },
+      "notes": "Added a runner production reliability contract covering input-size failure, retry classification, provider metadata, redaction, timeout mapping, fail-closed policy, output boundaries, and live opt-in. `make verify` now includes a deterministic check tying the contract to protocol docs, adapter docs, conformance docs, and official adapter source markers."
     },
     {
       "id": "FBT-SOURCE-001",

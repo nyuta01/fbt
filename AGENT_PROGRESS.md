@@ -611,6 +611,13 @@ fake response and Codex fixture; live OpenAI execution is opt-in with
 `FBT_PILOT_LIVE_OPENAI=1` and `OPENAI_API_KEY`. `make verify` now includes
 `production-pilot-smoke`.
 
+`FBT-RUNNER-027` is done. `docs/runner-production-reliability.md` now defines
+the production runner contract for input-size failures, retry classification,
+provider metadata, redaction, timeout mapping, fail-closed policy, output
+boundaries, and live opt-in. Protocol, adapter, and runner-conformance docs now
+reference that contract, and `make verify` includes
+`runner-production-reliability-check`.
+
 ## Verification
 
 Required gate before calling work done:
@@ -622,13 +629,13 @@ make verify
 This runs harness, drift, docs validation, release version drift checks, agent
 skills checks, Go formatting/tests, CLI smoke, installer smoke, knowledge-loop
 smoke, practical examples smoke, daily operations smoke, production pilot
-smoke, docs site build, runner conformance, product conformance, and
-distribution smoke checks.
+smoke, runner production reliability checks, docs site build, runner
+conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-RUNNER-027`.
+   `FBT-STATE-006`, `FBT-PUBLISH-001`, `FBT-SEC-003`, and `FBT-CI-001`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

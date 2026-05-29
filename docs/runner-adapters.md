@@ -119,6 +119,31 @@ CLI when the requested policy cannot be represented safely. Separately packaged
 or project-local adapters should follow the same protocol and credential
 boundary.
 
+## Production Reliability Baseline
+
+Official adapters must meet the production reliability contract in
+[Runner Production Reliability](runner-production-reliability.md). In practice
+that means:
+
+| Area | Adapter behavior |
+|---|---|
+| Input size | Fail before provider or agent invocation when staged source or asset files exceed adapter limits. |
+| Retryability | Distinguish transient provider/runtime errors from policy and contract failures where the provider exposes enough detail. |
+| Metadata | Report runner version, provider, model, token usage, estimated cost, and elapsed time when available. |
+| Redaction | Keep credential values and sensitive source content out of protocol events, stderr, and failed receipts. |
+| Timeout | Map fbt policy timeout to provider request or external CLI process timeout. |
+| Policy | Fail closed when network, tool, cost, or sandbox controls cannot be represented safely. |
+| Live calls | Keep live provider/agent execution opt-in; deterministic verification uses fixtures or fake responses. |
+
+The production-shaped smoke for this contract is:
+
+```sh
+make production-pilot-smoke
+```
+
+It runs the daily support knowledge loop through the official OpenAI and Codex
+CLI adapters without requiring live network access by default.
+
 ## 4. Distribution
 
 Installation is out-of-band in MVP. Acceptable distribution paths include:
