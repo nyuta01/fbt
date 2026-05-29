@@ -244,8 +244,18 @@ def scenario_build_lifecycle(ctx: Context) -> Path:
 
     retention = fbt(["artifact", "retention", "--project-dir", str(happy)])
     assert_contains(retention.stdout, "Policy               keep_all", "retention stdout")
+    assert_contains(retention.stdout, "Archive unit         .fbt/state + .fbt/artifacts", "retention stdout")
     assert_contains(retention.stdout, "Artifact versions    1", "retention stdout")
+    assert_contains(retention.stdout, "Protected versions   1 current pointer(s)", "retention stdout")
+    assert_contains(retention.stdout, "Prune                not supported in MVP; future prune must dry-run first", "retention stdout")
     assert_contains(retention.stdout, "Action               no files removed", "retention stdout")
+    retention_json = fbt(["artifact", "retention", "--json", "--project-dir", str(happy)])
+    retention_payload = json.loads(retention_json.stdout)
+    retention_report = retention_payload["retention"]
+    check(retention_report["archive_unit"] == "state_and_artifacts", "expected archive unit in retention json")
+    check(retention_report["prune_supported"] is False, "expected prune_supported false")
+    check(retention_report["dry_run_required"] is True, "expected dry_run_required true")
+    check(len(retention_report["protected_version_ids"]) == 1, "expected one protected current version")
 
     policy_decisions = (happy / ".fbt" / "state" / "policy_decisions.json").read_text(encoding="utf-8")
     assert_contains(policy_decisions, '"status": "allowed"', "policy decisions")

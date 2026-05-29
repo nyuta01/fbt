@@ -295,7 +295,12 @@ version, previous run, decision, input/source fingerprints, upstream artifact
 requirements, dirty or blocked reasons, source-file deltas, and exact next
 commands. `artifact retention` is read-only and reports human-readable local
 state/artifact sizes, current and historical version counts, run-record count,
-and missing immutable storage references. It does not remove files.
+protected current-pointer version count, archive unit, future prune safety
+flags, and missing immutable storage references. It does not remove files. JSON
+output includes `archive_unit: state_and_artifacts`, `archive_roots`,
+`protected_version_ids`, `prune_supported: false`, and `dry_run_required: true`
+so external archive jobs and future cleanup tools can enforce the same safety
+boundary.
 
 ### 5.6 fbt doctor
 

@@ -8,18 +8,22 @@ import (
 )
 
 type RetentionReport struct {
-	Policy             string   `json:"policy"`
-	StateDir           string   `json:"state_dir"`
-	ArtifactDir        string   `json:"artifact_dir"`
-	StateBytes         int64    `json:"state_bytes"`
-	ArtifactBytes      int64    `json:"artifact_bytes"`
-	RunRecords         int      `json:"run_records"`
-	ArtifactVersions   int      `json:"artifact_versions"`
-	CurrentVersions    int      `json:"current_versions"`
-	HistoricalVersions int      `json:"historical_versions"`
-	CurrentVersionIDs  []string `json:"current_version_ids,omitempty"`
-	MissingStorage     []string `json:"missing_storage,omitempty"`
-	ArchiveRoots       []string `json:"archive_roots"`
+	Policy              string   `json:"policy"`
+	StateDir            string   `json:"state_dir"`
+	ArtifactDir         string   `json:"artifact_dir"`
+	ArchiveUnit         string   `json:"archive_unit"`
+	StateBytes          int64    `json:"state_bytes"`
+	ArtifactBytes       int64    `json:"artifact_bytes"`
+	RunRecords          int      `json:"run_records"`
+	ArtifactVersions    int      `json:"artifact_versions"`
+	CurrentVersions     int      `json:"current_versions"`
+	HistoricalVersions  int      `json:"historical_versions"`
+	CurrentVersionIDs   []string `json:"current_version_ids,omitempty"`
+	ProtectedVersionIDs []string `json:"protected_version_ids,omitempty"`
+	MissingStorage      []string `json:"missing_storage,omitempty"`
+	ArchiveRoots        []string `json:"archive_roots"`
+	PruneSupported      bool     `json:"prune_supported"`
+	DryRunRequired      bool     `json:"dry_run_required"`
 }
 
 func BuildRetentionReport(projectDir string, store Store) (RetentionReport, error) {
@@ -83,18 +87,22 @@ func BuildRetentionReport(projectDir string, store Store) (RetentionReport, erro
 	}
 
 	return RetentionReport{
-		Policy:             "keep_all",
-		StateDir:           store.Dir,
-		ArtifactDir:        artifactDir,
-		StateBytes:         stateBytes,
-		ArtifactBytes:      artifactBytes,
-		RunRecords:         len(runRecords),
-		ArtifactVersions:   len(versions.ArtifactVersions),
-		CurrentVersions:    currentInIndex,
-		HistoricalVersions: historical,
-		CurrentVersionIDs:  currentIDs,
-		MissingStorage:     missingStorage,
-		ArchiveRoots:       []string{store.Dir, artifactDir},
+		Policy:              "keep_all",
+		StateDir:            store.Dir,
+		ArtifactDir:         artifactDir,
+		ArchiveUnit:         "state_and_artifacts",
+		StateBytes:          stateBytes,
+		ArtifactBytes:       artifactBytes,
+		RunRecords:          len(runRecords),
+		ArtifactVersions:    len(versions.ArtifactVersions),
+		CurrentVersions:     currentInIndex,
+		HistoricalVersions:  historical,
+		CurrentVersionIDs:   currentIDs,
+		ProtectedVersionIDs: currentIDs,
+		MissingStorage:      missingStorage,
+		ArchiveRoots:        []string{store.Dir, artifactDir},
+		PruneSupported:      false,
+		DryRunRequired:      true,
 	}, nil
 }
 

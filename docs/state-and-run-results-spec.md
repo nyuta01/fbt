@@ -59,7 +59,20 @@ version counts, checks JSON archive roots, and confirms no files are removed.
 
 It reports human-readable state size, immutable artifact size, run-record
 count, artifact version count, current-version count, historical-version count,
-and missing storage references. The command removes no files.
+protected current-pointer version count, archive unit, future prune safety
+flags, and missing storage references. The command removes no files.
+
+The archive unit is named `state_and_artifacts` and consists of both roots:
+
+```text
+.fbt/state/
+.fbt/artifacts/
+```
+
+The JSON report includes `protected_version_ids`, which mirrors the current
+artifact pointers that must not be removed by any cleanup tool. MVP reports
+`prune_supported: false` and `dry_run_required: true`; those values are a
+contract for external tooling and a gate for any future prune command.
 
 For high-volume projects, archive `.fbt/state/` and `.fbt/artifacts/` together
 before any external cleanup. Current logical artifacts under `artifact_path`

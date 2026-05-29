@@ -170,7 +170,9 @@ fbt artifact retention
 ```
 
 The command is read-only. It reports state bytes, immutable artifact bytes, run
-records, current versions, historical versions, and missing storage references.
+records, current versions, historical versions, protected current-pointer
+versions, archive unit, future prune safety flags, and missing storage
+references.
 
 For high-volume projects, archive these directories together:
 
@@ -183,6 +185,11 @@ Use external tools such as `tar`, `rsync`, backup jobs, object storage, or CI
 artifacts for retention windows. fbt does not expose a destructive prune command
 in MVP because deleting history must preserve current pointers, lineage, eval
 results, policy decisions, and run receipts.
+
+`fbt artifact retention --json` reports `archive_unit:
+state_and_artifacts`, `protected_version_ids`, `prune_supported: false`, and
+`dry_run_required: true`. Treat those fields as the safety contract for
+external archive jobs.
 
 The high-volume fixture is:
 

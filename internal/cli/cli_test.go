@@ -727,11 +727,14 @@ func TestRunArtifactRetentionReportsReadOnlyHygiene(t *testing.T) {
 	for _, expected := range []string{
 		"Artifact retention",
 		"Policy               keep_all",
+		"Archive unit         .fbt/state + .fbt/artifacts",
 		"State size",
 		"Artifact size",
 		"Artifact versions    2",
 		"Current versions     1",
 		"Historical versions  1",
+		"Protected versions   1 current pointer(s)",
+		"Prune                not supported in MVP; future prune must dry-run first",
 		"Run records          1",
 		"Action               no files removed",
 	} {
@@ -750,6 +753,9 @@ func TestRunArtifactRetentionReportsReadOnlyHygiene(t *testing.T) {
 	}
 	if !strings.Contains(jsonOut.String(), `"historical_versions": 1`) {
 		t.Fatalf("expected historical count in json output: %s", jsonOut.String())
+	}
+	if !strings.Contains(jsonOut.String(), `"archive_unit": "state_and_artifacts"`) || !strings.Contains(jsonOut.String(), `"dry_run_required": true`) || !strings.Contains(jsonOut.String(), `"prune_supported": false`) {
+		t.Fatalf("expected archive/prune safety fields in json output: %s", jsonOut.String())
 	}
 }
 

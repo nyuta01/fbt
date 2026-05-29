@@ -42,14 +42,19 @@ The smoke validates this report shape:
 ```text
 Artifact retention
   Policy               keep_all
+  Archive unit         .fbt/state + .fbt/artifacts
   Artifact versions    8
   Current versions     1
   Historical versions  7
+  Protected versions   1 current pointer(s)
+  Prune                not supported in MVP; future prune must dry-run first
   Action               no files removed; archive state and artifact dirs together
 ```
 
 It also checks `--json` output and verifies that `archive_roots` includes both
-`.fbt/state` and `.fbt/artifacts`.
+`.fbt/state` and `.fbt/artifacts`. The JSON report also includes
+`archive_unit: state_and_artifacts`, `protected_version_ids`,
+`prune_supported: false`, and `dry_run_required: true`.
 
 ## Operational Guidance
 
@@ -77,4 +82,4 @@ rsync -a my_project/.fbt/state my_project/.fbt/artifacts backup:/fbt/my_project/
 ```
 
 Future destructive cleanup, if added, must be explicit, dry-run-first,
-receipt-aware, and conformance-covered.
+receipt-aware, current-pointer-protecting, and conformance-covered.

@@ -535,6 +535,14 @@ retry receipts without hiding earlier failures. `state:failed` is available as
 a selector, and recovery remains an explicit CLI invocation rather than a queue,
 scheduler, or automatic retry loop.
 
+`FBT-STATE-005` is done. Retention reports now expose the
+`state_and_artifacts` archive unit, archive roots, protected current-version
+IDs, `prune_supported: false`, and `dry_run_required: true` in JSON, with
+matching human output. Docs, high-volume smoke, state/CLI tests, and
+conformance now cover read-only reporting, future dry-run-first cleanup
+semantics, and current-pointer protection without adding a destructive prune
+command.
+
 ## Verification
 
 Required gate before calling work done:
@@ -549,10 +557,11 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
-   any destructive cleanup command exists.
-2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+1. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
+2. When adding new product behavior, register it in
+   `docs/exec-plans/feature-list.json` before implementation and keep
+   `make verify` as the completion gate.
 
 ## Notes For Next Agent
 

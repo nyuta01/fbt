@@ -258,6 +258,15 @@ func TestBuildRetentionReportSummarizesLocalState(t *testing.T) {
 	if report.ArtifactVersions != 2 || report.CurrentVersions != 1 || report.HistoricalVersions != 1 {
 		t.Fatalf("unexpected version counts: %+v", report)
 	}
+	if report.ArchiveUnit != "state_and_artifacts" || len(report.ArchiveRoots) != 2 {
+		t.Fatalf("unexpected archive unit: %+v", report)
+	}
+	if report.PruneSupported || !report.DryRunRequired {
+		t.Fatalf("unexpected prune safety flags: %+v", report)
+	}
+	if len(report.ProtectedVersionIDs) != 1 || report.ProtectedVersionIDs[0] != currentVersionID {
+		t.Fatalf("unexpected protected versions: %+v", report.ProtectedVersionIDs)
+	}
 	if report.RunRecords != 1 {
 		t.Fatalf("unexpected run record count: %+v", report)
 	}

@@ -4025,7 +4025,7 @@
       "id": "FBT-STATE-005",
       "title": "Specify archive-safe retention and pruning workflow",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STATE-002",
@@ -4045,12 +4045,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "archive_unit_specified": false,
-        "dry_run_prune_or_report_semantics": false,
-        "current_pointer_safety_conformance": false,
-        "make_verify": false
+        "archive_unit_specified": true,
+        "dry_run_prune_or_report_semantics": true,
+        "current_pointer_safety_conformance": true,
+        "make_verify": true
       },
-      "notes": "`keep_all` is safe but high-volume projects need an explicit archive and pruning story. Specify report/dry-run-first semantics and current-pointer protection before any destructive cleanup command exists."
+      "notes": "Retention reports now expose the `state_and_artifacts` archive unit, archive roots, protected current-version IDs, `prune_supported: false`, and `dry_run_required: true`. Human output, JSON, docs, high-volume smoke, and conformance cover read-only reporting, future dry-run-first cleanup semantics, and current-pointer protection without adding a destructive prune command."
     },
     {
       "id": "FBT-PDCA-001",

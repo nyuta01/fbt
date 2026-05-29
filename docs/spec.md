@@ -122,7 +122,8 @@ MVP retention policy is `keep_all`. fbt does not delete immutable artifact
 versions or run receipts automatically, and it does not expose a destructive
 prune command. Use `fbt artifact retention` to inspect local growth and archive
 `.fbt/state/` with `.fbt/artifacts/` together when using external retention
-tools.
+tools. The retention report exposes the archive unit, protected current-version
+IDs, and `prune_supported: false` / `dry_run_required: true` safety flags.
 
 Deleted or renamed declarations do not delete state. Recorded artifacts whose
 current declaration no longer exists remain visible through `artifact show` and

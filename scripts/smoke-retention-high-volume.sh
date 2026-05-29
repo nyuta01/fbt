@@ -111,9 +111,12 @@ done
 
 FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact retention --project-dir "$project" >"$tmpdir/retention.txt"
 grep -Eq "Policy +keep_all" "$tmpdir/retention.txt"
+grep -Eq "Archive unit +\\.fbt/state \\+ \\.fbt/artifacts" "$tmpdir/retention.txt"
 grep -Eq "Artifact versions +8" "$tmpdir/retention.txt"
 grep -Eq "Current versions +1" "$tmpdir/retention.txt"
 grep -Eq "Historical versions +7" "$tmpdir/retention.txt"
+grep -Eq "Protected versions +1 current pointer\\(s\\)" "$tmpdir/retention.txt"
+grep -Eq "Prune +not supported in MVP; future prune must dry-run first" "$tmpdir/retention.txt"
 grep -Eq "Action +no files removed; archive state and artifact dirs together" "$tmpdir/retention.txt"
 
 FBT_SOURCE_ROOT="$ROOT_DIR" go run ./cmd/fbt artifact retention --project-dir "$project" --json >"$tmpdir/retention.json"
@@ -124,9 +127,13 @@ import sys
 payload = json.load(open(sys.argv[1], encoding="utf-8"))
 report = payload["retention"]
 assert report["policy"] == "keep_all"
+assert report["archive_unit"] == "state_and_artifacts"
 assert report["artifact_versions"] == 8
 assert report["current_versions"] == 1
 assert report["historical_versions"] == 7
+assert len(report["protected_version_ids"]) == 1
+assert report["prune_supported"] is False
+assert report["dry_run_required"] is True
 roots = set(report["archive_roots"])
 assert any(root.endswith(".fbt/state") for root in roots)
 assert any(root.endswith(".fbt/artifacts") for root in roots)

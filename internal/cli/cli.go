@@ -2265,6 +2265,7 @@ func printRetentionReport(stdout io.Writer, projectDir string, report state.Rete
 	fmt.Fprintln(stdout, "Artifact retention")
 	rows := []displayRow{
 		{Label: "Policy", Value: report.Policy},
+		{Label: "Archive unit", Value: ".fbt/state + .fbt/artifacts"},
 		{Label: "State dir", Value: projectRelativeOrOriginal(projectDir, report.StateDir)},
 		{Label: "Artifact dir", Value: projectRelativeOrOriginal(projectDir, report.ArtifactDir)},
 		{Label: "State size", Value: humanBytes(report.StateBytes)},
@@ -2273,7 +2274,9 @@ func printRetentionReport(stdout io.Writer, projectDir string, report state.Rete
 		{Label: "Artifact versions", Value: fmt.Sprintf("%d", report.ArtifactVersions)},
 		{Label: "Current versions", Value: fmt.Sprintf("%d", report.CurrentVersions)},
 		{Label: "Historical versions", Value: fmt.Sprintf("%d", report.HistoricalVersions)},
+		{Label: "Protected versions", Value: fmt.Sprintf("%d current pointer(s)", len(report.ProtectedVersionIDs))},
 		{Label: "Missing storage", Value: fmt.Sprintf("%d", len(report.MissingStorage))},
+		{Label: "Prune", Value: "not supported in MVP; future prune must dry-run first"},
 		{Label: "Action", Value: "no files removed; archive state and artifact dirs together"},
 	}
 	printDisplayRows(stdout, "  ", rows)
