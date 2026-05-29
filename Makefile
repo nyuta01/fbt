@@ -74,6 +74,10 @@ real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 runner-adapter-smoke: build ## Run opt-in smoke matrix against installed runner adapters.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-runner-adapters.sh
 
+.PHONY: standard-backend-smoke
+standard-backend-smoke: build ## Run opt-in smoke against standard visualization backends.
+	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-standard-backends.sh
+
 .PHONY: docs-site-build
 docs-site-build: ## Build the Astro/Starlight documentation site.
 	@cd apps/docs && npm ci --no-audit --fund=false && SITE="https://nyuta01.github.io" BASE="/fbt" npm run build

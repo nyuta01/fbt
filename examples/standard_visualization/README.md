@@ -32,6 +32,15 @@ wc -l /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
 python3 -m json.tool /tmp/fbt-viz-knowledge/target/telemetry/otel.json >/dev/null
 ```
 
+The same export fixture is automated by:
+
+```sh
+make standard-backend-smoke
+```
+
+Without backend environment variables, the target only verifies that standard
+export files are generated and valid. It does not start services.
+
 ## 2. Send OpenLineage To Marquez
 
 Start Marquez by following the Marquez project instructions, then post each
@@ -66,7 +75,31 @@ curl -sS -X POST http://localhost:4318/v1/traces \
 
 Then open Jaeger, Tempo, or Grafana and search for service `fbt`.
 
-## 4. Screenshot Rule
+## 4. Opt-In Backend Smoke
+
+Use the opt-in smoke target when Marquez or an OTLP HTTP endpoint is already
+running:
+
+```sh
+FBT_MARQUEZ_URL=http://localhost:5000 \
+FBT_OTLP_TRACES_URL=http://localhost:4318/v1/traces \
+FBT_STANDARD_EVIDENCE_DIR=/tmp/fbt-standard-evidence \
+make standard-backend-smoke
+```
+
+Variables:
+
+| Variable | Meaning |
+|---|---|
+| `FBT_MARQUEZ_URL` | Marquez base URL or full `/api/v1/lineage` URL. |
+| `FBT_OTLP_TRACES_URL` | OTLP HTTP traces endpoint, usually `/v1/traces`. |
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | Alternative OTLP traces endpoint name. |
+| `FBT_STANDARD_EVIDENCE_DIR` | Optional directory for copied exports and `smoke-summary.txt`. |
+
+The target posts fbt OpenLineage events to Marquez and fbt OTLP/JSON traces to
+the configured OTLP endpoint. It remains outside `make verify`.
+
+## 5. Screenshot Rule
 
 If you need a screenshot in docs or a runbook, capture it from Marquez, Jaeger,
 Tempo, Grafana, or OpenMetadata after running the recipe above. Do not draw a

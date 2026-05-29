@@ -45,6 +45,16 @@ wc -l /tmp/fbt-viz-knowledge/target/lineage/openlineage.ndjson
 python3 -m json.tool /tmp/fbt-viz-knowledge/target/telemetry/otel.json >/dev/null
 ```
 
+The repository also provides an opt-in smoke target:
+
+```sh
+make standard-backend-smoke
+```
+
+With no backend variables set, it creates the fixture above and validates the
+OpenLineage and OTLP/JSON files locally. It does not start Marquez, Jaeger,
+Tempo, Grafana, OpenMetadata, or an OpenTelemetry Collector.
+
 When documentation needs an image, capture it from the actual standard backend
 after ingesting these files. Do not use a custom fbt-drawn graph as a substitute
 for backend output.
@@ -81,6 +91,13 @@ names are stable fbt resource IDs, and logical paths are available in `fbt_`
 facets. fbt does not export raw artifact content, prompts, credentials, or
 absolute project paths by default.
 
+To verify a running Marquez endpoint with the repository smoke:
+
+```sh
+FBT_MARQUEZ_URL=http://localhost:5000 \
+make standard-backend-smoke
+```
+
 References:
 
 - OpenLineage getting started: <https://openlineage.io/getting-started/>
@@ -110,6 +127,13 @@ curl -sS -X POST http://localhost:4318/v1/traces \
 ```
 
 Then open the Jaeger UI and search for service `fbt`.
+
+To verify a running OTLP HTTP endpoint with the repository smoke:
+
+```sh
+FBT_OTLP_TRACES_URL=http://localhost:4318/v1/traces \
+make standard-backend-smoke
+```
 
 References:
 
@@ -150,6 +174,9 @@ service:
 
 Post the fbt OTLP/JSON payload to the collector's OTLP HTTP endpoint, then use
 Grafana to query Tempo for service `fbt`.
+
+The same `FBT_OTLP_TRACES_URL` variable works when the endpoint forwards to
+Tempo through an OpenTelemetry Collector or Grafana Alloy.
 
 References:
 
@@ -244,3 +271,19 @@ If sensitive text appears in an export, treat it as a bug. Default exports
 should include IDs, paths, descriptors, statuses, usage, and runner metadata,
 not raw source documents, prompts, model responses, credentials, or unredacted
 tool-call payloads.
+
+## 8. Evidence Capture
+
+For docs or release evidence, save the generated export files and backend smoke
+summary:
+
+```sh
+FBT_MARQUEZ_URL=http://localhost:5000 \
+FBT_OTLP_TRACES_URL=http://localhost:4318/v1/traces \
+FBT_STANDARD_EVIDENCE_DIR=/tmp/fbt-standard-evidence \
+make standard-backend-smoke
+```
+
+The evidence directory receives `openlineage.ndjson`, `otel.json`, and
+`smoke-summary.txt`. Screenshots should be captured separately from the actual
+Marquez, Jaeger, Tempo, Grafana, or OpenMetadata UI after ingestion.

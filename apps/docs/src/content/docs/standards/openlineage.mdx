@@ -17,6 +17,13 @@ context while keeping raw source content out of the payload.
 Use OpenLineage-compatible tools such as Marquez directly, or route the events
 through an OpenLineage ingestion path into OpenMetadata.
 
+For a running Marquez endpoint, the opt-in smoke target posts generated fbt
+events:
+
+```sh
+FBT_MARQUEZ_URL=http://localhost:5000 make standard-backend-smoke
+```
+
 fbt core does not add a direct OpenMetadata publisher because that would require
 server credentials, entity upsert semantics, and an OpenMetadata-specific SDK or
 API dependency.

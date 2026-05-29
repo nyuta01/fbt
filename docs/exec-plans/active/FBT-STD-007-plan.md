@@ -1,6 +1,6 @@
 # FBT-STD-007 Add Opt-In Standard Backend Visualization Verification
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -25,11 +25,23 @@ heavy service requirements.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
+Added `make standard-backend-smoke`, backed by
+`scripts/smoke-standard-backends.sh`. The target generates the support fixture,
+builds artifacts, exports OpenLineage NDJSON and OTLP/JSON, and validates those
+files locally.
 
-- Add opt-in backend smoke instructions or scripts.
-- Capture docs screenshots from real standard tools after ingestion.
-- Keep `fbt export openlineage` and `fbt export otel` as the only core surface.
+The target posts to real backends only when explicit environment variables are
+set:
+
+- `FBT_MARQUEZ_URL` for Marquez `/api/v1/lineage`
+- `FBT_OTLP_TRACES_URL` or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` for OTLP HTTP
+  traces
+- `FBT_STANDARD_EVIDENCE_DIR` to copy exports and a smoke summary for release
+  or docs evidence
+
+Docs and examples now point to the opt-in smoke and keep screenshots as a
+backend-capture rule. Core still exposes only `fbt export openlineage` and
+`fbt export otel`; no custom graph UI or required backend dependency was added.
 
 ## Next Check
 
@@ -39,5 +51,7 @@ Run:
 make verify
 ```
 
-Expected result: standard backend verification is available on demand without
-adding a custom fbt graph UI or a required service dependency.
+Latest targeted result: `make standard-backend-smoke` passed without backend
+variables, and evidence-copy mode passed with `FBT_STANDARD_EVIDENCE_DIR`.
+Final gate: `make verify` passed with standard backend verification remaining
+opt-in.

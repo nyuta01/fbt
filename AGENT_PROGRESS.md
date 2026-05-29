@@ -132,6 +132,15 @@ current versions, historical versions, and missing immutable storage. High
 volume projects should archive `.fbt/state/` and `.fbt/artifacts/` together
 with external tools; fbt core does not prune history in MVP.
 
+`FBT-STD-007` added opt-in standard backend verification. `make
+standard-backend-smoke` generates support-template OpenLineage and OTLP/JSON
+exports, validates them locally, and posts to Marquez or an OTLP HTTP endpoint
+only when `FBT_MARQUEZ_URL`, `FBT_OTLP_TRACES_URL`, or
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` is set. `FBT_STANDARD_EVIDENCE_DIR` copies
+exports and a smoke summary for release/docs evidence. The target is outside
+`make verify`, and core still exposes only `fbt export openlineage` and
+`fbt export otel`.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
@@ -220,9 +229,7 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Add opt-in standard backend visualization verification through
-   `FBT-STD-007`.
-2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+1. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

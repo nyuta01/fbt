@@ -19,3 +19,10 @@ Raw source content and known marker secrets are redacted by conformance tests.
 - Jaeger
 - Tempo and Grafana
 - any collector that accepts OTLP/JSON after conversion or forwarding
+
+For a running OTLP HTTP endpoint, the opt-in smoke target posts generated fbt
+traces:
+
+```sh
+FBT_OTLP_TRACES_URL=http://localhost:4318/v1/traces make standard-backend-smoke
+```

@@ -32,6 +32,15 @@ fbt export otel \
   --output /tmp/fbt-viz-knowledge/target/telemetry/otel.json
 ```
 
+The automated opt-in fixture is:
+
+```sh
+make standard-backend-smoke
+```
+
+With no backend variables, it verifies the OpenLineage and OTLP/JSON files
+locally and skips network ingestion.
+
 Post OpenLineage events to a local Marquez API:
 
 ```sh
@@ -49,6 +58,15 @@ Post OTLP/JSON traces to an OTLP HTTP endpoint:
 curl -sS -X POST http://localhost:4318/v1/traces \
   -H 'Content-Type: application/json' \
   --data-binary @/tmp/fbt-viz-knowledge/target/telemetry/otel.json
+```
+
+Or run both backend posts through the opt-in smoke target:
+
+```sh
+FBT_MARQUEZ_URL=http://localhost:5000 \
+FBT_OTLP_TRACES_URL=http://localhost:4318/v1/traces \
+FBT_STANDARD_EVIDENCE_DIR=/tmp/fbt-standard-evidence \
+make standard-backend-smoke
 ```
 
 Then use Marquez, Jaeger, Tempo, Grafana, or OpenMetadata as the visualization

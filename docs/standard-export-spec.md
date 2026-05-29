@@ -252,3 +252,9 @@ Operational recipes live in
 The default conformance gate checks the payload shape and redaction invariants
 without starting Marquez, an OTel collector, OpenMetadata, or any other
 backend service.
+
+Real backend ingestion remains opt-in through `make standard-backend-smoke`.
+That target generates the same support fixture exports and posts them only when
+`FBT_MARQUEZ_URL`, `FBT_OTLP_TRACES_URL`, or
+`OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` is set. It is intentionally outside
+`make verify`.
