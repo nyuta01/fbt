@@ -27,6 +27,8 @@ type Options struct {
 	Env []string
 }
 
+const maxJSONRPCMessageBytes = 16 * 1024 * 1024
+
 type JSONRPCError struct {
 	Code    int            `json:"code"`
 	Message string         `json:"message"`
@@ -266,6 +268,7 @@ func (c *Client) writeRequest(request rpcRequest) error {
 
 func (c *Client) readLoop(stdout io.Reader) {
 	scanner := bufio.NewScanner(stdout)
+	scanner.Buffer(make([]byte, 0, 64*1024), maxJSONRPCMessageBytes)
 	for scanner.Scan() {
 		message, err := decodeIncoming(scanner.Bytes())
 		if err != nil {

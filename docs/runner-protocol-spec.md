@@ -91,6 +91,9 @@ Initial transport: stdio.
 - Runner writes JSON-RPC messages to stdout.
 - stderr is human-readable debug output.
 - MVP framing is JSON Lines: one JSON-RPC object per line.
+- Current core and Go SDK implementations accept JSONL frames up to 16 MiB.
+  Runners should keep raw source documents, raw prompts, and generated artifact
+  bodies in files rather than embedding them in protocol messages.
 - Future versions may add LSP-style `Content-Length` framing.
 
 ```text

@@ -74,10 +74,10 @@ inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
 The latest full review added a new post-MVP hardening backlog. Real CLI-agent
-policy enforcement (`FBT-RUNNER-022`) is done. The remaining runner robustness
-tasks cover large JSON-RPC JSONL messages (`FBT-RUNNER-023`), visible
-staged-input truncation failures (`FBT-RUNNER-024`), and bounded stderr/exit
-diagnostics for runner protocol failures (`FBT-RUNNER-025`).
+policy enforcement (`FBT-RUNNER-022`) and explicit large JSON-RPC JSONL frame
+handling (`FBT-RUNNER-023`) are done. The remaining runner robustness tasks
+cover visible staged-input truncation failures (`FBT-RUNNER-024`) and bounded
+stderr/exit diagnostics for runner protocol failures (`FBT-RUNNER-025`).
 
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
@@ -99,6 +99,12 @@ tool, cost, or tool-call policies. Claude Code maps tool allow/deny lists,
 timeout, and max budget where supported, then fails before invoking Claude for
 unsupported network, unknown tool, or tool-call policies. Adapter conformance
 now runs both positive safe-policy paths and negative unsupported-policy paths.
+
+`FBT-RUNNER-023` is done. Core protocol reads and the Go SDK stdio server now
+set an explicit 16 MiB JSONL frame limit instead of inheriting Go scanner's
+default token limit. Core and SDK tests cover messages above the old default,
+and the protocol spec documents that raw documents should stay in files rather
+than JSON-RPC frames.
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform

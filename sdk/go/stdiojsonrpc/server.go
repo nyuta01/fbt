@@ -19,6 +19,8 @@ type Handler struct {
 	Cancel       func(context.Context, protocol.Request, *Writer) error
 }
 
+const MaxMessageBytes = 16 * 1024 * 1024
+
 type Writer struct {
 	mu  sync.Mutex
 	out io.Writer
@@ -30,6 +32,7 @@ func NewWriter(out io.Writer) *Writer {
 
 func Serve(ctx context.Context, in io.Reader, out io.Writer, handler Handler) error {
 	scanner := bufio.NewScanner(in)
+	scanner.Buffer(make([]byte, 0, 64*1024), MaxMessageBytes)
 	writer := NewWriter(out)
 	for scanner.Scan() {
 		if err := handleLine(ctx, scanner.Bytes(), writer, handler); err != nil {

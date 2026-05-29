@@ -3173,7 +3173,7 @@
       "id": "FBT-RUNNER-023",
       "title": "Remove JSON-RPC JSONL scanner size limits",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-006",
@@ -3192,12 +3192,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "large_jsonrpc_message_test": false,
-        "sdk_large_jsonrpc_message_test": false,
-        "runner_conformance": false,
-        "make_verify": false
+        "large_jsonrpc_message_test": true,
+        "sdk_large_jsonrpc_message_test": true,
+        "runner_conformance": true,
+        "make_verify": true
       },
-      "notes": "Core protocol client and SDK server use bufio.Scanner without Buffer sizing, so JSONL messages above the default token limit can fail. Make message limits explicit and large enough for many-file requests and structured runner notifications."
+      "notes": "Core protocol client and SDK server now set an explicit 16 MiB JSONL frame limit. Tests cover messages above Go scanner's default token size, and the protocol spec documents the boundary."
     },
     {
       "id": "FBT-RUNNER-024",

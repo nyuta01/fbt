@@ -69,6 +69,31 @@ func TestClientReturnsJSONRPCError(t *testing.T) {
 	}
 }
 
+func TestClientReadsLargeRunnerMessages(t *testing.T) {
+	client := startFakeRunner(t, "large_message")
+	defer client.Close()
+	if _, err := client.Initialize(context.Background(), InitializeParams{}); err != nil {
+		t.Fatalf("initialize: %v", err)
+	}
+	outcome, err := client.RunTransform(context.Background(), RunTransformParams{Mode: "run"})
+	if err != nil {
+		t.Fatalf("run transform: %v", err)
+	}
+	if len(outcome.Events) != 1 {
+		t.Fatalf("expected one event, got %d", len(outcome.Events))
+	}
+	blob, ok := outcome.Events[0].Attributes["large_message"].(string)
+	if !ok {
+		t.Fatalf("expected large_message attribute, got %+v", outcome.Events[0].Attributes)
+	}
+	if len(blob) <= bufio.MaxScanTokenSize {
+		t.Fatalf("expected message larger than scanner default, got %d bytes", len(blob))
+	}
+	if outcome.Result.Status != "success" {
+		t.Fatalf("unexpected status: %s", outcome.Result.Status)
+	}
+}
+
 func TestClientCancelsOnContext(t *testing.T) {
 	client := startFakeRunner(t, "hang")
 	defer client.Close()
@@ -208,6 +233,29 @@ func TestFakeRunnerProcess(t *testing.T) {
 						"code":    -32010,
 						"message": "Policy denied",
 						"data":    map[string]any{"fbt_error_code": "POLICY_DENIED"},
+					},
+				})
+			case "large_message":
+				large := strings.Repeat("x", bufio.MaxScanTokenSize+1024)
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"method":  "fbt/event",
+					"params": map[string]any{
+						"request_id":       request.ID,
+						"transform_run_id": "transform_run.run_1",
+						"event_type":       "progress",
+						"message":          "large structured notification",
+						"attributes": map[string]any{
+							"large_message": large,
+						},
+					},
+				})
+				writeFake(map[string]any{
+					"jsonrpc": "2.0",
+					"id":      request.ID,
+					"result": map[string]any{
+						"status":           "success",
+						"transform_run_id": "transform_run.run_1",
 					},
 				})
 			case "hang":
