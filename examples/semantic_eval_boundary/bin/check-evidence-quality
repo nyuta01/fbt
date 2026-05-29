@@ -1,0 +1,59 @@
+#!/usr/bin/env sh
+set -eu
+
+manual="target/artifacts/manual/manual_update.md"
+evidence="data/source/incident-evidence.md"
+rubric="assets/evidence_quality_rubric.md"
+out="$FBT_WORK_OUTPUTS/evidence_quality_report"
+
+status="pass"
+messages=""
+
+require_in_both() {
+  phrase="$1"
+  label="$2"
+  if ! grep -Fq "$phrase" "$manual"; then
+    status="fail"
+    messages="${messages}- missing from manual: ${label}\n"
+  fi
+  if ! grep -Fq "$phrase" "$evidence"; then
+    status="fail"
+    messages="${messages}- missing from evidence: ${label}\n"
+  fi
+}
+
+reject_if_manual_only() {
+  phrase="$1"
+  label="$2"
+  if grep -Fq "$phrase" "$manual" && ! grep -Fq "$phrase" "$evidence"; then
+    status="fail"
+    messages="${messages}- unsupported manual claim: ${label}\n"
+  fi
+}
+
+require_in_both "Verify payment status before recommending another checkout attempt." "payment-status-before-retry"
+require_in_both "checkout latency or timeout symptoms" "checkout-latency-symptoms"
+reject_if_manual_only "refund" "refund promise"
+reject_if_manual_only "SLA" "SLA promise"
+
+{
+  printf '# Evidence Quality Report\n\n'
+  printf 'Result: %s\n\n' "$status"
+  printf '## Inputs\n\n'
+  printf -- '- Manual artifact: `%s`\n' "$manual"
+  printf -- '- Source evidence: `%s`\n' "$evidence"
+  printf -- '- Rubric: `%s`\n\n' "$rubric"
+  printf '## Grounding Checks\n\n'
+  if [ "$status" = "pass" ]; then
+    printf '%s\n' '- Required operational claims appear in both the manual artifact and source evidence.'
+    printf '%s\n' '- No blocked unsupported claims were found.'
+  else
+    printf '%b' "$messages"
+  fi
+  printf '\n## Boundary\n\n'
+  printf '%s\n' 'This report was produced by an external command runner. fbt recorded it as an artifact with lineage; fbt core did not implement the judge.'
+} >"$out"
+
+if [ "$status" != "pass" ]; then
+  exit 1
+fi

@@ -3450,7 +3450,7 @@
       "id": "FBT-EVAL-001",
       "title": "Add external semantic and evidence-quality check examples",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-DOCS-UX-012"
@@ -3458,21 +3458,25 @@
       "plan_url": "docs/exec-plans/active/FBT-EVAL-001-plan.md",
       "paths": [
         "examples/",
+        "docs/examples/external-quality-checks.md",
         "docs/examples/",
         "apps/docs/src/content/docs/",
         "docs/spec.md",
+        "docs/usage-guide.md",
+        "Makefile",
+        "scripts/smoke-semantic-eval-boundary.sh",
         "docs/exec-plans/active/FBT-EVAL-001-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "external_quality_check_example_smoke": false,
-        "semantic_eval_boundary_docs_scan": false,
-        "docs_site_build": false,
-        "make_verify": false
+        "external_quality_check_example_smoke": true,
+        "semantic_eval_boundary_docs_scan": true,
+        "docs_site_build": true,
+        "make_verify": true
       },
-      "notes": "Deterministic section checks are not enough to convince real users that a generated manual is correct. Add examples that compose fbt with external semantic, grounding, or evidence-coverage checks while keeping judge/model logic outside core."
+      "notes": "`examples/semantic_eval_boundary` is now runnable. It builds a manual artifact, runs an external command transform that writes an evidence quality report, and verifies that fbt records the report as a normal artifact with lineage while judge logic stays outside core."
     },
     {
       "id": "FBT-REL-004",

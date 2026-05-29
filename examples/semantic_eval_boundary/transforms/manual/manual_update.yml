@@ -1,0 +1,13 @@
+transforms:
+  - name: manual_update
+    type: command
+    runner: local.command
+    command: ["bin/build-manual-update"]
+    inputs:
+      - source: source.incident_evidence
+    outputs:
+      - name: manual_update
+        type: markdown
+        path: target/artifacts/manual/manual_update.md
+    policy: manual_update_scope
+    tags: ["quality_boundary", "manual"]

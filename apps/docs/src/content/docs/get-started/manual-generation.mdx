@@ -25,6 +25,10 @@ Dagster, or another upstream step prepare the current files. The
 `examples/daily_qa_ops` project and `docs/examples/daily-source-operations.md`
 show multiple source directories producing multiple artifacts in one daily run.
 
+For semantic or evidence-quality checks, add another external-runner transform
+that writes a judge report artifact. `examples/semantic_eval_boundary` shows
+that pattern without putting model-judge logic in fbt core.
+
 ## Incident response runbook
 
 The source checkout includes a practical example that turns one incident's

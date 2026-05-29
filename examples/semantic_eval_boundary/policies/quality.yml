@@ -1,0 +1,10 @@
+policies:
+  - name: manual_update_scope
+    read: ["data/source/"]
+    write: [".fbt/work/", "target/artifacts/manual/"]
+    network: false
+
+  - name: evidence_quality_scope
+    read: ["data/source/", "assets/", "target/artifacts/manual/"]
+    write: [".fbt/work/", "target/artifacts/quality/"]
+    network: false

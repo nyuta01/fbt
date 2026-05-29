@@ -1,7 +1,66 @@
 # Semantic Eval Boundary Example
 
-This example is intentionally a pattern, not a standalone model-judge fixture.
-It shows how to keep semantic judgement outside fbt core.
+This example is runnable. It shows how to keep semantic judgement and evidence
+quality checks outside fbt core while still recording the check as a normal fbt
+artifact with lineage.
+
+The project has two transforms:
+
+```text
+source evidence
+  -> manual_update
+  -> evidence_quality_report
+```
+
+Both transforms use the command adapter. In a real project, the second
+transform could call an LLM judge, an internal policy checker, a retrieval
+grounding service, or a CI script. fbt only records the report artifact,
+inputs, runner, policy, and lineage.
+
+## Run It
+
+```sh
+fbt plan --project-dir examples/semantic_eval_boundary --select tag:quality_boundary
+fbt build --project-dir examples/semantic_eval_boundary --select tag:quality_boundary
+fbt artifact explain evidence_quality_report --project-dir examples/semantic_eval_boundary
+```
+
+Expected output shape:
+
+```text
+SUCCESS manual_update
+SUCCESS evidence_quality_report
+```
+
+The report is written to:
+
+```text
+target/artifacts/quality/evidence_quality_report.md
+```
+
+Report excerpt:
+
+```md
+# Evidence Quality Report
+
+Result: pass
+
+## Grounding Checks
+- Required operational claims appear in both the manual artifact and source evidence.
+- No blocked unsupported claims were found.
+```
+
+`artifact explain` shows the boundary:
+
+```text
+Inputs
+  ok input   manual_update
+  ok input   source.incident_evidence
+  ok asset   evidence_quality_rubric
+  ok runner  local.command
+```
+
+The external command owns the quality logic. fbt records the receipt.
 
 ## Core Eval
 

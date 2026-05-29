@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+set -eu
+
+out="$FBT_WORK_OUTPUTS/manual_update"
+evidence="data/source/incident-evidence.md"
+
+{
+  printf '# Manual Update\n\n'
+  printf '## Summary\n\n'
+  printf 'Checkout latency incidents should be handled by confirming payment status before retry guidance is sent to customers.\n\n'
+  printf '## Procedure\n\n'
+  printf '1. Confirm the customer saw checkout latency or timeout symptoms.\n'
+  printf '2. Verify payment status before recommending another checkout attempt.\n'
+  printf '3. Escalate if the payment status cannot be verified from support tooling.\n\n'
+  printf '## Source Evidence\n\n'
+  printf -- '- `%s`\n' "$evidence"
+} >"$out"

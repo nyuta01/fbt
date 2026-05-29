@@ -1,0 +1,24 @@
+name: semantic_eval_boundary
+config_version: 1
+version: 0.1.0
+source_paths: ["sources"]
+transform_paths: ["transforms"]
+asset_paths: ["assets"]
+policy_paths: ["policies"]
+artifact_path: "target/artifacts"
+state:
+  backend: local
+  path: .fbt/state
+execution:
+  mode: local
+runners:
+  - name: local.command
+    type: command
+    protocol: stdio_jsonrpc
+    command: bin/fbt-command-runner
+    cwd: .
+selectors:
+  - name: quality_boundary
+    definition:
+      method: tag
+      value: quality_boundary

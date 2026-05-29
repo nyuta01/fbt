@@ -130,6 +130,12 @@ multiple source directories, multiple artifact outputs, external scheduling,
 day-two source additions, and retention inspection. `make verify` includes
 `daily-ops-smoke`.
 
+`FBT-EVAL-001` is done. `examples/semantic_eval_boundary` is now a runnable
+project that builds a manual artifact and then runs an external command
+transform to create an evidence quality report. `make verify` includes
+`semantic-eval-boundary-smoke`, proving fbt records the report artifact and
+lineage without owning model-judge logic in core.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

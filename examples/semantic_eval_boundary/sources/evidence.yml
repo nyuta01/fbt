@@ -1,0 +1,8 @@
+sources:
+  - name: source
+    description: Evidence used to draft and check the manual update.
+    artifacts:
+      - name: incident_evidence
+        type: markdown
+        path: data/source/incident-evidence.md
+        tags: ["quality_boundary", "evidence"]

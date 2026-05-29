@@ -1,0 +1,4 @@
+assets:
+  - name: evidence_quality_rubric
+    type: rubric
+    path: assets/evidence_quality_rubric.md

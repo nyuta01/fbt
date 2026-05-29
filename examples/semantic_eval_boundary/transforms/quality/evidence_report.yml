@@ -1,0 +1,16 @@
+transforms:
+  - name: evidence_quality_report
+    type: command
+    runner: local.command
+    command: ["bin/check-evidence-quality"]
+    inputs:
+      - ref: manual_update
+      - source: source.incident_evidence
+    outputs:
+      - name: evidence_quality_report
+        type: markdown
+        path: target/artifacts/quality/evidence_quality_report.md
+    assets:
+      - ref: evidence_quality_rubric
+    policy: evidence_quality_scope
+    tags: ["quality_boundary", "evidence_quality"]

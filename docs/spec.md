@@ -232,6 +232,10 @@ transform that produces a judge report artifact, or in a future delegated
 eval-runner protocol. Core keeps the receipt, confidence gate, and lineage; it
 does not implement model-judge logic.
 
+The runnable boundary example is `examples/semantic_eval_boundary`: a generated
+manual artifact feeds an external evidence-quality transform, and fbt records
+the resulting report as a normal artifact.
+
 Initial confidence classes:
 
 - `exact`

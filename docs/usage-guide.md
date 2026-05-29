@@ -215,9 +215,9 @@ For semantic judgement, create a normal runner-backed transform that produces a
 judge report artifact:
 
 ```sh
-fbt build --select manual_update
-fbt build --select judge_manual_update
-fbt artifact show manual_update_judge_report
+fbt build --project-dir examples/semantic_eval_boundary --select tag:quality_boundary
+fbt artifact show evidence_quality_report --project-dir examples/semantic_eval_boundary
+fbt artifact explain evidence_quality_report --project-dir examples/semantic_eval_boundary
 ```
 
 The runner owns the model call. fbt records the judge report's sources, runner,
