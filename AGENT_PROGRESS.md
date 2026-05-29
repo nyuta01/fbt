@@ -148,6 +148,13 @@ current/historical counts, checks JSON archive roots, and confirms retention
 inspection is read-only. `docs/examples/high-volume-retention.md` documents
 the archive boundary for `.fbt/state/` plus `.fbt/artifacts/`.
 
+The latest post-MVP hardening review added five follow-up tasks without
+expanding fbt core: `FBT-PILOT-001` for real workflow pilots and friction
+capture, `FBT-CONF-002` for moving product conformance from shell into a
+structured harness, `FBT-SCHEMA-001` for generated project-config JSON Schema,
+`FBT-REL-005` for adapter release tags/checksums/signatures, and `FBT-SEC-001`
+for documented OS sandbox execution profiles.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

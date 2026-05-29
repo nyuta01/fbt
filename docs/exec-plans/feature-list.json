@@ -3543,6 +3543,153 @@
       "notes": "Added `retention-high-volume-smoke`, which creates eight artifact versions, verifies current/historical retention counts, checks JSON archive roots, and confirms the read-only archive guidance for `.fbt/state` plus `.fbt/artifacts`."
     },
     {
+      "id": "FBT-PILOT-001",
+      "title": "Run real-workflow pilots and capture user friction",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-015",
+        "FBT-OPS-001",
+        "FBT-EVAL-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-PILOT-001-plan.md",
+      "paths": [
+        "docs/pilots/",
+        "examples/",
+        "README.md",
+        "apps/docs/src/content/docs/",
+        "docs/exec-plans/active/FBT-PILOT-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "pilot_workflow_notes": false,
+        "friction_backlog_created": false,
+        "docs_or_examples_updated_from_findings": false,
+        "make_verify": false
+      },
+      "notes": "The core loop is strong enough for MVP; the next UX signal should come from real source directories. Run two or more realistic pilots, capture where users hesitate, and convert observed friction into concrete fixes instead of speculative feature growth."
+    },
+    {
+      "id": "FBT-CONF-002",
+      "title": "Move product conformance scenarios from shell to a structured harness",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-CONF-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-CONF-002-plan.md",
+      "paths": [
+        "tests/conformance/",
+        "scripts/",
+        "Makefile",
+        "docs/exec-plans/active/FBT-CONF-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "structured_conformance_harness": false,
+        "legacy_shell_scenarios_migrated_or_wrapped": false,
+        "make_conformance": false,
+        "make_verify": false
+      },
+      "notes": "`make conformance` currently works, but product conformance is still mostly shell-script driven. Move scenarios into a structured harness with clearer fixtures, assertions, and failure reporting while keeping the same deterministic coverage."
+    },
+    {
+      "id": "FBT-SCHEMA-001",
+      "title": "Generate JSON Schema for project configuration",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-CONFIG-002",
+        "FBT-CONFIG-003"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-SCHEMA-001-plan.md",
+      "paths": [
+        "docs/project-config-spec.md",
+        "schemas/",
+        "internal/config/",
+        "scripts/",
+        "apps/docs/src/content/docs/reference/project-config.mdx",
+        "docs/exec-plans/active/FBT-SCHEMA-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "project_config_schema_generated": false,
+        "schema_matches_parser_contract": false,
+        "schema_docs_linked": false,
+        "make_verify": false
+      },
+      "notes": "YAML diagnostics are strong, but editor completion and external validation still need a generated JSON Schema that matches the implemented config parser and documented project-config contract."
+    },
+    {
+      "id": "FBT-REL-005",
+      "title": "Define adapter release tags, checksums, and signature workflow",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-004",
+        "FBT-RUNNER-026"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-REL-005-plan.md",
+      "paths": [
+        ".github/workflows/",
+        "docs/release.md",
+        "docs/runner-adapters.md",
+        "scripts/",
+        "Makefile",
+        "docs/exec-plans/active/FBT-REL-005-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "adapter_release_plan_documented": false,
+        "module_scoped_tag_guidance_checked": false,
+        "checksum_or_signature_flow_checked": false,
+        "make_verify": false
+      },
+      "notes": "Official adapters install from source and have smoke coverage, but release operations still need module-scoped tags, checksum/signature expectations, and an automation path before adapters feel like maintained official packages."
+    },
+    {
+      "id": "FBT-SEC-001",
+      "title": "Document OS sandbox execution profiles for high-security use",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-022",
+        "FBT-RUNNER-024",
+        "FBT-RUNNER-025"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-SEC-001-plan.md",
+      "paths": [
+        "docs/security-and-conformance-spec.md",
+        "docs/runner-adapters.md",
+        "apps/docs/src/content/docs/",
+        "docs/security/",
+        "docs/exec-plans/active/FBT-SEC-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "os_sandbox_profiles_documented": false,
+        "core_boundary_not_expanded": false,
+        "security_docs_scan": false,
+        "make_verify": false
+      },
+      "notes": "fbt policy and adapter safety checks are strong, but OS-level sandboxing remains external. Document practical execution profiles for containers, CI sandboxes, macOS/Linux isolation, and network controls without adding an in-core sandbox."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
