@@ -3,7 +3,27 @@ title: Installation
 description: Install fbt from the release or build it from source.
 ---
 
-## Download a release binary
+## Install with the script
+
+The easiest path on macOS, Linux, or Windows Git Bash is:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh
+fbt version
+```
+
+The installer detects your OS and architecture, downloads the matching GitHub
+Release archive, verifies `SHA256SUMS`, and installs `fbt` to
+`$HOME/.local/bin` by default.
+
+Pin a version or directory when needed:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | \
+  sh -s -- --version v0.2.1 --dir "$HOME/.local/bin"
+```
+
+## Download a release binary manually
 
 The current core CLI release is published on GitHub:
 
@@ -24,6 +44,11 @@ fbt version
 fbt init /tmp/fbt-install-check --template support
 fbt doctor --project-dir /tmp/fbt-install-check
 ```
+
+On Windows without Git Bash, download the `windows_amd64.zip` or
+`windows_arm64.zip` archive from the release page, compare its `Get-FileHash`
+SHA-256 value with `SHA256SUMS`, expand the archive, and add the directory
+containing `fbt.exe` to `PATH`.
 
 ## Build from source
 

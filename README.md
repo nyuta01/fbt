@@ -74,9 +74,19 @@ which checks ran, and which artifact version is now current.
 
 ## Install
 
-Download the current CLI archive from
-[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.2.1), verify
-`SHA256SUMS`, or build from source:
+Install the current core CLI on macOS, Linux, or Windows Git Bash:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh
+fbt version
+```
+
+The installer downloads the matching
+[GitHub Releases](https://github.com/nyuta01/fbt/releases/tag/v0.2.1) archive,
+verifies `SHA256SUMS`, and installs to `$HOME/.local/bin` by default. Use
+`--version v0.2.1` or `--dir DIR` to pin a version or directory.
+
+You can still build from source:
 
 ```bash
 git clone https://github.com/nyuta01/fbt.git
@@ -131,17 +141,13 @@ Plan
 RUN     case_summaries
         because  output missing
 
-RUN     weekly_support_insights
-        because  upstream artifact selected to run
-
 SUCCESS case_summaries
         output     case_summaries -> target/artifacts/support/case_summaries
         committed  case_summaries@sha256:a5b4dfd91df7
-        next       fbt artifact show case_summaries --project-dir knowledge_ops
 
 Artifact: case_summaries
-  Path        target/artifacts/support/case_summaries
-  Version     case_summaries@sha256:a5b4dfd91df7
+  Path     target/artifacts/support/case_summaries
+  Version  case_summaries@sha256:a5b4dfd91df7
 ```
 
 ## Use Your Own Files
@@ -181,14 +187,10 @@ The generated artifact is expected to look like a procedure, not a raw summary:
 ```markdown
 ## Detection
 1. Check checkout-api latency and timeout rate.
-2. Confirm database connection pool saturation.
 ## Mitigation
 1. Shift checkout read traffic away from the saturated replica.
 ## Customer Communication
 1. Ask support to verify payment status before asking customers to retry.
-## Source Evidence
-- INC-2026-0421 event log
-- INC-2026-0421 response notes
 ```
 
 The workflow is the same as the offline loop:

@@ -4123,6 +4123,37 @@
       "notes": "Added a version-drift release guard, local release preflight, and tag-triggered core release workflow that runs verify, builds archives, verifies SHA256SUMS, and publishes GitHub Releases with generated notes. Tag checks now live in release-core instead of duplicating the general verify workflow."
     },
     {
+      "id": "FBT-REL-008",
+      "title": "Add one-command CLI installer",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-007"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-REL-008-plan.md",
+      "paths": [
+        "install.sh",
+        "scripts/smoke-install-script.sh",
+        "scripts/check-release-version.py",
+        "Makefile",
+        "README.md",
+        "docs/release.md",
+        "apps/docs/src/content/docs/get-started/installation.mdx",
+        "docs/exec-plans/active/FBT-REL-008-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "installer_added": true,
+        "checksum_verification": true,
+        "install_script_smoke": true,
+        "make_verify": true
+      },
+      "notes": "Added a root install.sh that detects OS/architecture, downloads the matching GitHub Release archive, verifies SHA256SUMS, installs to a user-local bin directory, and prints the installed version. README and docs now lead with the one-command install path, and make verify includes install-script-smoke against a local file:// release archive."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

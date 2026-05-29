@@ -74,6 +74,7 @@ required_texts = {
     "docs/release.md": [
         expected_tag,
         f"fbt_{expected_version}_darwin_arm64.tar.gz",
+        "curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh",
         "scripts/release-preflight.sh",
         ".github/workflows/release-core.yml",
     ],
@@ -82,7 +83,8 @@ required_texts = {
     "docs/manifest-spec.md": [f'"fbt_version": "{expected_version}"'],
     "docs/standard-export-spec.md": [f'"fbt_version": "{expected_version}"'],
     "apps/docs/src/content/docs/get-started/installation.mdx": [
-        f"releases/tag/{expected_tag}"
+        f"releases/tag/{expected_tag}",
+        "curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh",
     ],
     "apps/docs/src/content/docs/get-started/what-you-can-do.mdx": [
         f"fbt {expected_tag}"
@@ -119,6 +121,16 @@ for action, ref in re.findall(r"uses:\s*(actions/[^@\s]+)@([0-9A-Za-z_.-]+)", re
 verify_workflow = read_text(".github/workflows/verify.yml")
 if 'tags:' in verify_workflow:
     fail(".github/workflows/verify.yml should not duplicate core release tag verification")
+
+makefile_text = read_text("Makefile")
+for needle in ("install-script-smoke", "scripts/smoke-install-script.sh"):
+    if needle not in makefile_text:
+        fail(f"Makefile must include {needle!r}")
+
+install_script = read_text("install.sh")
+for needle in ("SHA256SUMS", "FBT_VERSION", "FBT_INSTALL_DIR"):
+    if needle not in install_script:
+        fail(f"install.sh must include {needle!r}")
 
 if errors:
     print("release-version-check: errors found", file=sys.stderr)

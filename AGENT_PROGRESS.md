@@ -559,6 +559,13 @@ workflow runs `make verify`, builds release archives, verifies `SHA256SUMS`,
 and creates the GitHub Release with generated notes. GitHub artifact
 attestations are intentionally not part of the required release baseline.
 
+`FBT-REL-008` is done. First-time users can install the core CLI with
+`curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh`.
+The installer detects OS/architecture, downloads the matching GitHub Release
+archive, verifies `SHA256SUMS`, installs to `$HOME/.local/bin` by default, and
+prints `fbt version`. `make verify` now includes `install-script-smoke`, which
+tests the installer against a local file:// release archive.
+
 ## Verification
 
 Required gate before calling work done:
@@ -568,9 +575,9 @@ make verify
 ```
 
 This runs harness, drift, docs validation, release version drift checks, Go
-formatting/tests, CLI smoke, knowledge-loop smoke, practical examples smoke,
-docs site build, runner conformance, product conformance, and distribution
-smoke checks.
+formatting/tests, CLI smoke, installer smoke, knowledge-loop smoke, practical
+examples smoke, docs site build, runner conformance, product conformance, and
+distribution smoke checks.
 
 ## Next Steps
 

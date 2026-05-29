@@ -16,7 +16,18 @@ https://github.com/nyuta01/fbt/releases/tag/v0.2.1
 Release assets include darwin, linux, and windows CLI archives for amd64 and
 arm64, plus `SHA256SUMS` and `version.json`.
 
-Install flow:
+Install with the script:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh
+fbt version
+```
+
+The installer detects macOS, Linux, or Windows Git Bash, downloads the matching
+archive, verifies `SHA256SUMS`, and installs to `$HOME/.local/bin` by default.
+Use `--version v0.2.1` or `--dir DIR` to pin a version or directory.
+
+Manual install flow:
 
 ```sh
 # Download the archive for your OS/arch plus SHA256SUMS from the release page.

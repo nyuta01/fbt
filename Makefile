@@ -126,6 +126,10 @@ build: ## Build the fbt CLI into bin/fbt.
 cli-smoke: ## Run a deterministic fbt CLI smoke.
 	@bash scripts/smoke-cli.sh
 
+.PHONY: install-script-smoke
+install-script-smoke: ## Verify the release installer against a local archive.
+	@bash scripts/smoke-install-script.sh
+
 .PHONY: e2e-smoke
 e2e-smoke: ## Run the local knowledge-loop smoke.
 	@bash scripts/smoke-knowledge-loop.sh
@@ -187,5 +191,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check release-version-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check release-version-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke install-script-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"
