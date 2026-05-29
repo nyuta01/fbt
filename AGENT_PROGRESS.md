@@ -624,6 +624,12 @@ and `target/ops/runs/<run-id>` together under `target/ops/archives/<run-id>/`.
 The archive manifest states restore expectations and no-prune safety flags, and
 `daily-ops-smoke` verifies the tar contents.
 
+`FBT-PUBLISH-001` is done. The daily ops wrapper now calls
+`ops/prepare-publish-handoff.sh`, which writes a publish manifest, PR body, and
+notification draft under `target/ops/publish/<run-id>/`. The handoff files make
+review, merge, notification, and knowledge-base publishing explicit external
+workflow steps rather than fbt core behavior.
+
 ## Verification
 
 Required gate before calling work done:
@@ -641,7 +647,7 @@ conformance, product conformance, and distribution smoke checks.
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-PUBLISH-001`, `FBT-SEC-003`, and `FBT-CI-001`.
+   `FBT-SEC-003` and `FBT-CI-001`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

@@ -53,6 +53,17 @@ publisher, Marquez/OpenMetadata-compatible lineage ingestion, or an
 OTLP-compatible observability backend. fbt still does not schedule, approve, or
 publish the artifacts.
 
+The daily wrapper prepares external publishing handoff files under:
+
+```text
+target/ops/publish/<run-id>/publish-manifest.json
+target/ops/publish/<run-id>/pr-body.md
+target/ops/publish/<run-id>/notification.md
+```
+
+These files are inputs to your Git, PR, notification, and knowledge-base
+workflow. They are not an fbt approval or publishing mechanism.
+
 ## Example Shape
 
 `examples/daily_qa_ops` models a support knowledge workflow:

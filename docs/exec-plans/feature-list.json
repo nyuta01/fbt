@@ -4404,19 +4404,30 @@
       "id": "FBT-PUBLISH-001",
       "title": "Add external approval publishing and notification workflow",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-PUBLISH-001-plan.md",
       "paths": [
         "examples/daily_qa_ops/ops/",
         "docs/examples/daily-source-operations.md",
-        "apps/docs/"
+        "apps/docs/",
+        "scripts/smoke-daily-ops.sh",
+        "docs/exec-plans/active/FBT-PUBLISH-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Provide copyable Git/PR, publish-script, and notification examples that consume fbt artifacts, diffs, and run bundles while keeping human review and publishing outside fbt core."
+      "verification": {
+        "publish_manifest": true,
+        "pr_body_draft": true,
+        "notification_draft": true,
+        "daily_ops_smoke": true,
+        "make_verify": true
+      },
+      "notes": "The daily ops wrapper now prepares a publish manifest, PR body, and notification draft under `target/ops/publish/<run-id>/`, while docs and smoke coverage keep approval, merge, notification, and knowledge-base publishing outside fbt core."
     },
     {
       "id": "FBT-SEC-003",

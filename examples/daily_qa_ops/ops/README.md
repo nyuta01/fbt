@@ -60,6 +60,21 @@ run `fbt artifact explain`, `fbt diff`, `fbt export openlineage`, or
 artifacts or external storage; fbt still does not delete historical versions
 automatically.
 
+## Approval, Publishing, And Notification
+
+`ops/prepare-publish-handoff.sh` creates files for external workflows:
+
+```text
+target/ops/publish/<run-id>/publish-manifest.json
+target/ops/publish/<run-id>/pr-body.md
+target/ops/publish/<run-id>/notification.md
+```
+
+Use those files from GitHub Actions, GitLab CI, Slack automation, or a
+knowledge-base publisher. fbt does not merge the PR, approve the content, send
+the notification, or publish the manual; it only prepares generated artifacts
+and evidence.
+
 ## Quality Gates
 
 `ops/check-quality-gates.py` is a production-shaped CI check, not fbt core
