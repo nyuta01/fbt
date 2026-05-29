@@ -3351,6 +3351,186 @@
       "notes": "Runner, OpenAI adapter, authoring contract, lineage, standard export, visualization, and project-config docs now include runnable commands, minimal YAML snippets, conformance output, doctor diagnostics, export summaries, and concrete file pointers."
     },
     {
+      "id": "FBT-UX-015",
+      "title": "Make the first own-files success path self-service",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-012",
+        "FBT-DOCS-UX-013"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-UX-015-plan.md",
+      "paths": [
+        "README.md",
+        "apps/docs/src/content/docs/get-started/quickstart.mdx",
+        "apps/docs/src/content/docs/get-started/manual-generation.mdx",
+        "examples/",
+        "scripts/",
+        "docs/exec-plans/active/FBT-UX-015-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "first_user_own_files_docs_scan": false,
+        "own_files_template_or_example_smoke": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "A first-time user should be able to replace the sample sources with their own directory, configure sources/instructions/runner, build one artifact, and inspect the receipt without inferring hidden context from examples."
+    },
+    {
+      "id": "FBT-RUNNER-026",
+      "title": "Harden official adapter install and live verification UX",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-025",
+        "FBT-DOCS-UX-013"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-026-plan.md",
+      "paths": [
+        "adapters/",
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "apps/docs/src/content/docs/runners/external-runners.mdx",
+        "apps/docs/src/content/docs/runners/openai-runner.mdx",
+        "Makefile",
+        "scripts/",
+        "docs/exec-plans/active/FBT-RUNNER-026-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "official_adapter_install_docs_scan": false,
+        "adapter_install_smoke": false,
+        "opt_in_live_adapter_smoke_documented": false,
+        "make_verify": false
+      },
+      "notes": "The runner boundary is correct, but fbt's real usefulness depends on official adapters feeling installable, versioned, diagnosable, and live-verifiable without making core provider-dependent."
+    },
+    {
+      "id": "FBT-OPS-001",
+      "title": "Document daily high-volume source operations patterns",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-UX-015",
+        "FBT-STATE-002"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-OPS-001-plan.md",
+      "paths": [
+        "README.md",
+        "docs/examples/",
+        "examples/",
+        "apps/docs/src/content/docs/get-started/",
+        "docs/exec-plans/active/FBT-OPS-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "daily_ops_docs_scan": false,
+        "high_volume_example_smoke": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "Show how to combine simple source directory conventions, selectors, external schedulers, and artifact partitioning for daily growing sources without adding a scheduler, metadata DB, or ingestion service to fbt core."
+    },
+    {
+      "id": "FBT-EVAL-001",
+      "title": "Add external semantic and evidence-quality check examples",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-012"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-EVAL-001-plan.md",
+      "paths": [
+        "examples/",
+        "docs/examples/",
+        "apps/docs/src/content/docs/",
+        "docs/spec.md",
+        "docs/exec-plans/active/FBT-EVAL-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "external_quality_check_example_smoke": false,
+        "semantic_eval_boundary_docs_scan": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "Deterministic section checks are not enough to convince real users that a generated manual is correct. Add examples that compose fbt with external semantic, grounding, or evidence-coverage checks while keeping judge/model logic outside core."
+    },
+    {
+      "id": "FBT-REL-004",
+      "title": "Simplify end-user install path for core and adapters",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-003",
+        "FBT-RUNNER-026"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-REL-004-plan.md",
+      "paths": [
+        "README.md",
+        "docs/release.md",
+        "apps/docs/src/content/docs/get-started/installation.mdx",
+        "apps/docs/src/content/docs/reference/release.mdx",
+        "Makefile",
+        "scripts/",
+        "docs/exec-plans/active/FBT-REL-004-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "install_docs_scan": false,
+        "dist_check": false,
+        "adapter_install_smoke": false,
+        "make_verify": false
+      },
+      "notes": "The v0.1.0 release artifacts exist, but the end-user install path should be simpler across core and official adapters, with copy-paste install commands, checksum guidance, and clear versioning expectations."
+    },
+    {
+      "id": "FBT-STATE-003",
+      "title": "Validate retention guidance with a high-volume fixture",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-STATE-002",
+        "FBT-OPS-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-STATE-003-plan.md",
+      "paths": [
+        "internal/state/",
+        "internal/cli/",
+        "scripts/",
+        "docs/",
+        "apps/docs/src/content/docs/",
+        "docs/exec-plans/active/FBT-STATE-003-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "high_volume_retention_fixture": false,
+        "artifact_retention_docs_scan": false,
+        "go_test_state_cli": false,
+        "make_verify": false
+      },
+      "notes": "The read-only retention command exists, but long-running daily projects need fixture-backed guidance showing growth, archive boundaries, and safe inspection behavior under many sources/artifact versions."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

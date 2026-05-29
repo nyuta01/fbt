@@ -101,6 +101,16 @@ standard export, visualization, and project-config docs now include runnable
 commands, minimal YAML snippets, expected conformance/doctor/export output,
 and concrete example file pointers.
 
+The latest product/UX review added six follow-up tasks without expanding fbt's
+core scope:
+
+- `FBT-UX-015`: make the first own-files success path self-service.
+- `FBT-RUNNER-026`: harden official adapter install and live verification UX.
+- `FBT-OPS-001`: document daily high-volume source operations patterns.
+- `FBT-EVAL-001`: add external semantic/evidence-quality check examples.
+- `FBT-REL-004`: simplify end-user install path for core and adapters.
+- `FBT-STATE-003`: validate retention guidance with a high-volume fixture.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
