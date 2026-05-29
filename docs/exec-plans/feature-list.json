@@ -3262,6 +3262,95 @@
       "notes": "The protocol client now captures bounded redacted stderr and exit status for startup and protocol-call failures. Build receipts and CLI errors include safe diagnostics and a runner setup hint without leaking configured runner env values."
     },
     {
+      "id": "FBT-DOCS-DRIFT-002",
+      "title": "Remove stale review-gates language from docs site assets",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-DRIFT-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-DRIFT-002-plan.md",
+      "paths": [
+        "apps/docs/public/og-image.svg",
+        "apps/docs/src/assets/logo-light.svg",
+        "apps/docs/src/assets/logo-dark.svg",
+        "scripts/harness_drift.py",
+        "docs/agent-failures.md",
+        "docs/exec-plans/active/FBT-DOCS-DRIFT-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "stale_review_language_scan": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "The public docs OG image still says `review gates` even though review was removed from core. Remove stale boundary language from docs assets and add a deterministic guard so public docs assets cannot reintroduce current-state review/approval claims."
+    },
+    {
+      "id": "FBT-DOCS-UX-012",
+      "title": "Make manual-generation docs show concrete source-to-artifact evidence",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-011"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-012-plan.md",
+      "paths": [
+        "apps/docs/src/content/docs/get-started/manual-generation.mdx",
+        "examples/incident_response_runbook/README.md",
+        "examples/support_resolution_manual/README.md",
+        "docs/examples/practical-manual-generation-examples.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-012-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "manual_docs_source_instruction_runner_artifact_scan": false,
+        "practical_examples_smoke": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "Manual-generation docs and practical example READMEs should be as concrete as README: show representative source contents, the format/prompt assets, the configured runner, the generated artifact path, an artifact excerpt, and the inspection commands/results that prove lineage."
+    },
+    {
+      "id": "FBT-DOCS-UX-013",
+      "title": "Strengthen runner and standards docs with runnable examples",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-DOCS-UX-011",
+        "FBT-RUNNER-025"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-DOCS-UX-013-plan.md",
+      "paths": [
+        "apps/docs/src/content/docs/runners/external-runners.mdx",
+        "apps/docs/src/content/docs/runners/openai-runner.mdx",
+        "apps/docs/src/content/docs/runners/authoring-contract.mdx",
+        "apps/docs/src/content/docs/standards/lineage-model.mdx",
+        "apps/docs/src/content/docs/reference/project-config.mdx",
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "docs/standard-visualization-guide.md",
+        "docs/exec-plans/active/FBT-DOCS-UX-013-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "runner_docs_command_examples_scan": false,
+        "standard_export_docs_output_examples_scan": false,
+        "docs_site_build": false,
+        "make_verify": false
+      },
+      "notes": "Several docs-site pages are accurate but thin. Add runnable command examples, minimal config snippets, expected output excerpts, and pointers to concrete files so users can understand external runners, lineage exports, and project config without jumping back to README."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

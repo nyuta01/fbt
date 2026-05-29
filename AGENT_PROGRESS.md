@@ -79,6 +79,13 @@ handling (`FBT-RUNNER-023`) are done. Visible CLI-agent staged-input truncation
 failures (`FBT-RUNNER-024`) and bounded stderr/exit diagnostics for runner
 protocol failures (`FBT-RUNNER-025`) are also done.
 
+The latest documentation review found that README is stronger than the docs
+site in concrete source-to-artifact evidence, and that the public OG image still
+contains stale `review gates` language. The new docs backlog is
+`FBT-DOCS-DRIFT-002` for stale public asset language, `FBT-DOCS-UX-012` for
+manual-generation example concreteness, and `FBT-DOCS-UX-013` for runnable
+runner/standards/reference docs examples.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

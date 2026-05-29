@@ -332,6 +332,25 @@ drift check now rejects the exact current-state phrases that said core owns
 approval state, implied a docs-generation package, or listed removed top-level
 CLI commands, while allowing clearly historical exec-plan and failure-log notes.
 
+## F-017 Public docs asset kept stale review-gates language
+
+- **Status**: `observing`
+- **Task**: `FBT-DOCS-DRIFT-002`
+- **Plan**: `docs/exec-plans/active/FBT-DOCS-DRIFT-002-plan.md`
+
+### Observation
+
+After review removal and stale docs cleanup, the text docs largely describe the
+current boundary correctly, but `apps/docs/public/og-image.svg` still contains
+`review gates`. Public docs assets need the same stale-boundary discipline as
+Markdown specs and README.
+
+### Permanent fix
+
+Pending. `FBT-DOCS-DRIFT-002` should remove the stale asset language and extend
+the drift check so public docs assets cannot reintroduce current-state review or
+approval claims.
+
 ## Entry Template
 
 ```markdown
