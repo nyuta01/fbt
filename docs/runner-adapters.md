@@ -48,6 +48,10 @@ CLI dependencies. Future SDKs such as `sdk/python` or `sdk/typescript` are
 possible because the protocol is language-neutral JSON-RPC over stdio, but the
 protocol spec and conformance suite remain the source of truth.
 
+`adapters/command` is the first official nested adapter module. It executes a
+declared command transform argv and reports files written under `work.outputs`
+as output candidates.
+
 ## 2. Minimal Scaffold
 
 Adapter is the authoring/package word for a runner command plus its dependency

@@ -2,12 +2,12 @@
 set -eu
 
 if [ -n "${FBT_SOURCE_ROOT:-}" ]; then
-  runner_dir="$FBT_SOURCE_ROOT/examples/runner_adapters/command"
+  runner_dir="$FBT_SOURCE_ROOT"
 else
   script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-  runner_dir="$script_dir/../../../examples/runner_adapters/command"
+  runner_dir="$script_dir/../../.."
 fi
 
 export FBT_COMMAND_WORKDIR="${FBT_COMMAND_WORKDIR:-$PWD}"
 cd "$runner_dir"
-exec go run .
+exec go run ./adapters/command/cmd/fbt-runner-command

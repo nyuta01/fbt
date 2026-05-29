@@ -278,6 +278,12 @@ helpers, and redaction helpers. `go.work` includes the root module and
 `sdk/go`, and `make verify` runs `sdk-go-test` in addition to the root Go
 tests.
 
+`FBT-RUNNER-016` is done. The command runner now lives under
+`adapters/command` as an official nested module with its own `go.mod`,
+`fbt_plugin.yml`, README, SDK-based protocol handling, tests, and conformance
+target. `examples/markdown_toolchain` and `examples/data_tool_interop` wrappers
+now execute `go run ./adapters/command/cmd/fbt-runner-command`.
+
 ## Verification
 
 Required gate before calling work done:

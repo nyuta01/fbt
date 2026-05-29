@@ -1,0 +1,9 @@
+name: fbt-runner-command
+version: 0.1.0
+protocol: stdio_jsonrpc
+command: fbt-runner-command
+provides:
+  - runner: command.local
+    type: command
+    transform_types: ["command"]
+    artifact_types: ["text", "markdown", "markdown_directory", "directory", "pdf"]
