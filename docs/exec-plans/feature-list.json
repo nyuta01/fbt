@@ -3040,6 +3040,31 @@
       "notes": "Live adapter testing fixed conformance fixture model forwarding, added bounded CLI output in errors, and corrected Claude Code prompt handling so real CLI failures are actionable."
     },
     {
+      "id": "FBT-RUNNER-020",
+      "title": "Fix OpenAI live conformance model handling",
+      "priority": "P0",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-017"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-020-plan.md",
+      "paths": [
+        "adapters/openai/internal/openaiadapter/adapter.go",
+        "docs/exec-plans/active/FBT-RUNNER-020-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "openai_live_conformance": true,
+        "openai_live_example_build": true,
+        "adapter_openai_test": true,
+        "runner_conformance": true,
+        "make_verify": true
+      },
+      "notes": "OpenAI adapter no longer forwards conformance fixture model names to the real Responses API. Live OpenAI conformance and a temporary incident runbook build passed with a real API key."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

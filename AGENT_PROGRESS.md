@@ -305,6 +305,14 @@ longer uses variadic flags that consume the prompt. Live Codex conformance
 passes with the installed CLI and saved authentication; live Claude Code now
 reaches authentication and reports that the local CLI is not logged in.
 
+`FBT-RUNNER-020` is done after OpenAI live testing. The OpenAI adapter no
+longer forwards conformance fixture model names to the real Responses API; it
+falls back to `FBT_OPENAI_DEFAULT_MODEL` or `gpt-5`. Live OpenAI adapter
+conformance passed with a real API key, and a temporary copy of
+`examples/incident_response_runbook` completed `doctor -> plan -> build ->
+artifact show` against the real OpenAI adapter, committing
+`incident_response_runbook@sha256:4bda5ab434cb`.
+
 ## Verification
 
 Required gate before calling work done:

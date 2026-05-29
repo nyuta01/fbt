@@ -123,7 +123,7 @@ func runOpenAI(ctx context.Context, req protocol.Request, writer *stdiojsonrpc.W
 	if len(declaredOutputs) == 0 {
 		declaredOutputs = []protocol.DeclaredOutput{{Name: "output", ArtifactType: "markdown"}}
 	}
-	model := stringValue(params.Model, "name", "gpt-5")
+	model := runnableModel(params.Model)
 	provider := stringValue(params.Model, "provider", "openai")
 	if params.Mode == "plan" || params.Mode == "dry_run" {
 		return protocol.RunTransformResult{
@@ -478,6 +478,21 @@ func stringValue(values map[string]any, key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func runnableModel(values map[string]any) string {
+	fallback := os.Getenv("FBT_OPENAI_DEFAULT_MODEL")
+	if fallback == "" {
+		fallback = "gpt-5"
+	}
+	if stringField(values, "provider") == "conformance" {
+		return fallback
+	}
+	model := stringField(values, "name")
+	if model == "" || model == "fixture" {
+		return fallback
+	}
+	return model
 }
 
 func stringSlice(value any) []string {
