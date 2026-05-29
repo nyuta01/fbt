@@ -4464,22 +4464,34 @@
       "id": "FBT-CI-001",
       "title": "Define authoritative CI builder and reproducibility handoff",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-LOCK-001",
         "FBT-REL-008",
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-CI-001-plan.md",
       "paths": [
         "examples/daily_qa_ops/ops/",
         ".github/workflows/",
         "docs/examples/daily-source-operations.md",
-        "docs/release.md"
+        "docs/release.md",
+        "scripts/check-ci-authoritative-builder.py",
+        "Makefile",
+        "docs/exec-plans/active/FBT-CI-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Make the recommended team operation explicit: developers use local plan/build for iteration, CI is the authoritative builder, runner versions are pinned, and run bundles plus exports are archived for later explanation."
+      "verification": {
+        "ci_workflow_updated": true,
+        "version_pinning_documented": true,
+        "run_bundle_upload_documented": true,
+        "ci_authority_check": true,
+        "make_verify": true
+      },
+      "notes": "The copyable daily GitHub Actions workflow now pins fbt, validates the source window, runs the daily wrapper with a CI security profile, and uploads latest, run, archive, and publish handoff evidence. Docs state that developers iterate locally while CI owns the official production receipt."
     },
     {
       "id": "FBT-PDCA-001",

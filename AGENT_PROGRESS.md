@@ -637,6 +637,13 @@ profile remains a CI/container/host/adapter responsibility; fbt core still does
 not manage OS sandboxing. `daily-ops-smoke` uses a synthetic secret marker to
 verify handoff files do not leak it.
 
+`FBT-CI-001` is done. The copyable daily GitHub Actions workflow now pins the
+fbt version, validates the source window, runs the daily wrapper with
+`FBT_SECURITY_PROFILE=ci-sandbox`, and uploads latest, run, archive, and publish
+handoff evidence. Daily operations and release docs now state that developers
+iterate locally, while CI is the authoritative production builder. `make verify`
+includes `ci-authority-check`.
+
 ## Verification
 
 Required gate before calling work done:
@@ -653,8 +660,8 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-CI-001`.
+1. No production hardening todo tasks remain in `feature-list.json`; continue
+   future work from new user findings or post-MVP tasks.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in

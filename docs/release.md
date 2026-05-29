@@ -215,6 +215,29 @@ make runner-adapter-smoke
 Only use the live build check when you intend to call the real provider or
 agent and create a temporary artifact.
 
+## Authoritative CI Builder
+
+Production teams should pin the core CLI and adapter versions in CI rather than
+letting local developer machines become the source of truth.
+
+Install a pinned core CLI:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/nyuta01/fbt/main/install.sh | sh -s -- --version v0.2.1
+```
+
+Install adapter versions from approved module tags, for example:
+
+```sh
+go install github.com/nyuta01/fbt/adapters/openai/cmd/fbt-runner-openai@adapters/openai/v0.1.0
+```
+
+The CI job should run the fbt production wrapper, upload the run bundle, and
+store `.fbt/state`, `.fbt/artifacts`, standard exports, quality gates, security
+profile output, and publish handoff files together. Local developers can still
+run `plan`, `build`, and `artifact explain`, but CI owns the official
+production receipt.
+
 ## Compatibility Contract
 
 The compatibility boundary is the fbt runner protocol. A release should state:

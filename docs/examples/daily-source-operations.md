@@ -64,6 +64,31 @@ target/ops/publish/<run-id>/notification.md
 These files are inputs to your Git, PR, notification, and knowledge-base
 workflow. They are not an fbt approval or publishing mechanism.
 
+## Authoritative CI Builder
+
+For team operation, developers use local `fbt doctor`, `fbt plan`, and small
+`fbt build` runs to iterate. CI is the authoritative builder for production
+artifacts.
+
+Use the copyable workflow at:
+
+```text
+examples/daily_qa_ops/ops/github-actions-daily-fbt.yml
+```
+
+The important CI rules are:
+
+- pin the fbt version with `install.sh --version`
+- pin adapter versions or install them from approved module tags
+- run source-window validation before `build`
+- set `FBT_SECURITY_PROFILE=ci-sandbox`
+- upload `target/ops/latest/`, `target/ops/runs/<run-id>/`,
+  `target/ops/archives/<run-id>/`, and `target/ops/publish/<run-id>/`
+- run publish, PR, and notification steps only after the fbt run bundle exists
+
+This gives the team one authoritative artifact receipt while still allowing
+local preview and debugging.
+
 ## Example Shape
 
 `examples/daily_qa_ops` models a support knowledge workflow:
