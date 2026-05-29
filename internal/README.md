@@ -7,9 +7,10 @@ parser baseline, manifest resource generation, selector helpers, artifact
 descriptor computation, reusable path-safety helpers, and a local filesystem
 state store. The templates package scaffolds local project examples. The
 planner baseline can compare manifests and state snapshots to classify
-transforms as run, skip, or blocked. The CLI now exposes init, parse, plan,
-build, eval, state, artifact, and runner diagnostics. The protocol
-package can start JSON-RPC stdio runners and collect events/output candidates.
+transforms as run, skip, or blocked. The public CLI exposes the small project
+loop: init, doctor, plan, build, artifact inspection, diff, and standard
+exports. The runner and protocol packages discover external runner commands,
+start JSON-RPC stdio runners, and collect events/output candidates.
 Local fake and command runners live outside `internal/` under `runners/`,
 alongside deterministic demo LLM/agent examples and the optional OpenAI
 Responses external runner. The build package wires the current
@@ -23,18 +24,25 @@ Package boundaries:
 |---|---|
 | `project` | Project discovery, `fs_project.yml`, path defaults |
 | `config` | YAML decoding, validation, defaults, config versioning |
+| `parser` | Resource-file parsing and diagnostics |
 | `manifest` | Parsed graph resources and manifest serialization |
 | `graph` | Dependency graph, selectors, parent and child maps |
 | `planner` | Dirty-state comparison and build plan generation |
+| `build` | Runner execution, evals, policy checks, and official commits |
 | `state` | Local state store, locks, run results, artifact versions |
 | `templates` | Local project scaffolds for `fbt init` |
 | `artifact` | Descriptor computation, artifact versions, commit boundary |
 | `runner` | Runner discovery, process lifecycle, protocol client |
 | `eval` | Deterministic and delegated eval orchestration |
+| `policy` | Policy decisions and write-scope checks |
+| `security` | Path containment and symlink safety helpers |
 | `diff` | Raw text and Markdown heading-aware artifact diffs |
-| `docs` | Static lineage documentation generation |
+| `lineage` | OpenLineage export construction |
+| `telemetry` | OTLP/JSON export construction |
 | `plugin` | Runner/plugin manifest handling, not in-process execution |
 | `protocol` | JSON-RPC message types and compatibility checks |
+| `cli` | Cobra command wiring and user-facing output |
+| `version` | Build and release version metadata |
 
 Do not place LLM provider clients, document converters, OCR engines, or agent
 runtimes in core packages. Those belong to external runners.

@@ -122,6 +122,45 @@ def validate_failure_log(tasks: list[dict]) -> None:
             fail(f"{failure_id}: fixed failures must describe the permanent fix")
 
 
+def validate_core_boundary_drift() -> None:
+    """Reject stale current-state claims that made fbt look broader than core."""
+    exact_forbidden = [
+        (
+            "docs/runner-protocol-spec.md",
+            "- Approval state",
+            "human approval state is outside fbt core",
+        ),
+        (
+            "docs/runner-protocol-spec.md",
+            "- Docs and lineage",
+            "core owns lineage metadata, not a docs-generation surface",
+        ),
+        (
+            "internal/README.md",
+            "| `docs` | Static lineage documentation generation |",
+            "there is no internal docs-generation package in the current core",
+        ),
+    ]
+    normalized_forbidden = [
+        (
+            "internal/README.md",
+            "The CLI now exposes init, parse, plan, build, eval, state, artifact, and runner diagnostics.",
+            "public CLI commands are init, doctor, plan, build, artifact, diff, export, version, and help",
+        )
+    ]
+
+    for relative, phrase, hint in exact_forbidden:
+        if exists(relative) and phrase in read_text(relative):
+            fail(f"{relative}: stale core-boundary phrase {phrase!r}; {hint}")
+
+    for relative, phrase, hint in normalized_forbidden:
+        if not exists(relative):
+            continue
+        text = re.sub(r"\s+", " ", read_text(relative))
+        if phrase in text:
+            fail(f"{relative}: stale core-boundary phrase {phrase!r}; {hint}")
+
+
 try:
     feature_list = json.loads(read_text("docs/exec-plans/feature-list.json"))
 except FileNotFoundError:
@@ -175,6 +214,8 @@ if isinstance(feature_list.get("tasks"), list):
     validate_quality_score(tasks)
     validate_failure_log(tasks)
 
+validate_core_boundary_drift()
+
 if errors:
     print("drift-check: errors found", file=sys.stderr)
     for error in errors:
@@ -182,4 +223,3 @@ if errors:
     sys.exit(1)
 
 print("drift-check: ok")
-

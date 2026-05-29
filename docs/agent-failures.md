@@ -313,7 +313,7 @@ checks now assert that pruned commands are unknown.
 
 ## F-016 Stale core-boundary docs survived cleanup
 
-- **Status**: `observing`
+- **Status**: `fixed`
 - **Task**: `FBT-DOCS-DRIFT-001`
 - **Plan**: `docs/exec-plans/active/FBT-DOCS-DRIFT-001-plan.md`
 
@@ -327,9 +327,10 @@ class of drift that previously made fbt look broader than its Unix-style core.
 
 ### Permanent fix
 
-Pending in `FBT-DOCS-DRIFT-001`: clean the stale references and add a targeted
-drift guard for removed core concepts where possible, while allowing clearly
-historical exec-plan and failure-log notes.
+The stale runner-protocol and internal README references were corrected. The
+drift check now rejects the exact current-state phrases that said core owns
+approval state, implied a docs-generation package, or listed removed top-level
+CLI commands, while allowing clearly historical exec-plan and failure-log notes.
 
 ## Entry Template
 

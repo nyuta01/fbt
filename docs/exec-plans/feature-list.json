@@ -2480,7 +2480,7 @@
       "id": "FBT-DOCS-DRIFT-001",
       "title": "Remove stale core-boundary references",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-UNIX-014",
@@ -2495,9 +2495,9 @@
         "scripts"
       ],
       "verification": {
-        "validate_docs": false,
-        "drift_check": false,
-        "make_verify": false
+        "validate_docs": true,
+        "drift_check": true,
+        "make_verify": true
       },
       "notes": "Audit current-state docs for stale claims such as core-owned approval state, removed CLI commands, docs generation, or internal debug surfaces. Add a deterministic grep guard for the non-core terms where possible."
     },

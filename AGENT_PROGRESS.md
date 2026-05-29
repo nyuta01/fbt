@@ -71,7 +71,7 @@ build-tool reliability: one-invocation dependency-ordered builds
 (`FBT-BUILD-001`, now done), failed-run receipts (`FBT-BUILD-002`, now done),
 inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 (`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`, now
-done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
+done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform
@@ -110,6 +110,12 @@ requires redacted protocol messages, a staging workspace under `work.root` but
 outside `work.outputs`, and fail-closed policy mapping. The copyable runner
 adapter scaffold emits those markers and `make verify` runs it through the
 strict agent-adapter profile.
+
+`FBT-DOCS-DRIFT-001` removed stale current-state docs that made fbt look broader
+than its core. The runner protocol no longer says core owns approval state or a
+docs-generation surface, `internal/README.md` lists the current public CLI and
+actual internal packages, and `scripts/harness_drift.py` rejects those exact
+stale phrases if they reappear outside historical notes.
 
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
@@ -153,9 +159,10 @@ endpoint. Docs should use screenshots captured from real standard backends, not
 custom fbt diagrams.
 
 Specs and active plans have been cleaned up so current-state docs use
-artifact inspection, confidence/upstream blocking, docs-site build, and
-OpenLineage/OTel export language. Remaining review/approval command references
-are explicit outside-core or superseded historical notes.
+artifact inspection, confidence/upstream blocking, docs-site build,
+OpenLineage/OTel export language, and the current public CLI surface. Remaining
+review/approval command references are explicit outside-core or superseded
+historical notes.
 
 The checked-in examples cover:
 
@@ -196,12 +203,11 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Remove stale current-state docs references through `FBT-DOCS-DRIFT-001`.
-2. Add opt-in real runner adapter smoke coverage through `FBT-RUNNER-009`.
-3. Define local state/artifact retention hygiene through `FBT-STATE-002`.
-4. Add opt-in standard backend visualization verification through
+1. Add opt-in real runner adapter smoke coverage through `FBT-RUNNER-009`.
+2. Define local state/artifact retention hygiene through `FBT-STATE-002`.
+3. Add opt-in standard backend visualization verification through
    `FBT-STD-007`.
-5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

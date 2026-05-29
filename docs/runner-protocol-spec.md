@@ -43,8 +43,7 @@ Core owns:
 - State
 - Artifact descriptors and digests
 - Official commit
-- Approval state
-- Docs and lineage
+- Artifact lineage metadata and standard export inputs
 - Runner invocation lifecycle
 
 Runner owns:
