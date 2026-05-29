@@ -3,7 +3,7 @@
 This log records repeated or high-risk agent failure modes. Use it to turn
 mistakes into deterministic guardrails.
 
-Last reviewed: 2026-05-29.
+Last reviewed: 2026-05-30.
 
 No failures are currently active.
 
@@ -351,6 +351,28 @@ The OG image wording now matches the current product boundary. The drift check
 scans public docs assets and docs source assets for stale current-state review
 or approval phrases such as `review gates`, `approval facets`, `approval
 state`, `human_review`, and `fbt review`.
+
+## F-018 Release published before clean-checkout tag gate
+
+- **Status**: `fixed`
+- **Task**: `FBT-REL-007`
+- **Plan**: `docs/exec-plans/active/FBT-REL-007-plan.md`
+
+### Observation
+
+The initial `v0.2.0` release was published before the tag CI failure was fully
+handled. The failure came from an ignored dbt example fixture that existed in
+the local worktree but not in a clean checkout. `v0.2.1` fixed the fixture and
+superseded the release, but the process still allowed manual publication before
+the tagged commit's release gate was complete.
+
+### Permanent fix
+
+Core releases now use a tag-triggered release workflow that runs
+`scripts/release-preflight.sh --allow-existing-tag`, executes `make verify`,
+builds archives, verifies `SHA256SUMS`, and only then creates the GitHub
+Release. `verify.yml` no longer duplicates tag CI; tag publication is owned by
+the release workflow.
 
 ## Entry Template
 

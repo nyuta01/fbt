@@ -551,6 +551,14 @@ signed-release-ready darwin/linux/windows amd64/arm64 archives, `version.json`,
 and `SHA256SUMS` under `dist/release/v0.2.1`. This is a core CLI release only;
 official adapters remain separately installed Go modules.
 
+`FBT-REL-007` is done. Core releases now have a version drift guard,
+`make release-preflight`, and `.github/workflows/release-core.yml`. The
+maintainer path is: update the release candidate commit, run the local
+preflight, create a signed annotated root `vX.Y.Z` tag, and push it. The tag
+workflow runs `make verify`, builds release archives, verifies `SHA256SUMS`,
+and creates the GitHub Release with generated notes. GitHub artifact
+attestations are intentionally not part of the required release baseline.
+
 ## Verification
 
 Required gate before calling work done:
@@ -559,9 +567,10 @@ Required gate before calling work done:
 make verify
 ```
 
-This runs harness, drift, docs validation, Go formatting/tests, CLI smoke,
-knowledge-loop smoke, practical examples smoke, docs site build, runner
-conformance, product conformance, and distribution smoke checks.
+This runs harness, drift, docs validation, release version drift checks, Go
+formatting/tests, CLI smoke, knowledge-loop smoke, practical examples smoke,
+docs site build, runner conformance, product conformance, and distribution
+smoke checks.
 
 ## Next Steps
 

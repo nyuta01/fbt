@@ -11,7 +11,7 @@ https://github.com/nyuta01/fbt/releases/tag/v0.2.1
 ```
 
 Release assets include darwin, linux, and windows CLI archives for amd64 and
-arm64, plus `SHA256SUMS`.
+arm64, plus `SHA256SUMS` and `version.json`.
 
 ## Verify a download
 
@@ -27,6 +27,27 @@ git tag -v v0.2.1
 ```
 
 The release tag is signed with Git SSH signing.
+
+## Maintainer release flow
+
+Core releases are tag-driven. Prepare a candidate commit, run the local
+preflight, create a signed tag, then push the tag:
+
+```sh
+make release-version-check VERSION=X.Y.Z
+make release-preflight RELEASE_TAG=vX.Y.Z
+git tag -s vX.Y.Z -m "fbt vX.Y.Z"
+git push origin main
+git push origin vX.Y.Z
+```
+
+Pushing a root `vX.Y.Z` tag runs `.github/workflows/release-core.yml`. The
+workflow runs `scripts/release-preflight.sh --allow-existing-tag`, executes
+`make verify`, builds archives with `scripts/release-core-cli.sh`, verifies
+`SHA256SUMS`, and publishes the GitHub Release with generated notes.
+
+Artifact attestations are not required for the current release baseline. The
+required path is signed tag plus checksummed release assets.
 
 ## Adapter versioning
 

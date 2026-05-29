@@ -11,6 +11,7 @@ GO ?= go
 GOFMT ?= gofmt
 PYTHON ?= python3
 VERSION ?= 0.2.1
+RELEASE_TAG ?= v$(VERSION)
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 FBT_LDFLAGS := -X github.com/nyuta01/fbt/internal/version.Version=$(VERSION) -X github.com/nyuta01/fbt/internal/version.Commit=$(COMMIT) -X github.com/nyuta01/fbt/internal/version.BuildDate=$(BUILD_DATE)
@@ -53,6 +54,14 @@ security-profiles-check: ## Verify external OS sandbox profile docs.
 .PHONY: runner-lockfile-spec-check
 runner-lockfile-spec-check: ## Verify optional runner lockfile spec boundaries.
 	@$(PYTHON) scripts/check-runner-lockfile-spec.py
+
+.PHONY: release-version-check
+release-version-check: ## Verify core release version references and release workflow shape.
+	@$(PYTHON) scripts/check-release-version.py "$(VERSION)"
+
+.PHONY: release-preflight
+release-preflight: ## Verify and build release assets for RELEASE_TAG=vX.Y.Z.
+	@bash scripts/release-preflight.sh "$(RELEASE_TAG)"
 
 .PHONY: fmt
 fmt: ## Format Go source.
@@ -178,5 +187,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs project-config-schema-check adapter-release-plan-check security-profiles-check runner-lockfile-spec-check release-version-check fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

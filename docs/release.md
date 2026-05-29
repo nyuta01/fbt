@@ -14,7 +14,7 @@ https://github.com/nyuta01/fbt/releases/tag/v0.2.1
 ```
 
 Release assets include darwin, linux, and windows CLI archives for amd64 and
-arm64, plus `SHA256SUMS`.
+arm64, plus `SHA256SUMS` and `version.json`.
 
 Install flow:
 
@@ -37,12 +37,53 @@ make build
 ./bin/fbt version
 ```
 
-Maintainer release asset build:
+## Core Release Workflow
+
+Core CLI releases are tag-driven. Maintainers do not manually upload archives
+as the primary path.
+
+Prepare a release candidate commit:
 
 ```sh
-scripts/release-core-cli.sh v0.2.1
-shasum -a 256 -c dist/release/v0.2.1/SHA256SUMS
+make release-version-check VERSION=X.Y.Z
+make release-preflight RELEASE_TAG=vX.Y.Z
+git tag -s vX.Y.Z -m "fbt vX.Y.Z"
+git push origin main
+git push origin vX.Y.Z
 ```
+
+Pushing a root `vX.Y.Z` tag starts `.github/workflows/release-core.yml`. That
+workflow runs the same preflight with the existing tag, runs `make verify`,
+builds release archives through `scripts/release-core-cli.sh`, verifies
+`SHA256SUMS`, and publishes the GitHub Release with generated notes. The
+general `verify` workflow runs on pull requests and `main`; tag verification is
+owned by the release workflow to avoid duplicate tag CI.
+
+The release workflow is intentionally boring:
+
+- signed annotated tag created by the maintainer
+- repository checkout at that exact tag
+- full `make verify`
+- deterministic darwin/linux/windows archives
+- `SHA256SUMS` and `version.json`
+- `gh release create --verify-tag --generate-notes --fail-on-no-commits`
+
+Manual fallback, for maintainers only:
+
+```sh
+scripts/release-preflight.sh --allow-existing-tag vX.Y.Z
+gh release create vX.Y.Z dist/release/vX.Y.Z/* \
+  --repo nyuta01/fbt \
+  --title "fbt vX.Y.Z" \
+  --verify-tag \
+  --generate-notes \
+  --latest \
+  --fail-on-no-commits
+```
+
+Artifact attestations are not part of the required release baseline. If fbt
+adds them later, they should be additive to the signed tag and checksum flow,
+not a replacement for it.
 
 ## Official Adapters
 

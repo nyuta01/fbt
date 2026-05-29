@@ -4091,6 +4091,38 @@
       "notes": "Promoted core CLI source defaults and install docs to v0.2.1, added a deterministic cross-platform release asset builder, tracked the dbt example fixture required by clean checkout CI, and prepared a signed GitHub release with CLI archives, version metadata, and SHA256SUMS. Official adapters remain separately installed Go modules and are not tagged by the core CLI release."
     },
     {
+      "id": "FBT-REL-007",
+      "title": "Standardize core release automation",
+      "priority": "P1",
+      "status": "done",
+      "owner": "agent",
+      "depends": [
+        "FBT-REL-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-REL-007-plan.md",
+      "paths": [
+        ".github/workflows/release-core.yml",
+        ".github/workflows/verify.yml",
+        "Makefile",
+        "scripts/check-release-version.py",
+        "scripts/release-preflight.sh",
+        "docs/release.md",
+        "apps/docs/src/content/docs/reference/release.mdx",
+        "docs/exec-plans/active/FBT-REL-007-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "docs/agent-failures.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "release_version_check": true,
+        "release_preflight_dry_run": true,
+        "tag_release_workflow_added": true,
+        "make_verify": true
+      },
+      "notes": "Added a version-drift release guard, local release preflight, and tag-triggered core release workflow that runs verify, builds archives, verifies SHA256SUMS, and publishes GitHub Releases with generated notes. Tag checks now live in release-core instead of duplicating the general verify workflow."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
