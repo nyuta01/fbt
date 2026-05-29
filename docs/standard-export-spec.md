@@ -67,7 +67,7 @@ Envelope for file-based exports:
 {
   "metadata": {
     "fbt_export_schema_version": "https://schemas.fbt.dev/fbt/standard-export/v1.json",
-    "fbt_version": "0.2.0",
+    "fbt_version": "0.2.1",
     "project_name": "knowledge_ops",
     "format": "openlineage",
     "generated_at": "2026-05-28T10:00:00Z",

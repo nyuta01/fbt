@@ -4072,6 +4072,9 @@
         "docs/release.md",
         "docs/cli-reference.md",
         "docs/schema-and-versioning-spec.md",
+        ".gitignore",
+        "examples/data_tool_interop/data/dbt/target/manifest.json",
+        "examples/data_tool_interop/data/dbt/target/run_results.json",
         "apps/docs/",
         "docs/exec-plans/active/FBT-REL-006-plan.md",
         "docs/exec-plans/feature-list.json",
@@ -4081,10 +4084,11 @@
       "verification": {
         "version_defaults_updated": true,
         "release_docs_updated": true,
+        "clean_checkout_example_fixture": true,
         "release_assets_built": true,
         "make_verify": true
       },
-      "notes": "Promoted core CLI source defaults and install docs to v0.2.0, added a deterministic cross-platform release asset builder, and prepared a signed GitHub release with CLI archives, version metadata, and SHA256SUMS. Official adapters remain separately installed Go modules and are not tagged by the core CLI release."
+      "notes": "Promoted core CLI source defaults and install docs to v0.2.1, added a deterministic cross-platform release asset builder, tracked the dbt example fixture required by clean checkout CI, and prepared a signed GitHub release with CLI archives, version metadata, and SHA256SUMS. Official adapters remain separately installed Go modules and are not tagged by the core CLI release."
     },
     {
       "id": "FBT-PDCA-001",

@@ -544,10 +544,12 @@ semantics, and current-pointer protection without adding a destructive prune
 command.
 
 `FBT-REL-006` is done. Core CLI source defaults, smoke tests, install docs, and
-docs-site release references now target `v0.2.0`. `scripts/release-core-cli.sh`
-builds signed-release-ready darwin/linux/windows amd64/arm64 archives,
-`version.json`, and `SHA256SUMS` under `dist/release/v0.2.0`. This is a core
-CLI release only; official adapters remain separately installed Go modules.
+docs-site release references now target `v0.2.1`. The dbt interop example now
+tracks its minimal `target/` fixture JSON so clean checkout CI can run the same
+practical smoke as local worktrees. `scripts/release-core-cli.sh` builds
+signed-release-ready darwin/linux/windows amd64/arm64 archives, `version.json`,
+and `SHA256SUMS` under `dist/release/v0.2.1`. This is a core CLI release only;
+official adapters remain separately installed Go modules.
 
 ## Verification
 

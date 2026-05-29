@@ -3,7 +3,7 @@ package version
 // These variables are intentionally mutable so release builds can stamp them
 // with -ldflags -X without changing source.
 var (
-	Version   = "0.2.0"
+	Version   = "0.2.1"
 	Commit    = "unknown"
 	BuildDate = "unknown"
 )

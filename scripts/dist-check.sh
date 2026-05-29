@@ -7,7 +7,7 @@ cd "$ROOT_DIR"
 dist_dir="$ROOT_DIR/dist"
 mkdir -p "$dist_dir"
 
-VERSION="${VERSION:-0.2.0}"
+VERSION="${VERSION:-0.2.1}"
 COMMIT="${COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo unknown)}"
 BUILD_DATE="${BUILD_DATE:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 LDFLAGS="-s -w -X github.com/nyuta01/fbt/internal/version.Version=${VERSION} -X github.com/nyuta01/fbt/internal/version.Commit=${COMMIT} -X github.com/nyuta01/fbt/internal/version.BuildDate=${BUILD_DATE}"

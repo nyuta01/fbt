@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "dbt_version": "1.8.0",
+    "generated_at": "2026-05-29T08:00:00Z"
+  },
+  "results": [
+    {
+      "unique_id": "model.ops.daily_revenue",
+      "status": "success",
+      "execution_time": 12.4
+    },
+    {
+      "unique_id": "test.ops.not_null_orders_id",
+      "status": "pass",
+      "execution_time": 0.8
+    }
+  ],
+  "elapsed_time": 13.2
+}

@@ -111,7 +111,7 @@ runner.knowledge_ops.demo.llm
 {
   "metadata": {
     "fbt_schema_version": "https://schemas.fbt.dev/fbt/manifest/v1.json",
-    "fbt_version": "0.2.0",
+    "fbt_version": "0.2.1",
     "project_name": "knowledge_ops",
     "project_id": "sha256:...",
     "generated_at": "2026-05-29T10:00:00Z",
@@ -316,7 +316,7 @@ effective = hash(
   "runner_type": "llm",
   "protocol": "stdio-jsonrpc",
   "command": "fbt-openai-runner",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "capabilities": {
     "transform_types": ["llm"],
     "artifact_types": ["markdown", "markdown_directory"],

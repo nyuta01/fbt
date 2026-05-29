@@ -10,7 +10,7 @@ MAKEFLAGS += --no-print-directory
 GO ?= go
 GOFMT ?= gofmt
 PYTHON ?= python3
-VERSION ?= 0.2.0
+VERSION ?= 0.2.1
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 FBT_LDFLAGS := -X github.com/nyuta01/fbt/internal/version.Version=$(VERSION) -X github.com/nyuta01/fbt/internal/version.Commit=$(COMMIT) -X github.com/nyuta01/fbt/internal/version.BuildDate=$(BUILD_DATE)

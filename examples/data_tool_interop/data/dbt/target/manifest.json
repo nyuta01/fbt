@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "project_name": "ops",
+    "dbt_version": "1.8.0"
+  },
+  "nodes": {
+    "model.ops.daily_revenue": {
+      "resource_type": "model",
+      "name": "daily_revenue",
+      "depends_on": {
+        "nodes": [
+          "source.ops.orders"
+        ]
+      }
+    },
+    "test.ops.not_null_orders_id": {
+      "resource_type": "test",
+      "name": "not_null_orders_id",
+      "depends_on": {
+        "nodes": [
+          "model.ops.daily_revenue"
+        ]
+      }
+    }
+  }
+}

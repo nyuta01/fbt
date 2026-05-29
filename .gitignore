@@ -9,6 +9,9 @@ coverage.txt
 # fbt local runtime outputs
 .fbt/
 target/
+!examples/data_tool_interop/data/dbt/
+!examples/data_tool_interop/data/dbt/target/
+!examples/data_tool_interop/data/dbt/target/*.json
 
 # Python harness helpers
 __pycache__/
@@ -34,4 +37,3 @@ coverage/
 .vscode/
 *.swp
 *.log
-

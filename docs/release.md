@@ -9,8 +9,8 @@ Audience: users and maintainers installing fbt core plus optional adapters
 The current core CLI release is:
 
 ```text
-v0.2.0
-https://github.com/nyuta01/fbt/releases/tag/v0.2.0
+v0.2.1
+https://github.com/nyuta01/fbt/releases/tag/v0.2.1
 ```
 
 Release assets include darwin, linux, and windows CLI archives for amd64 and
@@ -21,7 +21,7 @@ Install flow:
 ```sh
 # Download the archive for your OS/arch plus SHA256SUMS from the release page.
 shasum -a 256 -c SHA256SUMS
-tar -xzf fbt_0.2.0_darwin_arm64.tar.gz
+tar -xzf fbt_0.2.1_darwin_arm64.tar.gz
 install -m 0755 fbt "$HOME/.local/bin/fbt"
 fbt version
 ```
@@ -40,8 +40,8 @@ make build
 Maintainer release asset build:
 
 ```sh
-scripts/release-core-cli.sh v0.2.0
-shasum -a 256 -c dist/release/v0.2.0/SHA256SUMS
+scripts/release-core-cli.sh v0.2.1
+shasum -a 256 -c dist/release/v0.2.1/SHA256SUMS
 ```
 
 ## Official Adapters
@@ -69,7 +69,7 @@ Official module-scoped release tags:
 | Codex CLI adapter | `adapters/codex-cli/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/codex-cli/cmd/fbt-runner-codex-cli@v0.1.0` |
 | Claude Code adapter | `adapters/claude-code/v0.1.0` | `go install github.com/nyuta01/fbt/adapters/claude-code/cmd/fbt-runner-claude-code@v0.1.0` |
 
-The root `v0.2.0` tag belongs to fbt core CLI releases. Do not use root tags as
+The root `v0.2.1` tag belongs to fbt core CLI releases. Do not use root tags as
 adapter module versions.
 
 ## Adapter Release Workflow
