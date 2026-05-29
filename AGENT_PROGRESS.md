@@ -73,12 +73,11 @@ inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 (`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`, now
 done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
-The latest full review added a new post-MVP hardening backlog. The highest
-priority open task is real CLI-agent policy enforcement (`FBT-RUNNER-022`).
-Follow-up runner robustness tasks cover large JSON-RPC JSONL messages
-(`FBT-RUNNER-023`), visible staged-input truncation failures
-(`FBT-RUNNER-024`), and bounded stderr/exit diagnostics for runner protocol
-failures (`FBT-RUNNER-025`).
+The latest full review added a new post-MVP hardening backlog. Real CLI-agent
+policy enforcement (`FBT-RUNNER-022`) is done. The remaining runner robustness
+tasks cover large JSON-RPC JSONL messages (`FBT-RUNNER-023`), visible
+staged-input truncation failures (`FBT-RUNNER-024`), and bounded stderr/exit
+diagnostics for runner protocol failures (`FBT-RUNNER-025`).
 
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
@@ -92,6 +91,14 @@ advance current artifact pointers.
 and `make adapter-install-smoke` verifies clean `go install module@commit`
 installation for command, OpenAI, Codex CLI, and Claude Code adapters through a
 temporary bare VCS remote.
+
+`FBT-RUNNER-022` is done. Codex CLI and Claude Code adapters now treat policy
+mapping as executable behavior. Codex CLI runs with a read-only sandbox and
+timeout mapping, then fails before invoking Codex for unsupported network,
+tool, cost, or tool-call policies. Claude Code maps tool allow/deny lists,
+timeout, and max budget where supported, then fails before invoking Claude for
+unsupported network, unknown tool, or tool-call policies. Adapter conformance
+now runs both positive safe-policy paths and negative unsupported-policy paths.
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform

@@ -3141,7 +3141,7 @@
       "id": "FBT-RUNNER-022",
       "title": "Enforce CLI-agent policy mapping instead of marker-only safety",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-018",
@@ -3162,12 +3162,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "agent_adapter_policy_negative_conformance": false,
-        "adapter_codex_cli_conformance": false,
-        "adapter_claude_code_conformance": false,
-        "make_verify": false
+        "agent_adapter_policy_negative_conformance": true,
+        "adapter_codex_cli_conformance": true,
+        "adapter_claude_code_conformance": true,
+        "make_verify": true
       },
-      "notes": "Codex CLI and Claude Code adapters currently report fail-closed policy markers but do not enforce requested network/tool/timeout controls. Add explicit policy mapping, fail when policy cannot be represented, and make conformance prove negative cases."
+      "notes": "Codex CLI and Claude Code adapters now map supported fbt policy controls into CLI flags and fail closed before external CLI invocation when a requested policy cannot be represented. Positive and negative agent-adapter conformance runs cover both adapters."
     },
     {
       "id": "FBT-RUNNER-023",

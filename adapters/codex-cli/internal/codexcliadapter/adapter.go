@@ -37,6 +37,11 @@ type runParams struct {
 	} `json:"work"`
 }
 
+type policyMapping struct {
+	Sandbox string
+	Timeout time.Duration
+}
+
 func Handler() stdiojsonrpc.Handler {
 	return stdiojsonrpc.Handler{
 		Initialize: func(context.Context, protocol.Request, *stdiojsonrpc.Writer) (any, error) {
@@ -92,6 +97,10 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 	if params.Work.Root == "" || params.Work.Outputs == "" {
 		return nil, errors.New("work.root and work.outputs are required")
 	}
+	mapping, err := mapPolicy(params.Policy)
+	if err != nil {
+		return nil, err
+	}
 	staging := filepath.Join(params.Work.Root, "staging", "codex-cli")
 	if err := os.MkdirAll(staging, 0o755); err != nil {
 		return nil, err
@@ -113,13 +122,20 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 			"fbt.adapter.staging_workspace":  staging,
 			"fbt.adapter.policy_mode":        "fail_closed",
 			"fbt.adapter.policy_fail_closed": true,
+			"fbt.adapter.sandbox":            mapping.Sandbox,
 			"fbt.runner.provider":            "codex-cli",
 		},
 	}); err != nil {
 		return nil, err
 	}
 	start := time.Now()
-	text, err := runCodex(ctx, staging, buildPrompt(params, staging), runnableModel(params.Model))
+	runCtx := ctx
+	if mapping.Timeout > 0 {
+		var cancel context.CancelFunc
+		runCtx, cancel = context.WithTimeout(ctx, mapping.Timeout)
+		defer cancel()
+	}
+	text, err := runCodex(runCtx, staging, buildPrompt(params, staging), runnableModel(params.Model), mapping)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +170,7 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 			"staging_workspace":       staging,
 			"elapsed_seconds":         time.Since(start).Seconds(),
 			"policy_mapping":          "fail_closed",
+			"sandbox":                 mapping.Sandbox,
 			"model":                   stringValue(params.Model, "name", ""),
 			"model_provider":          stringValue(params.Model, "provider", "openai"),
 			"output_capture_method":   "output-last-message-or-stdout",
@@ -163,7 +180,7 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 	}, nil
 }
 
-func runCodex(ctx context.Context, staging, prompt, model string) (string, error) {
+func runCodex(ctx context.Context, staging, prompt, model string, mapping policyMapping) (string, error) {
 	command := os.Getenv("FBT_CODEX_CLI_COMMAND")
 	if command == "" {
 		command = "codex"
@@ -172,7 +189,7 @@ func runCodex(ctx context.Context, staging, prompt, model string) (string, error
 	args := []string{
 		"exec",
 		"--cd", staging,
-		"--sandbox", "workspace-write",
+		"--sandbox", mapping.Sandbox,
 		"--skip-git-repo-check",
 		"--ephemeral",
 		"--ignore-user-config",
@@ -194,6 +211,33 @@ func runCodex(ctx context.Context, staging, prompt, model string) (string, error
 		return string(data), nil
 	}
 	return string(combined), nil
+}
+
+func mapPolicy(policy map[string]any) (policyMapping, error) {
+	mapping := policyMapping{Sandbox: "read-only"}
+	if len(policy) == 0 {
+		return mapping, nil
+	}
+	if network, ok := boolField(policy, "network"); ok && !network {
+		return mapping, errors.New("policy denies network, but Codex CLI adapter cannot enforce network isolation")
+	}
+	tools := mapField(policy, "tools")
+	allow, allowSet := toolList(tools, "allow", "allowed")
+	deny, denySet := toolList(tools, "deny", "denied")
+	if allowSet || denySet {
+		return mapping, fmt.Errorf("Codex CLI adapter cannot enforce fbt tool policy allow=%v deny=%v", allow, deny)
+	}
+	limits := mapField(policy, "limits")
+	if seconds := numberValue(limits, "timeout_seconds"); seconds > 0 {
+		mapping.Timeout = time.Duration(seconds) * time.Second
+	}
+	if calls := numberValue(limits, "max_tool_calls"); calls > 0 {
+		return mapping, errors.New("Codex CLI adapter cannot enforce max_tool_calls")
+	}
+	if cost := numberValue(limits, "max_cost_usd"); cost > 0 {
+		return mapping, errors.New("Codex CLI adapter cannot enforce max_cost_usd")
+	}
+	return mapping, nil
 }
 
 func materializeContext(staging string, params runParams) error {
@@ -327,6 +371,46 @@ func stringValue(values map[string]any, key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func boolField(values map[string]any, key string) (bool, bool) {
+	value, ok := values[key].(bool)
+	return value, ok
+}
+
+func mapField(values map[string]any, key string) map[string]any {
+	if value, ok := values[key].(map[string]any); ok {
+		return value
+	}
+	return nil
+}
+
+func toolList(values map[string]any, keys ...string) ([]string, bool) {
+	for _, key := range keys {
+		value, ok := values[key]
+		if !ok {
+			continue
+		}
+		return stringSlice(value), true
+	}
+	return nil, false
+}
+
+func numberValue(values map[string]any, key string) int64 {
+	if values == nil {
+		return 0
+	}
+	switch value := values[key].(type) {
+	case int:
+		return int64(value)
+	case int64:
+		return value
+	case float64:
+		return int64(value)
+	case uint64:
+		return int64(value)
+	}
+	return 0
 }
 
 func runnableModel(values map[string]any) string {

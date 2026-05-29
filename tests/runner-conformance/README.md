@@ -48,6 +48,11 @@ named `fbt.adapter.staging_workspace` under `work.root` but outside
 `work.outputs`, plus fail-closed policy mapping through
 `fbt.adapter.policy_mode=fail_closed` or `fbt.adapter.policy_fail_closed=true`.
 
+Add `--expect-policy-failure` when checking the negative path for a CLI-agent
+adapter. The harness sends a policy the official adapters intentionally cannot
+enforce, expects a structured JSON-RPC policy error, and verifies guarded source,
+logical artifact, and `.fbt/state` files were not modified.
+
 The JSON fixtures in `fixtures/` show the canonical minimal request shapes. The
 harness generates temporary absolute work paths at runtime, so fixture paths are
 illustrative rather than used as static golden input.

@@ -77,6 +77,7 @@ adapter-codex-cli-test: ## Run official Codex CLI adapter tests.
 .PHONY: adapter-codex-cli-conformance
 adapter-codex-cli-conformance: ## Run agent conformance against the official Codex CLI adapter with a fixture CLI.
 	@FBT_CODEX_CLI_COMMAND="$(CURDIR)/adapters/codex-cli/testdata/codex-cli-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/codex-cli/cmd/fbt-runner-codex-cli' --transform-type agent --strict --agent-adapter
+	@FBT_CODEX_CLI_COMMAND="$(CURDIR)/adapters/codex-cli/testdata/codex-cli-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/codex-cli/cmd/fbt-runner-codex-cli' --transform-type agent --strict --agent-adapter --expect-policy-failure
 
 .PHONY: adapter-claude-code-test
 adapter-claude-code-test: ## Run official Claude Code adapter tests.
@@ -85,6 +86,7 @@ adapter-claude-code-test: ## Run official Claude Code adapter tests.
 .PHONY: adapter-claude-code-conformance
 adapter-claude-code-conformance: ## Run agent conformance against the official Claude Code adapter with a fixture CLI.
 	@FBT_CLAUDE_CODE_COMMAND="$(CURDIR)/adapters/claude-code/testdata/claude-code-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/claude-code/cmd/fbt-runner-claude-code' --transform-type agent --strict --agent-adapter
+	@FBT_CLAUDE_CODE_COMMAND="$(CURDIR)/adapters/claude-code/testdata/claude-code-fixture.sh" $(PYTHON) tests/runner-conformance/run.py --runner-command 'go run ./adapters/claude-code/cmd/fbt-runner-claude-code' --transform-type agent --strict --agent-adapter --expect-policy-failure
 
 .PHONY: build
 build: ## Build the fbt CLI into bin/fbt.

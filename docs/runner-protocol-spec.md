@@ -606,7 +606,8 @@ Adapter requirements:
   disallowed-tool, timeout, network, and max-turn controls where the external
   CLI supports them
 - fail closed when the requested policy cannot be represented safely by the
-  selected CLI or SDK
+  selected CLI or SDK, before invoking the external process with broader
+  permissions
 - collect final files from the staging workspace, copy or write them under
   `work.outputs`, and declare only those paths as output candidates
 - never declare output candidates outside `work.outputs`

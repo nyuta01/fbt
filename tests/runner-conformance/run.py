@@ -43,6 +43,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="require CLI-agent adapter safety markers and direct-write boundary checks",
     )
+    parser.add_argument(
+        "--expect-policy-failure",
+        action="store_true",
+        help="expect fbt/runTransform to fail before invoking an unsupported policy",
+    )
     return parser.parse_args()
 
 
@@ -107,6 +112,7 @@ def read_until_response(
     request_id: str,
     deadline: float,
     stderr_path: Path,
+    allow_error: bool = False,
 ) -> tuple[dict, list[dict]]:
     notifications: list[dict] = []
     while True:
@@ -116,6 +122,8 @@ def read_until_response(
             fail(f"while waiting for {request_id}: {exc}", stderr_path)
         if message.get("id") == request_id:
             if "error" in message:
+                if allow_error:
+                    return message, notifications
                 fail(f"runner returned error for {request_id}: {message['error']}", stderr_path)
             if "result" not in message:
                 fail(f"runner response missing result: {message!r}", stderr_path)
@@ -173,6 +181,30 @@ def build_run_params(tmp: Path, args: argparse.Namespace) -> tuple[dict, dict[st
     state_text = '{"guard":"state must not be touched by runner"}\n'
     state_path.write_text(state_text)
 
+    policy = {
+        "read": ["inputs/", "assets/"],
+        "write": [".fbt/work/"],
+        "network": False,
+        "tools": {"allow": [], "deny": ["shell"]},
+        "limits": {"timeout_seconds": int(args.timeout_seconds)},
+    }
+    if args.agent_adapter and not args.expect_policy_failure:
+        policy = {
+            "read": ["inputs/", "assets/"],
+            "write": [".fbt/work/"],
+            "network": True,
+            "tools": {},
+            "limits": {"timeout_seconds": int(args.timeout_seconds)},
+        }
+    if args.expect_policy_failure:
+        policy = {
+            "read": ["inputs/", "assets/"],
+            "write": [".fbt/work/"],
+            "network": False,
+            "tools": {},
+            "limits": {"timeout_seconds": int(args.timeout_seconds)},
+        }
+
     params = {
         "mode": "run",
         "invocation_id": "invocation.runner_conformance",
@@ -217,13 +249,7 @@ def build_run_params(tmp: Path, args: argparse.Namespace) -> tuple[dict, dict[st
         ],
         "model": {"provider": "conformance", "name": "fixture"},
         "tools": [],
-        "policy": {
-            "read": ["inputs/", "assets/"],
-            "write": [".fbt/work/"],
-            "network": False,
-            "tools": {"allow": [], "deny": ["shell"]},
-            "limits": {"timeout_seconds": int(args.timeout_seconds)},
-        },
+        "policy": policy,
         "state": {
             "previous_run": {},
             "current_outputs": {},
@@ -399,6 +425,14 @@ def validate_agent_adapter_markers(
     require(policy_fail_closed, "agent adapter must report fail-closed policy mapping", stderr_path)
 
 
+def validate_expected_policy_failure(response: dict, guards: dict[str, str | Path], stderr_path: Path) -> None:
+    error = response.get("error")
+    require(isinstance(error, dict), "expected runner policy failure error", stderr_path)
+    message = str(error.get("message", ""))
+    require("policy" in message.lower(), f"expected policy failure message, got {message!r}", stderr_path)
+    validate_direct_write_guards(guards, stderr_path)
+
+
 def main() -> None:
     args = parse_args()
     root = repo_root()
@@ -473,9 +507,17 @@ def main() -> None:
                     },
                 )
                 run_response, notifications = read_until_response(
-                    proc, stdout_queue, "run_001", deadline, stderr_path
+                    proc,
+                    stdout_queue,
+                    "run_001",
+                    deadline,
+                    stderr_path,
+                    allow_error=args.expect_policy_failure,
                 )
-                validate_run(run_response, notifications, params, args, guards, stderr_path)
+                if args.expect_policy_failure:
+                    validate_expected_policy_failure(run_response, guards, stderr_path)
+                else:
+                    validate_run(run_response, notifications, params, args, guards, stderr_path)
             finally:
                 if proc.stdin is not None:
                     try:

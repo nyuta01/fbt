@@ -37,6 +37,15 @@ type runParams struct {
 	} `json:"work"`
 }
 
+type policyMapping struct {
+	AllowedTools    []string
+	DisallowedTools []string
+	NoTools         bool
+	MaxBudgetUSD    string
+	PermissionMode  string
+	Timeout         time.Duration
+}
+
 func Handler() stdiojsonrpc.Handler {
 	return stdiojsonrpc.Handler{
 		Initialize: func(context.Context, protocol.Request, *stdiojsonrpc.Writer) (any, error) {
@@ -92,6 +101,10 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 	if params.Work.Root == "" || params.Work.Outputs == "" {
 		return nil, errors.New("work.root and work.outputs are required")
 	}
+	mapping, err := mapPolicy(params.Policy)
+	if err != nil {
+		return nil, err
+	}
 	staging := filepath.Join(params.Work.Root, "staging", "claude-code")
 	if err := os.MkdirAll(staging, 0o755); err != nil {
 		return nil, err
@@ -113,13 +126,22 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 			"fbt.adapter.staging_workspace":  staging,
 			"fbt.adapter.policy_mode":        "fail_closed",
 			"fbt.adapter.policy_fail_closed": true,
+			"fbt.adapter.permission_mode":    mapping.PermissionMode,
+			"fbt.adapter.allowed_tools":      mapping.AllowedTools,
+			"fbt.adapter.disallowed_tools":   mapping.DisallowedTools,
 			"fbt.runner.provider":            "claude-code",
 		},
 	}); err != nil {
 		return nil, err
 	}
 	start := time.Now()
-	text, err := runClaude(ctx, staging, buildPrompt(params, staging), runnableModel(params.Model))
+	runCtx := ctx
+	if mapping.Timeout > 0 {
+		var cancel context.CancelFunc
+		runCtx, cancel = context.WithTimeout(ctx, mapping.Timeout)
+		defer cancel()
+	}
+	text, err := runClaude(runCtx, staging, buildPrompt(params, staging), runnableModel(params.Model), mapping)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +176,9 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 			"staging_workspace":       staging,
 			"elapsed_seconds":         time.Since(start).Seconds(),
 			"policy_mapping":          "fail_closed",
+			"permission_mode":         mapping.PermissionMode,
+			"allowed_tools":           mapping.AllowedTools,
+			"disallowed_tools":        mapping.DisallowedTools,
 			"model":                   stringValue(params.Model, "name", ""),
 			"model_provider":          stringValue(params.Model, "provider", "anthropic"),
 			"output_capture_method":   "stdout-text",
@@ -163,7 +188,7 @@ func runTransform(ctx context.Context, req protocol.Request, writer *stdiojsonrp
 	}, nil
 }
 
-func runClaude(ctx context.Context, staging, prompt, model string) (string, error) {
+func runClaude(ctx context.Context, staging, prompt, model string, mapping policyMapping) (string, error) {
 	command := os.Getenv("FBT_CLAUDE_CODE_COMMAND")
 	if command == "" {
 		command = "claude"
@@ -172,7 +197,19 @@ func runClaude(ctx context.Context, staging, prompt, model string) (string, erro
 		"-p",
 		"--bare",
 		"--output-format", "text",
-		"--permission-mode", "dontAsk",
+		"--permission-mode", mapping.PermissionMode,
+	}
+	if mapping.NoTools {
+		args = append(args, "--tools", "")
+	}
+	if len(mapping.AllowedTools) > 0 {
+		args = append(args, "--allowedTools", strings.Join(mapping.AllowedTools, ","))
+	}
+	if len(mapping.DisallowedTools) > 0 {
+		args = append(args, "--disallowedTools", strings.Join(mapping.DisallowedTools, ","))
+	}
+	if mapping.MaxBudgetUSD != "" {
+		args = append(args, "--max-budget-usd", mapping.MaxBudgetUSD)
 	}
 	if model != "" {
 		args = append(args, "--model", model)
@@ -186,6 +223,84 @@ func runClaude(ctx context.Context, staging, prompt, model string) (string, erro
 		return "", fmt.Errorf("Claude Code failed: %w: %s", err, trimCommandOutput(stdout))
 	}
 	return string(stdout), nil
+}
+
+func mapPolicy(policy map[string]any) (policyMapping, error) {
+	mapping := policyMapping{PermissionMode: "dontAsk"}
+	if len(policy) == 0 {
+		return mapping, nil
+	}
+	if network, ok := boolField(policy, "network"); ok && !network {
+		return mapping, errors.New("policy denies network, but Claude Code adapter cannot enforce network isolation")
+	}
+	tools := mapField(policy, "tools")
+	allow, allowSet := toolList(tools, "allow", "allowed")
+	deny, denySet := toolList(tools, "deny", "denied")
+	if allowSet {
+		mapped, err := claudeTools(allow)
+		if err != nil {
+			return mapping, err
+		}
+		if len(mapped) == 0 {
+			mapping.NoTools = true
+		} else {
+			mapping.AllowedTools = mapped
+		}
+	}
+	if denySet {
+		mapped, err := claudeTools(deny)
+		if err != nil {
+			return mapping, err
+		}
+		mapping.DisallowedTools = mapped
+	}
+	limits := mapField(policy, "limits")
+	if seconds := numberValue(limits, "timeout_seconds"); seconds > 0 {
+		mapping.Timeout = time.Duration(seconds) * time.Second
+	}
+	if calls := numberValue(limits, "max_tool_calls"); calls > 0 {
+		return mapping, errors.New("Claude Code adapter cannot enforce max_tool_calls")
+	}
+	if cost, ok := numberText(limits, "max_cost_usd"); ok {
+		mapping.MaxBudgetUSD = cost
+	}
+	return mapping, nil
+}
+
+func claudeTools(values []string) ([]string, error) {
+	seen := map[string]struct{}{}
+	var out []string
+	for _, value := range values {
+		for _, tool := range claudeToolNames(value) {
+			if tool == "" {
+				return nil, fmt.Errorf("Claude Code adapter cannot map fbt tool policy %q", value)
+			}
+			if _, ok := seen[tool]; ok {
+				continue
+			}
+			seen[tool] = struct{}{}
+			out = append(out, tool)
+		}
+	}
+	sort.Strings(out)
+	return out, nil
+}
+
+func claudeToolNames(value string) []string {
+	switch strings.TrimSpace(strings.ToLower(value)) {
+	case "shell", "bash":
+		return []string{"Bash"}
+	case "read_source", "read_artifact", "read_file":
+		return []string{"Read"}
+	case "search_project":
+		return []string{"Glob", "Grep"}
+	case "write_markdown", "write_artifact", "write_file":
+		return []string{"Write"}
+	case "write_source_files":
+		return []string{"Edit", "Write"}
+	default:
+		return []string{""}
+	}
 }
 
 func materializeContext(staging string, params runParams) error {
@@ -319,6 +434,67 @@ func stringValue(values map[string]any, key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func boolField(values map[string]any, key string) (bool, bool) {
+	value, ok := values[key].(bool)
+	return value, ok
+}
+
+func mapField(values map[string]any, key string) map[string]any {
+	if value, ok := values[key].(map[string]any); ok {
+		return value
+	}
+	return nil
+}
+
+func toolList(values map[string]any, keys ...string) ([]string, bool) {
+	for _, key := range keys {
+		value, ok := values[key]
+		if !ok {
+			continue
+		}
+		return stringSlice(value), true
+	}
+	return nil, false
+}
+
+func numberValue(values map[string]any, key string) int64 {
+	if values == nil {
+		return 0
+	}
+	switch value := values[key].(type) {
+	case int:
+		return int64(value)
+	case int64:
+		return value
+	case float64:
+		return int64(value)
+	case uint64:
+		return int64(value)
+	}
+	return 0
+}
+
+func numberText(values map[string]any, key string) (string, bool) {
+	if values == nil {
+		return "", false
+	}
+	switch value := values[key].(type) {
+	case int:
+		return fmt.Sprintf("%d", value), true
+	case int64:
+		return fmt.Sprintf("%d", value), true
+	case float64:
+		return fmt.Sprintf("%g", value), true
+	case uint64:
+		return fmt.Sprintf("%d", value), true
+	case string:
+		if value != "" {
+			return value, true
+		}
+	}
+	return "", false
 }
 
 func runnableModel(values map[string]any) string {

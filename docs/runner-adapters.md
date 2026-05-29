@@ -106,7 +106,10 @@ set.
 
 The source tree includes `adapters/openai` as the official OpenAI adapter used
 by the practical examples. It is outside `internal/`, is invoked as an external
-process, and reads `OPENAI_API_KEY` from the environment. Separately packaged
+process, and reads `OPENAI_API_KEY` from the environment. The official Codex
+CLI and Claude Code adapters are also outside core: they translate fbt policy
+into the corresponding CLI flags where possible and fail before invoking the
+CLI when the requested policy cannot be represented safely. Separately packaged
 or project-local adapters should follow the same protocol and credential
 boundary.
 
@@ -248,6 +251,21 @@ temporary source/logical artifact/state guard files are unchanged, the adapter
 reports a staging workspace under `work.root` but outside `work.outputs`, and
 policy mapping is explicitly fail-closed.
 
+Use `--expect-policy-failure` with `--agent-adapter` to verify the negative
+case: the harness sends an unsupported policy, and the adapter must return a
+structured policy error before invoking the external CLI.
+
+Official adapter policy mapping is intentionally conservative:
+
+- Codex CLI adapter: maps fbt's read-only staging expectation to `codex exec
+  --sandbox read-only`, applies fbt timeout as a process timeout, and fails
+  closed for denied network, tool allow/deny lists, max tool calls, or max cost
+  because those controls are not represented by the wrapped CLI invocation.
+- Claude Code adapter: maps read/write/search/shell tool allow and deny lists
+  to Claude Code tool flags, applies fbt timeout as a process timeout, maps
+  `max_cost_usd` to `--max-budget-usd`, and fails closed for denied network,
+  unknown tools, or max tool calls.
+
 Official CLI-agent adapter tests use small executable fixtures under
 `adapters/*/testdata/` so `make verify` can check protocol and safety behavior
 without network, credentials, or paid model calls. Those fixtures are not
@@ -320,7 +338,9 @@ Before documenting an adapter as fbt-compatible:
 7. Confirm failed or denied runs do not update official artifact paths.
 
 For CLI-agent adapters, also run `tests/runner-conformance/run.py` with
-`--strict --agent-adapter` before recommending the package.
+`--strict --agent-adapter` for the supported policy path and with
+`--strict --agent-adapter --expect-policy-failure` for an unsupported policy
+path before recommending the package.
 
 Adapters that require real provider accounts should keep provider smoke tests
 behind explicit opt-in commands such as `make runner-adapter-smoke`, not

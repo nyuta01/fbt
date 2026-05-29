@@ -153,6 +153,7 @@ scenario classes.
 | `CONF-ADAPTER-001` | runner adapter | CLI-agent adapter reports staging workspace and fail-closed policy mapping | strict runner conformance passes only when the staging workspace is under `work.root`, outside `work.outputs`, and policy mapping is fail-closed |
 | `CONF-ADAPTER-002` | runner adapter | CLI-agent adapter receives guarded source, logical artifact, and `.fbt/state` files | strict runner conformance fails if the adapter modifies any guarded file directly |
 | `CONF-ADAPTER-003` | redaction | CLI-agent adapter receives source and asset files containing a marker secret | strict runner conformance fails if protocol responses or events leak the marker |
+| `CONF-ADAPTER-004` | runner adapter | CLI-agent adapter receives an fbt policy it cannot enforce | strict runner conformance fails before invoking the external CLI and returns a structured policy error |
 
 ## 10. Verification Target
 
@@ -180,6 +181,8 @@ Current executable coverage:
   guards for all runners
 - scaffold runner conformance uses the CLI-agent adapter safety profile to
   require staging-workspace and fail-closed policy markers
+- Codex CLI and Claude Code adapter conformance includes a negative policy case
+  proving unsupported network-denial policy fails before external CLI execution
 
 LLM and agent scenarios should use fake runners for conformance. Real provider
 smoke tests belong behind explicit opt-in commands and must not be required for

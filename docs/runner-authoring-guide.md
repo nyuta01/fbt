@@ -260,6 +260,20 @@ then verifies that:
 - a staging workspace was reported under `work.root` but outside `work.outputs`
 - the adapter reported fail-closed policy mapping
 
+Also check a negative policy path:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command 'my-agent-adapter' \
+  --strict \
+  --agent-adapter \
+  --expect-policy-failure
+```
+
+This mode sends a policy that the adapter is expected to reject before invoking
+the external CLI. Passing the positive path alone only proves the adapter can
+report a safe boundary; the negative path proves it fails closed.
+
 For installed real adapters, use the opt-in matrix target:
 
 ```sh
