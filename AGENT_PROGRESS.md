@@ -187,6 +187,14 @@ isolation profiles while keeping OS sandboxing outside core. The docs site has a
 security profile reference page, runner adapter docs link to the profile, and
 `make verify` includes `security-profiles-check`.
 
+The latest whole-project review added five follow-up tasks without expanding
+core scope: `FBT-SPEC-001` for reconciling spec statuses and remaining
+questions, `FBT-QUALITY-001` for guarding stale quality-score next-task
+references, `FBT-LOCK-001` for optional runner/adapter lockfile semantics,
+`FBT-SEC-002` for requiring explicit policy on agent transforms, and
+`FBT-EVAL-002` for making skipped semantic/LLM-judge evals visible in
+user-facing receipts and inspection.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build

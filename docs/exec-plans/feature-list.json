@@ -3690,6 +3690,165 @@
       "notes": "Added `docs/security/os-sandbox-profiles.md`, docs-site security profile page, security spec and adapter docs updates, plus `make security-profiles-check` inside `make verify`. OS process/network isolation remains external to fbt core."
     },
     {
+      "id": "FBT-SPEC-001",
+      "title": "Reconcile spec statuses and remaining implementation questions",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-SCHEMA-001",
+        "FBT-CONF-002",
+        "FBT-SEC-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-SPEC-001-plan.md",
+      "paths": [
+        "docs/spec.md",
+        "docs/design-doc.md",
+        "docs/manifest-spec.md",
+        "docs/runner-protocol-spec.md",
+        "docs/runner-discovery-spec.md",
+        "docs/schema-and-versioning-spec.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "docs/QUALITY_SCORE.md",
+        "docs/exec-plans/active/FBT-SPEC-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "docs_status_audit": false,
+        "remaining_questions_reconciled": false,
+        "stale_draft_language_checked": false,
+        "make_verify": false
+      },
+      "notes": "Several core specs still say `Draft` or keep broad remaining-question sections even after MVP implementation, schema generation, conformance hardening, and security profile work. Audit those documents, update status labels only where justified, and either close stale questions or convert them into explicit backlog tasks."
+    },
+    {
+      "id": "FBT-QUALITY-001",
+      "title": "Guard quality score next-task references against completed tasks",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-PDCA-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-QUALITY-001-plan.md",
+      "paths": [
+        "docs/QUALITY_SCORE.md",
+        "scripts/harness_check.py",
+        "docs/methodology/self-pdca-loop.md",
+        "docs/exec-plans/active/FBT-QUALITY-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "quality_next_task_scan": false,
+        "completed_task_reference_guard": false,
+        "quality_score_updated": false,
+        "make_verify": false
+      },
+      "notes": "`docs/QUALITY_SCORE.md` can drift by pointing `Next Task` at task IDs that are already done. Add a deterministic guard or docs check so quality signals remain actionable instead of becoming stale process noise."
+    },
+    {
+      "id": "FBT-LOCK-001",
+      "title": "Design optional runner and adapter lockfile semantics",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-026",
+        "FBT-REL-005"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-LOCK-001-plan.md",
+      "paths": [
+        "docs/runner-discovery-spec.md",
+        "docs/runner-adapters.md",
+        "docs/project-config-spec.md",
+        "docs/schema-and-versioning-spec.md",
+        "schemas/",
+        "internal/runner/",
+        "internal/cli/",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-LOCK-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "lockfile_contract_specified": false,
+        "doctor_or_conformance_behavior_defined": false,
+        "no_package_manager_in_core": false,
+        "make_verify": false
+      },
+      "notes": "Runner/adapters are installable and releasable, but projects cannot yet pin runner source/version/checksum in a local lockfile. Design an optional `fbt.lock.json` contract and validation path without adding package installation or dependency resolution to core."
+    },
+    {
+      "id": "FBT-SEC-002",
+      "title": "Require explicit policy for agent transforms",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-SEC-001",
+        "FBT-RUNNER-022"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-SEC-002-plan.md",
+      "paths": [
+        "internal/parser/",
+        "internal/cli/",
+        "docs/security-and-conformance-spec.md",
+        "docs/project-config-spec.md",
+        "apps/docs/src/content/docs/reference/project-config.mdx",
+        "examples/",
+        "tests/conformance/",
+        "docs/exec-plans/active/FBT-SEC-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "agent_missing_policy_parse_error": false,
+        "examples_and_docs_policy_explicit": false,
+        "conformance_negative_case": false,
+        "make_verify": false
+      },
+      "notes": "Agent transforms currently warn when policy is missing. For a safer stable baseline, make explicit policy mandatory for `type: agent` transforms while keeping `llm` and `command` behavior unchanged."
+    },
+    {
+      "id": "FBT-EVAL-002",
+      "title": "Make skipped semantic and LLM-judge evals visible in user-facing UX",
+      "priority": "P2",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-EVAL-001",
+        "FBT-SCHEMA-001"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-EVAL-002-plan.md",
+      "paths": [
+        "internal/eval/",
+        "internal/build/",
+        "internal/cli/",
+        "docs/project-config-spec.md",
+        "docs/spec.md",
+        "schemas/",
+        "examples/semantic_eval_boundary/",
+        "apps/docs/src/content/docs/get-started/manual-generation.mdx",
+        "docs/exec-plans/active/FBT-EVAL-002-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "skipped_eval_receipt_hint": false,
+        "cli_or_artifact_explain_visibility": false,
+        "docs_and_schema_description_updated": false,
+        "make_verify": false
+      },
+      "notes": "`semantic` and `llm_judge` evals are intentionally recorded as skipped and grant no confidence, but users can misread that as an active quality gate. Make the skipped status and external-judge-transform recommendation visible in receipts, CLI inspection, and docs."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",
