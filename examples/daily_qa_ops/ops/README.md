@@ -30,11 +30,35 @@ The script writes a run bundle under:
 ```text
 examples/daily_qa_ops/target/ops/runs/<run-id>/
 examples/daily_qa_ops/target/ops/latest/
+examples/daily_qa_ops/target/ops/archives/<run-id>/
 ```
 
 The bundle contains source-window validation, human command output, artifact
 inspection output, retention report, OpenLineage NDJSON, OTLP/JSON traces, and
 quality-gate output.
+
+## Archive Handoff
+
+`ops/archive-fbt-evidence.sh` creates:
+
+```text
+target/ops/archives/<run-id>/fbt-evidence.tar.gz
+target/ops/archives/<run-id>/archive-manifest.json
+```
+
+The archive contains:
+
+```text
+.fbt/state/
+.fbt/artifacts/
+target/ops/runs/<run-id>/
+```
+
+Restore those roots together into the same project checkout when you need to
+run `fbt artifact explain`, `fbt diff`, `fbt export openlineage`, or
+`fbt export otel` against historical evidence. The archive is a handoff to CI
+artifacts or external storage; fbt still does not delete historical versions
+automatically.
 
 ## Quality Gates
 

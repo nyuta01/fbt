@@ -80,6 +80,12 @@ can be regenerated from current pointers only when the referenced immutable
 storage still exists. Historical lineage requires the corresponding state
 records and immutable storage to remain available.
 
+If a production wrapper also writes run-bundle evidence under `target/ops/`,
+archive the specific `target/ops/runs/<run-id>/` directory with `.fbt/state/`
+and `.fbt/artifacts/`. Restoring only the generated logical artifact path is
+not enough to answer `artifact explain`, `diff`, OpenLineage export, or OTel
+export for historical runs.
+
 fbt core intentionally does not expose a destructive prune command in MVP. If a
 future prune command is added, it must be explicit, default to dry-run, preserve
 current artifact pointers, record a cleanup receipt, and have conformance

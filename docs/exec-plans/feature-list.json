@@ -4374,21 +4374,31 @@
       "id": "FBT-STATE-006",
       "title": "Add CI archive and retention handoff reference",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STATE-005",
         "FBT-OPS-003"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-STATE-006-plan.md",
       "paths": [
         "examples/daily_qa_ops/ops/",
         "docs/examples/high-volume-retention.md",
         "docs/state-and-run-results-spec.md",
-        "scripts/"
+        "scripts/",
+        "docs/exec-plans/active/FBT-STATE-006-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
       ],
-      "verification": {},
-      "notes": "Document and smoke a safe handoff for `.fbt/state`, `.fbt/artifacts`, and `target/ops` bundles to CI artifacts or external storage, including restore expectations and no destructive prune behavior."
+      "verification": {
+        "archive_script": true,
+        "archive_manifest": true,
+        "archive_tar_contents": true,
+        "daily_ops_smoke": true,
+        "make_verify": true
+      },
+      "notes": "The daily ops wrapper now archives `.fbt/state`, `.fbt/artifacts`, and the current `target/ops/runs/<run-id>` bundle into `target/ops/archives/<run-id>/fbt-evidence.tar.gz` with a restore manifest. The smoke verifies archive contents and docs clarify restore expectations without adding destructive prune behavior."
     },
     {
       "id": "FBT-PUBLISH-001",

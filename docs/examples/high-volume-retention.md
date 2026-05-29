@@ -68,6 +68,21 @@ For daily or high-volume projects:
 4. Do not delete immutable artifact directories without the matching state
    records unless you intentionally accept broken historical pointers.
 
+For production daily runs, archive the run bundle with those roots:
+
+```text
+.fbt/state/
+.fbt/artifacts/
+target/ops/runs/<run-id>/
+```
+
+`examples/daily_qa_ops/ops/archive-fbt-evidence.sh` writes
+`target/ops/archives/<run-id>/fbt-evidence.tar.gz` plus an
+`archive-manifest.json` describing that restore unit. Store that archive as a
+CI artifact or in external object storage before applying any external
+lifecycle policy. fbt's base tool still reports retention and archive
+boundaries; it does not prune historical versions automatically.
+
 The current command is read-only:
 
 ```sh

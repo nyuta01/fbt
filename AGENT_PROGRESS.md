@@ -618,6 +618,12 @@ boundaries, and live opt-in. Protocol, adapter, and runner-conformance docs now
 reference that contract, and `make verify` includes
 `runner-production-reliability-check`.
 
+`FBT-STATE-006` is done. The daily ops wrapper now calls
+`ops/archive-fbt-evidence.sh`, which archives `.fbt/state`, `.fbt/artifacts`,
+and `target/ops/runs/<run-id>` together under `target/ops/archives/<run-id>/`.
+The archive manifest states restore expectations and no-prune safety flags, and
+`daily-ops-smoke` verifies the tar contents.
+
 ## Verification
 
 Required gate before calling work done:
@@ -635,7 +641,7 @@ conformance, product conformance, and distribution smoke checks.
 ## Next Steps
 
 1. Execute the open production hardening tasks in priority order, starting with
-   `FBT-STATE-006`, `FBT-PUBLISH-001`, `FBT-SEC-003`, and `FBT-CI-001`.
+   `FBT-PUBLISH-001`, `FBT-SEC-003`, and `FBT-CI-001`.
 2. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 3. When adding new product behavior, register it in
