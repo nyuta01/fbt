@@ -1,6 +1,6 @@
 # fbt Runner Protocol Spec
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: implementers of `fbt-core` and external runners
 

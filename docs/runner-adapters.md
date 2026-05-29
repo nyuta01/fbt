@@ -1,6 +1,6 @@
 # fbt Runner Adapter Packaging
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: maintainers and authors of optional provider or agent integrations
 

@@ -188,12 +188,10 @@ security profile reference page, runner adapter docs link to the profile, and
 `make verify` includes `security-profiles-check`.
 
 The latest whole-project review added five follow-up tasks without expanding
-core scope: `FBT-SPEC-001` for reconciling spec statuses and remaining
-questions, `FBT-QUALITY-001` for guarding stale quality-score next-task
-references, `FBT-LOCK-001` for optional runner/adapter lockfile semantics,
-`FBT-SEC-002` for requiring explicit policy on agent transforms, and
-`FBT-EVAL-002` for making skipped semantic/LLM-judge evals visible in
-user-facing receipts and inspection.
+core scope. The quality-score guard and spec reconciliation tasks are now done;
+remaining follow-ups cover optional runner/adapter lockfile semantics, explicit
+agent-transform policy enforcement, and visible skipped semantic/LLM-judge eval
+state in user-facing receipts and inspection.
 
 `FBT-QUALITY-001` is done. `scripts/harness_check.py` now validates
 `docs/QUALITY_SCORE.md` next-task references, rejects unknown task IDs, rejects
@@ -478,6 +476,15 @@ conformance passed with a real API key, and a temporary copy of
 `examples/incident_response_runbook` completed `doctor -> plan -> build ->
 artifact show` against the real OpenAI adapter, committing
 `incident_response_runbook@sha256:4bda5ab434cb`.
+
+`FBT-QUALITY-001` is done. The harness now validates
+`docs/QUALITY_SCORE.md` next-task references so unknown tasks, completed tasks,
+and low-score rows without open task references fail `make harness-check`.
+
+`FBT-SPEC-001` is done. Core spec status labels now match the implemented MVP
+baseline, stale remaining-question sections were replaced with concrete
+post-MVP boundaries, `validate-docs` checks the replacement spec section, and
+quality-score rows no longer point at the completed spec cleanup task.
 
 ## Verification
 

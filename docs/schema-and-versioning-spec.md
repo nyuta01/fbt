@@ -1,6 +1,6 @@
 # fbt Schema and Versioning Spec
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: implementers of project parsing, manifest/state files, artifact descriptors, and migrations
 

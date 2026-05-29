@@ -3693,7 +3693,7 @@
       "id": "FBT-SPEC-001",
       "title": "Reconcile spec statuses and remaining implementation questions",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-SCHEMA-001",
@@ -3712,17 +3712,18 @@
         "docs/runner-adapters.md",
         "docs/runner-authoring-guide.md",
         "docs/QUALITY_SCORE.md",
+        "scripts/validate_docs.py",
         "docs/exec-plans/active/FBT-SPEC-001-plan.md",
         "docs/exec-plans/feature-list.json",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "docs_status_audit": false,
-        "remaining_questions_reconciled": false,
-        "stale_draft_language_checked": false,
-        "make_verify": false
+        "docs_status_audit": true,
+        "remaining_questions_reconciled": true,
+        "stale_draft_language_checked": true,
+        "make_verify": true
       },
-      "notes": "Several core specs still say `Draft` or keep broad remaining-question sections even after MVP implementation, schema generation, conformance hardening, and security profile work. Audit those documents, update status labels only where justified, and either close stale questions or convert them into explicit backlog tasks."
+      "notes": "Core spec status labels now reflect the implemented MVP baseline, broad stale remaining-question sections were replaced with explicit post-MVP boundaries, validate-docs now checks the new section, and quality-score references no longer point at this completed cleanup task."
     },
     {
       "id": "FBT-QUALITY-001",

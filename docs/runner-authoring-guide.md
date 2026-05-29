@@ -1,6 +1,6 @@
 # fbt Runner Authoring Guide
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: authors of external fbt runners and CLI-agent adapters
 

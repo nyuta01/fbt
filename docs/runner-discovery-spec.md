@@ -1,6 +1,6 @@
 # fbt Runner Discovery Spec
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: implementers of runner configuration, discovery, diagnostics, and future plugin installation
 

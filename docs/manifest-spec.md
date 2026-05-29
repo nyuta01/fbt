@@ -1,6 +1,6 @@
 # fbt Manifest Spec
 
-Status: Draft
+Status: MVP-ready
 Created: 2026-05-28
 Updated: 2026-05-29
 Audience: implementers of parsed graph metadata
@@ -405,12 +405,20 @@ Run results:
 - Eval and policy results
 - Warnings and errors
 
-## 19. Remaining Manifest Decisions
+## 19. MVP Decisions And Post-MVP Boundaries
 
-1. Minimum fields for current artifact-version snapshots.
-2. Whether runner capabilities are parse-time manifest snapshots or runtime
-   run-results records.
-3. Whether rendered transform asset fingerprints belong in planning metadata or
-   only run results.
-4. Whether PROV or in-toto exports should be added after the OpenLineage and
-   OpenTelemetry contracts in [Standard Export Spec](standard-export-spec.md).
+The MVP manifest contract is implementation-aligned:
+
+- Current artifact-version snapshots use the fields defined by
+  [State and Run Results Spec](state-and-run-results-spec.md) and the generated
+  state schemas.
+- Runner identity and available capabilities are manifest/planning metadata
+  when they can be resolved before execution. Concrete runner events, usage,
+  costs, errors, and output candidates remain runtime records in run results.
+- Transform asset fingerprints are planning metadata because asset changes must
+  make dependent transforms dirty. Rendered prompt bodies and runner-specific
+  execution evidence remain runtime records.
+- OpenLineage and OpenTelemetry are the standard exports covered by MVP.
+  Additional formats such as PROV or in-toto are post-MVP integrations and must
+  stay outside core until they have a concrete user workflow and conformance
+  scenario.

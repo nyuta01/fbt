@@ -72,7 +72,7 @@ if exists("docs/spec.md"):
         "transform_run",
         "transform_asset",
         "JSON-RPC 2.0 compatible runner protocol over stdio",
-        "Remaining Implementation Questions",
+        "Post-MVP Follow-Up Boundaries",
     ):
         if required_text not in spec:
             fail(f"docs/spec.md must include {required_text!r}")

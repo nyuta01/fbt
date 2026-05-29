@@ -407,13 +407,15 @@ docs generator.
 | [Runner Discovery Spec](runner-discovery-spec.md) | Runner resolution, plugin manifests, diagnostics |
 | [Security and Conformance Spec](security-and-conformance-spec.md) | Security model and conformance scenarios |
 
-## 19. Remaining Implementation Questions
+## 19. Post-MVP Follow-Up Boundaries
 
-1. How much schema-generated validation should replace hand-written parser
-   checks.
-2. Which source-window helper patterns can improve daily operation without
-   adding scheduling or partition management to core.
-3. How far semantic descriptors should go before extractor runners become the
-   right boundary.
-4. Which optional runner adapters should be documented next for common tools
-   such as remark, Pandoc, dbt, DataChain, Codex, and Claude Code.
+The MVP contract above is implementation-aligned. Future work should preserve
+the same core boundary instead of expanding fbt into a scheduler, converter,
+provider SDK, review app, or catalog.
+
+| Area | MVP Position | Follow-Up Boundary |
+|---|---|---|
+| Schema validation | Generated JSON Schemas and parser diagnostics are kept in lockstep by repository checks. | Richer migrations require a new schema/versioning task and compatibility tests. |
+| Daily source windows | fbt supports normal file and glob sources; users can compose date/window selection outside core. | Scheduling, partition catalogs, retention policy, and ingestion remain external tools. |
+| Semantic descriptors | Core records text/Markdown descriptors and eval confidence; richer extraction belongs to runners. | DOCX, PDF, image, OCR, embedding, and classifier descriptors should be runner-owned outputs. |
+| Runner adapters | The protocol, discovery rules, SDK, conformance harness, and official adapter module pattern are documented. | New adapters must remain optional packages and pass runner conformance before being advertised. |

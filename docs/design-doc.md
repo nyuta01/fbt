@@ -1,6 +1,6 @@
 # fbt Design Doc
 
-Status: Draft
+Status: MVP-ready
 Created: 2026-05-28
 Updated: 2026-05-29
 Service name: `fbt`

@@ -1,25 +1,26 @@
-# FBT-SPEC-001 Reconcile Spec Statuses And Remaining Implementation Questions
+# FBT-SPEC-001 Reconcile Spec Status And Post-MVP Boundaries
 
 ## Observation
 
-The core implementation has moved past the original draft baseline, but some
-source-of-truth specs still say `Draft` or contain broad remaining-question
-sections that now mix resolved items with real future work.
+The source-of-truth specs still carried `Draft` status labels and broad
+remaining-question sections after the MVP implementation, schema generation,
+runner conformance, security profile, and adapter work had landed.
 
 ## Decision
 
-Audit the core specs and reconcile status labels, remaining questions, and
-future-work language with the current implemented MVP. Do not broaden scope in
-the cleanup; convert any still-valid open concern into a concrete task instead.
+Reconcile the core specs to `MVP-ready` where implementation and verification
+exist, replace stale open-question lists with concrete post-MVP boundaries, and
+leave scope-expanding work outside core unless it gets a dedicated task.
 
 ## Permanent Fix
 
-Keep specs as the source of truth by making status and remaining-question
-sections mechanically consistent with implemented behavior and structured task
-state.
+The stale status and remaining-question language has been removed from core
+specs, `docs/QUALITY_SCORE.md` no longer points at this completed cleanup task,
+`validate-docs` now checks the replacement post-MVP boundary section, and
+`make verify` runs the harness guard that prevents quality-score references to
+completed tasks from reappearing.
 
 ## Next Check
 
-Run docs validation and `make verify`; remaining questions should either be
-current and intentionally future-facing or have matching backlog tasks.
-
+`make verify` must pass after the task is marked done; future spec questions
+should be added as bounded tasks or kept as explicit post-MVP boundaries.

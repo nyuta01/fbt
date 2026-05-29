@@ -1,6 +1,6 @@
 # fbt Security and Conformance Spec
 
-Status: Draft  
+Status: MVP-ready  
 Created: 2026-05-28  
 Audience: implementers of policy enforcement, runner invocation, state safety, and acceptance tests
 
@@ -180,8 +180,8 @@ scenario classes.
 
 ## 11. Verification Target
 
-Once product implementation begins, `make verify` should grow a deterministic
-conformance target that runs these scenarios without external services.
+`make verify` includes deterministic conformance targets that run without
+external services. The executable coverage below is the current MVP gate.
 
 Current executable coverage:
 
