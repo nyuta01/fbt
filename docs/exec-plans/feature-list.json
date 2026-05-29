@@ -3065,6 +3065,195 @@
       "notes": "OpenAI adapter no longer forwards conformance fixture model names to the real Responses API. Live OpenAI conformance and a temporary incident runbook build passed with a real API key."
     },
     {
+      "id": "FBT-POLICY-001",
+      "title": "Enforce output-size limits for directory artifacts",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-MVP-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-POLICY-001-plan.md",
+      "paths": [
+        "internal/artifact/descriptor.go",
+        "internal/policy/policy.go",
+        "internal/policy/policy_test.go",
+        "internal/build/build_test.go",
+        "docs/spec.md",
+        "docs/project-config-spec.md",
+        "docs/exec-plans/active/FBT-POLICY-001-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "go_test_policy": false,
+        "go_test_build": false,
+        "make_verify": false
+      },
+      "notes": "Directory descriptors currently have no total size, so policy max_output_bytes only protects file artifacts. Compute and check aggregate directory bytes so markdown_directory and directory artifacts cannot bypass output-size policy."
+    },
+    {
+      "id": "FBT-RUNNER-021",
+      "title": "Make official adapter modules remotely installable",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-015",
+        "FBT-RUNNER-016",
+        "FBT-RUNNER-017",
+        "FBT-RUNNER-018"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-021-plan.md",
+      "paths": [
+        "sdk/go/go.mod",
+        "adapters/command/go.mod",
+        "adapters/openai/go.mod",
+        "adapters/codex-cli/go.mod",
+        "adapters/claude-code/go.mod",
+        "docs/runner-adapters.md",
+        "docs/research/official-runner-adapter-design-report.md",
+        "Makefile",
+        "docs/exec-plans/active/FBT-RUNNER-021-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "remote_go_install_command": false,
+        "remote_go_install_openai": false,
+        "remote_go_install_codex_cli": false,
+        "remote_go_install_claude_code": false,
+        "make_verify": false
+      },
+      "notes": "The documented `go install github.com/nyuta01/fbt/adapters/...@version` path currently fails outside the repository because adapter go.mod files contain local replace directives for sdk/go. Fix release/install mechanics before calling adapters official distribution units."
+    },
+    {
+      "id": "FBT-RUNNER-022",
+      "title": "Enforce CLI-agent policy mapping instead of marker-only safety",
+      "priority": "P0",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-018",
+        "FBT-RUNNER-010"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-022-plan.md",
+      "paths": [
+        "adapters/codex-cli/internal/codexcliadapter/adapter.go",
+        "adapters/claude-code/internal/claudecodeadapter/adapter.go",
+        "tests/runner-conformance/run.py",
+        "docs/runner-protocol-spec.md",
+        "docs/runner-adapters.md",
+        "docs/runner-authoring-guide.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/exec-plans/active/FBT-RUNNER-022-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "agent_adapter_policy_negative_conformance": false,
+        "adapter_codex_cli_conformance": false,
+        "adapter_claude_code_conformance": false,
+        "make_verify": false
+      },
+      "notes": "Codex CLI and Claude Code adapters currently report fail-closed policy markers but do not enforce requested network/tool/timeout controls. Add explicit policy mapping, fail when policy cannot be represented, and make conformance prove negative cases."
+    },
+    {
+      "id": "FBT-RUNNER-023",
+      "title": "Remove JSON-RPC JSONL scanner size limits",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-006",
+        "FBT-RUNNER-015"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-023-plan.md",
+      "paths": [
+        "internal/protocol/client.go",
+        "internal/protocol/client_test.go",
+        "sdk/go/stdiojsonrpc/server.go",
+        "sdk/go/stdiojsonrpc/server_test.go",
+        "docs/runner-protocol-spec.md",
+        "docs/exec-plans/active/FBT-RUNNER-023-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "large_jsonrpc_message_test": false,
+        "sdk_large_jsonrpc_message_test": false,
+        "runner_conformance": false,
+        "make_verify": false
+      },
+      "notes": "Core protocol client and SDK server use bufio.Scanner without Buffer sizing, so JSONL messages above the default token limit can fail. Make message limits explicit and large enough for many-file requests and structured runner notifications."
+    },
+    {
+      "id": "FBT-RUNNER-024",
+      "title": "Fail visibly on CLI-agent staged input truncation",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-RUNNER-018"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-024-plan.md",
+      "paths": [
+        "adapters/codex-cli/internal/codexcliadapter/adapter.go",
+        "adapters/codex-cli/internal/codexcliadapter/adapter_test.go",
+        "adapters/claude-code/internal/claudecodeadapter/adapter.go",
+        "adapters/claude-code/internal/claudecodeadapter/adapter_test.go",
+        "docs/runner-adapters.md",
+        "docs/security-and-conformance-spec.md",
+        "docs/exec-plans/active/FBT-RUNNER-024-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "adapter_codex_cli_large_input_test": false,
+        "adapter_claude_code_large_input_test": false,
+        "agent_adapter_conformance": false,
+        "make_verify": false
+      },
+      "notes": "CLI-agent adapters currently copy at most 2 MiB per staged file without surfacing truncation. Large evidence files should either be fully staged within an explicit limit or fail with an actionable error before generation."
+    },
+    {
+      "id": "FBT-RUNNER-025",
+      "title": "Expose runner stderr and exit diagnostics in protocol failures",
+      "priority": "P1",
+      "status": "todo",
+      "owner": "agent",
+      "depends": [
+        "FBT-BUILD-002",
+        "FBT-RUNNER-006"
+      ],
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-025-plan.md",
+      "paths": [
+        "internal/protocol/client.go",
+        "internal/protocol/client_test.go",
+        "internal/build/build.go",
+        "internal/build/build_test.go",
+        "internal/cli/cli_test.go",
+        "docs/cli-reference.md",
+        "docs/runner-protocol-spec.md",
+        "docs/exec-plans/active/FBT-RUNNER-025-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "docs/QUALITY_SCORE.md",
+        "AGENT_PROGRESS.md"
+      ],
+      "verification": {
+        "runner_start_stderr_test": false,
+        "failed_receipt_error_detail_test": false,
+        "cli_error_hint_test": false,
+        "make_verify": false
+      },
+      "notes": "When a runner exits before initialization or during a protocol call, core should retain bounded stderr and exit status in the safe error record and human hint so external-runner failures are diagnosable."
+    },
+    {
       "id": "FBT-PDCA-001",
       "title": "Maintain self-PDCA loop",
       "priority": "P1",

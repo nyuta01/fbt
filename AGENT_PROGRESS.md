@@ -73,6 +73,14 @@ inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 (`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`, now
 done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
+The latest full review added a new post-MVP hardening backlog. The highest
+priority open tasks are directory output-size enforcement (`FBT-POLICY-001`),
+remote-installable official adapters (`FBT-RUNNER-021`), and real CLI-agent
+policy enforcement (`FBT-RUNNER-022`). Follow-up runner robustness tasks cover
+large JSON-RPC JSONL messages (`FBT-RUNNER-023`), visible staged-input
+truncation failures (`FBT-RUNNER-024`), and bounded stderr/exit diagnostics for
+runner protocol failures (`FBT-RUNNER-025`).
+
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform
 is no longer blocked merely because its selected upstream artifact does not
