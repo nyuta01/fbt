@@ -379,6 +379,24 @@ def scenario_runner_lockfile(ctx: Context) -> None:
     assert_contains(malformed_doctor.stdout, "RUNNER_LOCK_SCHEMA_UNSUPPORTED", "runner lock malformed stdout")
 
 
+def scenario_orphaned_artifact_history(ctx: Context) -> None:
+    project = ctx.tmpdir / "orphaned-artifact"
+    init_project(project)
+    fbt(["build", "--project-dir", str(project), "--select", "case_summaries"])
+
+    write(project / "transforms" / "support" / "case_summaries.yml", "transforms: []\n")
+    write(project / "transforms" / "support" / "weekly_insights.yml", "transforms: []\n")
+    show = fbt(["artifact", "show", "case_summaries", "--project-dir", str(project)])
+    assert_contains(show.stdout, "no (orphaned)", "orphaned artifact show")
+
+    history = fbt(["artifact", "history", "case_summaries", "--project-dir", str(project)])
+    assert_contains(history.stdout, "no (orphaned)", "orphaned artifact history")
+
+    openlineage = fbt(["export", "openlineage", "--project-dir", str(project)])
+    assert_contains(openlineage.stdout, '"orphaned":true', "orphaned OpenLineage export")
+    assert_contains(openlineage.stdout, "artifact.", "orphaned OpenLineage export")
+
+
 def validate_exports(openlineage_path: Path, otel_path: Path, redaction_marker: str) -> None:
     openlineage_text = openlineage_path.read_text(encoding="utf-8")
     otel_text = otel_path.read_text(encoding="utf-8")
@@ -492,6 +510,7 @@ SCENARIOS = [
     Scenario("standard exports and dirty planning", scenario_standard_exports),
     Scenario("runner failure receipts", scenario_runner_failures),
     Scenario("runner lockfile diagnostics", scenario_runner_lockfile),
+    Scenario("orphaned artifact history", scenario_orphaned_artifact_history),
     Scenario("policy denied receipts", scenario_policy_denied),
     Scenario("agent policy required", scenario_agent_policy_required),
 ]

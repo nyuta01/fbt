@@ -107,6 +107,27 @@ coverage before it can remove files.
 Artifact versions are immutable. Reusing a version ID with different content is
 an error.
 
+## Orphaned Declarations
+
+Deleting or renaming source, transform, or artifact declarations does not delete
+state. Current artifact pointers, artifact versions, run results, eval results,
+and policy decisions remain inspectable.
+
+An artifact version is `orphaned` when its `artifact_id` no longer appears in
+the current manifest as a declared artifact or transform output. fbt reports
+that state instead of pretending the artifact is still declared:
+
+- `fbt artifact show TARGET` and `fbt artifact history TARGET` still resolve
+  recorded versions by artifact ID or short artifact name.
+- Human output prints `Declared: no (orphaned)` for recorded versions whose
+  declaration is gone.
+- JSON output includes `declared: false` and `orphaned: true`.
+- `fbt artifact explain TARGET` remains a current-graph planning command. It
+  requires a current producer transform and is not the inspection surface for
+  orphaned historical artifacts.
+- Recreating a declaration with the same artifact ID makes future builds use
+  the normal declared semantics again. Historical versions are still immutable.
+
 ## Run Results
 
 `run_results.jsonl` is append-only and contains invocation start/completion

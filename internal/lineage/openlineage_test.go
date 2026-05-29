@@ -109,3 +109,45 @@ func TestOpenLineageEvents(t *testing.T) {
 		t.Fatalf("unexpected OpenLineage metadata: %+v", decoded)
 	}
 }
+
+func TestOpenLineageEventsIncludeOrphanedArtifactVersions(t *testing.T) {
+	version := state.ArtifactVersion{
+		VersionID:   "artifact_version.knowledge_ops.case_summaries.sha256_orphan",
+		ArtifactID:  "artifact.knowledge_ops.case_summaries",
+		LogicalPath: "target/artifacts/support/case_summaries/",
+		StoragePath: ".fbt/artifacts/orphan/content",
+		GeneratedBy: "transform_run.run_orphan",
+		CommittedAt: "2026-05-28T00:00:00Z",
+		Descriptor: artifact.Descriptor{
+			Digest:       "sha256:orphan",
+			ArtifactType: "fbt.artifact.markdown_directory.v1",
+		},
+		Materials: []state.Material{
+			{ResourceID: "source.knowledge_ops.support.raw_tickets", Digest: "sha256:source"},
+		},
+	}
+	events := OpenLineageEvents(OpenLineageInput{
+		Manifest: manifest.Manifest{
+			Metadata:   manifest.Metadata{ProjectName: "knowledge_ops", GeneratedAt: "2026-05-28T00:00:00Z"},
+			Transforms: map[string]manifest.TransformResource{},
+		},
+		ArtifactVersions: state.ArtifactVersionsIndex{
+			ArtifactVersions: map[string]state.ArtifactVersion{version.VersionID: version},
+		},
+	})
+
+	if len(events) != 1 {
+		t.Fatalf("expected one orphaned event, got %d", len(events))
+	}
+	event := events[0]
+	if event.Job.Name != version.ArtifactID {
+		t.Fatalf("expected artifact job name for orphaned event, got %+v", event.Job)
+	}
+	facet, ok := event.Job.Facets["fbt_job"].(map[string]any)
+	if !ok || facet["orphaned"] != true {
+		t.Fatalf("expected orphaned job facet, got %+v", event.Job.Facets)
+	}
+	if len(event.Inputs) != 1 || event.Inputs[0].Name != "source.knowledge_ops.support.raw_tickets" {
+		t.Fatalf("expected material input for orphaned event, got %+v", event.Inputs)
+	}
+}

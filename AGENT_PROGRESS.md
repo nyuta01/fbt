@@ -515,6 +515,12 @@ dirty. No command downloads, installs, updates, or resolves runner packages.
 conformance cover the negative case, and security/project-config docs plus
 docs-site snippets state that agent transforms require explicit policy.
 
+`FBT-STATE-004` is done. Deleted or renamed declarations now have explicit
+orphaned artifact semantics: `artifact show` and `artifact history` still
+resolve recorded versions and mark undeclared records as `no (orphaned)`, JSON
+includes `declared` and `orphaned`, and OpenLineage export emits orphaned
+artifact-version events instead of dropping historical lineage.
+
 ## Verification
 
 Required gate before calling work done:
@@ -529,14 +535,12 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. `FBT-STATE-004`: specify orphaned resource and artifact semantics for
-   deleted or renamed declarations.
-2. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
+1. `FBT-CONTRACT-001`: clarify artifact `contract` semantics and the boundary
    with deterministic evals and runner-owned judge reports.
-3. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
-4. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
+2. `FBT-OPS-002`: define failed-run recovery and failure-focused selection UX.
+3. `FBT-STATE-005`: specify archive-safe retention and pruning behavior before
    any destructive cleanup command exists.
-5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

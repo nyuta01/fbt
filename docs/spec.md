@@ -124,6 +124,11 @@ prune command. Use `fbt artifact retention` to inspect local growth and archive
 `.fbt/state/` with `.fbt/artifacts/` together when using external retention
 tools.
 
+Deleted or renamed declarations do not delete state. Recorded artifacts whose
+current declaration no longer exists remain visible through `artifact show` and
+`artifact history` as orphaned records, and OpenLineage export emits orphaned
+artifact-version events instead of dropping historical lineage.
+
 ## 6. Transform
 
 A transform is a contract, not the implementation.

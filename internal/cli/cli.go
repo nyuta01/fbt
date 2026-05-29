@@ -1647,6 +1647,8 @@ type artifactRecord struct {
 	Materials           []state.Material    `json:"materials,omitempty"`
 	SemanticDescriptor  map[string]any      `json:"semantic_descriptor,omitempty"`
 	Descriptor          artifact.Descriptor `json:"descriptor,omitempty"`
+	Declared            bool                `json:"declared"`
+	Orphaned            bool                `json:"orphaned,omitempty"`
 }
 
 func runArtifactPath(ctx projectContext, versions state.ArtifactVersionsIndex, target string, jsonOutput bool, stdout io.Writer, stderr io.Writer) int {
@@ -2057,7 +2059,9 @@ func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, version st
 		Descriptor:          version.Descriptor,
 		AbsoluteLogicalPath: absoluteProjectPath(ctx.ParseResult.ProjectDir, version.LogicalPath),
 		AbsoluteStoragePath: absoluteProjectPath(ctx.ParseResult.ProjectDir, version.StoragePath),
+		Declared:            artifactDeclared(ctx.Manifest, version.ArtifactID),
 	}
+	record.Orphaned = !record.Declared
 	if pointer, ok := snapshot.CurrentArtifacts[version.ArtifactID]; ok && pointer.CurrentVersionID == version.VersionID {
 		record.Current = true
 		if pointer.Confidence != "" {
@@ -2071,12 +2075,26 @@ func buildArtifactRecord(ctx projectContext, snapshot state.Snapshot, version st
 	return record
 }
 
+func artifactDeclared(m manifest.Manifest, artifactID string) bool {
+	if _, ok := m.Artifacts[artifactID]; ok {
+		return true
+	}
+	for _, transform := range m.Transforms {
+		for _, output := range transform.Outputs {
+			if output.UniqueID == artifactID {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func declaredArtifactRecord(ctx projectContext, target string) (artifactRecord, bool) {
 	artifactID, ok := resolveArtifactID(ctx.Manifest, target)
 	if !ok {
 		return artifactRecord{}, false
 	}
-	record := artifactRecord{ArtifactID: artifactID}
+	record := artifactRecord{ArtifactID: artifactID, Declared: true}
 	if transform, ok := producerTransform(ctx.Manifest, artifactID); ok {
 		record.Runner = transform.Runner
 		record.Model = transform.Model
@@ -2126,6 +2144,9 @@ func printArtifactRecord(stdout io.Writer, record artifactRecord) {
 		artifactRows = append(artifactRows, displayRow{Label: "Status", Value: "current"})
 	} else if record.VersionID != "" {
 		artifactRows = append(artifactRows, displayRow{Label: "Status", Value: "historical"})
+	}
+	if record.Orphaned {
+		artifactRows = append(artifactRows, displayRow{Label: "Declared", Value: "no (orphaned)"})
 	}
 	if record.LogicalPath != "" {
 		artifactRows = append(artifactRows, displayRow{Label: "Path", Value: record.LogicalPath})

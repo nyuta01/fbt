@@ -3926,7 +3926,7 @@
       "id": "FBT-STATE-004",
       "title": "Specify orphaned resource and artifact semantics",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STATE-002",
@@ -3938,6 +3938,7 @@
         "internal/manifest/",
         "internal/cli/",
         "internal/lineage/",
+        "docs/spec.md",
         "docs/state-and-run-results-spec.md",
         "docs/cli-reference.md",
         "docs/standard-export-spec.md",
@@ -3948,12 +3949,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "removed_transform_current_artifact_behavior": false,
-        "artifact_show_orphan_visibility": false,
-        "exports_preserve_historical_lineage": false,
-        "make_verify": false
+        "removed_transform_current_artifact_behavior": true,
+        "artifact_show_orphan_visibility": true,
+        "exports_preserve_historical_lineage": true,
+        "make_verify": true
       },
-      "notes": "Define what happens when sources, transforms, or artifact declarations are removed or renamed. Historical artifact versions should remain inspectable and exportable without pretending removed resources are still declared."
+      "notes": "Deleted or renamed declarations now produce explicit orphaned artifact inspection semantics. artifact show/history mark recorded undeclared versions as orphaned, JSON exposes declared/orphaned fields, and OpenLineage exports orphaned artifact-version events instead of dropping historical lineage."
     },
     {
       "id": "FBT-CONTRACT-001",

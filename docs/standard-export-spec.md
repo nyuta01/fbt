@@ -116,6 +116,10 @@ OpenLineage constraints:
   are allowed, otherwise `fbt:<project_name>`.
 - Dataset names use stable fbt resource IDs, with logical paths in facets.
 - Custom facets use the `fbt_` key prefix and immutable schema URLs.
+- Historical artifact versions whose current declarations were deleted or
+  renamed are still exported. Their OpenLineage job name is the artifact ID and
+  fbt custom facets include `orphaned: true`; material inputs are exported from
+  the artifact version receipt when available.
 
 Minimum OpenLineage event:
 

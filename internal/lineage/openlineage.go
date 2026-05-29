@@ -67,6 +67,7 @@ func OpenLineageEvents(input OpenLineageInput) []RunEvent {
 	for _, version := range versions {
 		transform, ok := producerTransform(input.Manifest, version.ArtifactID)
 		if !ok {
+			events = append(events, orphanedRunEvent(input, namespace, version))
 			continue
 		}
 		runIDSource := version.GeneratedBy
@@ -97,6 +98,34 @@ func OpenLineageEvents(input OpenLineageInput) []RunEvent {
 		events = append(events, event)
 	}
 	return events
+}
+
+func orphanedRunEvent(input OpenLineageInput, namespace string, version state.ArtifactVersion) RunEvent {
+	runIDSource := version.GeneratedBy
+	if runIDSource == "" {
+		runIDSource = version.VersionID
+	}
+	return RunEvent{
+		EventType: "COMPLETE",
+		EventTime: eventTime(input.Manifest, input.Snapshot, version),
+		Run: Run{
+			RunID: deterministicUUID(runIDSource),
+			Facets: map[string]any{
+				"fbt_run": orphanedRunFacet(version),
+			},
+		},
+		Job: Job{
+			Namespace: namespace,
+			Name:      version.ArtifactID,
+			Facets: map[string]any{
+				"fbt_job": orphanedJobFacet(version),
+			},
+		},
+		Inputs:    materialDatasets(namespace, version.Materials),
+		Outputs:   []Dataset{outputDataset(input, namespace, version)},
+		Producer:  OpenLineageProducer,
+		SchemaURL: OpenLineageSchemaURL,
+	}
 }
 
 func WriteOpenLineageNDJSON(w io.Writer, events []RunEvent) error {
@@ -205,29 +234,25 @@ func fbtJobFacet(transform manifest.TransformResource) map[string]any {
 	})
 }
 
+func orphanedRunFacet(version state.ArtifactVersion) map[string]any {
+	return compactFacet(fbtRunFacetSchema, map[string]any{
+		"transform_run_id":    version.GeneratedBy,
+		"artifact_id":         version.ArtifactID,
+		"artifact_version_id": version.VersionID,
+		"orphaned":            true,
+	})
+}
+
+func orphanedJobFacet(version state.ArtifactVersion) map[string]any {
+	return compactFacet(fbtJobFacetSchema, map[string]any{
+		"artifact_id": version.ArtifactID,
+		"orphaned":    true,
+	})
+}
+
 func inputDatasets(input OpenLineageInput, namespace string, transform manifest.TransformResource, version state.ArtifactVersion) []Dataset {
 	if len(version.Materials) > 0 {
-		materials := append([]state.Material(nil), version.Materials...)
-		sort.Slice(materials, func(i, j int) bool {
-			left := materials[i].ResourceID + "\x00" + materials[i].ArtifactVersion + "\x00" + materials[i].Digest
-			right := materials[j].ResourceID + "\x00" + materials[j].ArtifactVersion + "\x00" + materials[j].Digest
-			return left < right
-		})
-		datasets := make([]Dataset, 0, len(materials))
-		for _, material := range materials {
-			datasets = append(datasets, Dataset{
-				Namespace: namespace,
-				Name:      material.ResourceID,
-				Facets: map[string]any{
-					"fbt_material": compactFacet(fbtMaterialFacetSchema, map[string]any{
-						"resource_id":         material.ResourceID,
-						"artifact_version_id": material.ArtifactVersion,
-						"digest":              material.Digest,
-					}),
-				},
-			})
-		}
-		return datasets
+		return materialDatasets(namespace, version.Materials)
 	}
 
 	datasets := make([]Dataset, 0, len(transform.Inputs))
@@ -244,6 +269,33 @@ func inputDatasets(input OpenLineageInput, namespace string, transform manifest.
 			Namespace: namespace,
 			Name:      transformInput.UniqueID,
 			Facets:    facets,
+		})
+	}
+	return datasets
+}
+
+func materialDatasets(namespace string, inputMaterials []state.Material) []Dataset {
+	if len(inputMaterials) == 0 {
+		return nil
+	}
+	materials := append([]state.Material(nil), inputMaterials...)
+	sort.Slice(materials, func(i, j int) bool {
+		left := materials[i].ResourceID + "\x00" + materials[i].ArtifactVersion + "\x00" + materials[i].Digest
+		right := materials[j].ResourceID + "\x00" + materials[j].ArtifactVersion + "\x00" + materials[j].Digest
+		return left < right
+	})
+	datasets := make([]Dataset, 0, len(materials))
+	for _, material := range materials {
+		datasets = append(datasets, Dataset{
+			Namespace: namespace,
+			Name:      material.ResourceID,
+			Facets: map[string]any{
+				"fbt_material": compactFacet(fbtMaterialFacetSchema, map[string]any{
+					"resource_id":         material.ResourceID,
+					"artifact_version_id": material.ArtifactVersion,
+					"digest":              material.Digest,
+				}),
+			},
 		})
 	}
 	return datasets

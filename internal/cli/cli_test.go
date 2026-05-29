@@ -656,6 +656,60 @@ func TestRunArtifactCommands(t *testing.T) {
 	}
 }
 
+func TestRunArtifactInspectionMarksOrphanedDeclarations(t *testing.T) {
+	root := writeCLIProject(t)
+	installFakeCLIRunner(t, root)
+	writeFile(t, root, "evals/support.yml", `evals:
+  - name: required_case_sections
+    type: deterministic
+    config:
+      sections: ["Fake Output"]
+`)
+	var buildOut bytes.Buffer
+	var buildErr bytes.Buffer
+	if code := Run([]string{"build", "--project-dir", root, "--select", "case_summaries"}, &buildOut, &buildErr); code != 0 {
+		t.Fatalf("build failed: code=%d stdout=%q stderr=%q", code, buildOut.String(), buildErr.String())
+	}
+
+	writeFile(t, root, "transforms/case.yml", "transforms: []\n")
+
+	var showOut bytes.Buffer
+	var showErr bytes.Buffer
+	if code := Run([]string{"artifact", "show", "case_summaries", "--project-dir", root}, &showOut, &showErr); code != 0 {
+		t.Fatalf("artifact show failed: code=%d stdout=%q stderr=%q", code, showOut.String(), showErr.String())
+	}
+	if !strings.Contains(showOut.String(), "no (orphaned)") {
+		t.Fatalf("expected orphaned marker in artifact show:\n%s", showOut.String())
+	}
+
+	var showJSON bytes.Buffer
+	var showJSONErr bytes.Buffer
+	if code := Run([]string{"artifact", "show", "case_summaries", "--project-dir", root, "--json"}, &showJSON, &showJSONErr); code != 0 {
+		t.Fatalf("artifact show json failed: code=%d stdout=%q stderr=%q", code, showJSON.String(), showJSONErr.String())
+	}
+	if !strings.Contains(showJSON.String(), `"orphaned": true`) || !strings.Contains(showJSON.String(), `"declared": false`) {
+		t.Fatalf("expected orphaned json fields:\n%s", showJSON.String())
+	}
+
+	var historyOut bytes.Buffer
+	var historyErr bytes.Buffer
+	if code := Run([]string{"artifact", "history", "case_summaries", "--project-dir", root}, &historyOut, &historyErr); code != 0 {
+		t.Fatalf("artifact history failed: code=%d stdout=%q stderr=%q", code, historyOut.String(), historyErr.String())
+	}
+	if !strings.Contains(historyOut.String(), "no (orphaned)") {
+		t.Fatalf("expected orphaned marker in artifact history:\n%s", historyOut.String())
+	}
+
+	var lineageOut bytes.Buffer
+	var lineageErr bytes.Buffer
+	if code := Run([]string{"export", "openlineage", "--project-dir", root}, &lineageOut, &lineageErr); code != 0 {
+		t.Fatalf("openlineage export failed: code=%d stdout=%q stderr=%q", code, lineageOut.String(), lineageErr.String())
+	}
+	if !strings.Contains(lineageOut.String(), `"orphaned":true`) || !strings.Contains(lineageOut.String(), "artifact.knowledge_ops.case_summaries") {
+		t.Fatalf("expected orphaned OpenLineage event:\n%s", lineageOut.String())
+	}
+}
+
 func TestRunArtifactRetentionReportsReadOnlyHygiene(t *testing.T) {
 	root := writeCLIProject(t)
 	store, current := writeCLICurrentArtifact(t, root)
