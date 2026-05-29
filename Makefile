@@ -14,6 +14,7 @@ VERSION ?= 0.1.0
 COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 FBT_LDFLAGS := -X github.com/nyuta01/fbt/internal/version.Version=$(VERSION) -X github.com/nyuta01/fbt/internal/version.Commit=$(COMMIT) -X github.com/nyuta01/fbt/internal/version.BuildDate=$(BUILD_DATE)
+GOFMT_DIRS := cmd internal examples/runner_adapters tests/runner_fixtures sdk/go
 
 .DEFAULT_GOAL := help
 
@@ -39,15 +40,19 @@ validate-docs: ## Validate docs-local links and language/file-name invariants.
 
 .PHONY: fmt
 fmt: ## Format Go source.
-	@$(GOFMT) -w cmd internal examples/runner_adapters tests/runner_fixtures
+	@$(GOFMT) -w $(GOFMT_DIRS)
 
 .PHONY: fmt-check
 fmt-check: ## Verify Go source formatting.
-	@test -z "$$($(GOFMT) -l cmd internal examples/runner_adapters tests/runner_fixtures)"
+	@test -z "$$($(GOFMT) -l $(GOFMT_DIRS))"
 
 .PHONY: go-test
 go-test: ## Run Go unit tests.
 	@$(GO) test ./...
+
+.PHONY: sdk-go-test
+sdk-go-test: ## Run provider-free Go runner SDK tests.
+	@cd sdk/go && $(GO) test ./...
 
 .PHONY: build
 build: ## Build the fbt CLI into bin/fbt.
@@ -99,5 +104,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test cli-smoke e2e-smoke practical-examples-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

@@ -2885,24 +2885,29 @@
       "id": "FBT-RUNNER-015",
       "title": "Create provider-free Go runner SDK module",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-014"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-015-plan.md",
       "paths": [
         "sdk/go",
         "go.work",
         "Makefile",
-        "docs/runner-adapters.md"
+        "docs/runner-adapters.md",
+        "docs/exec-plans/active/FBT-RUNNER-015-plan.md",
+        "docs/exec-plans/feature-list.json",
+        "AGENT_PROGRESS.md",
+        "docs/QUALITY_SCORE.md"
       ],
       "verification": {
-        "go_test": false,
-        "runner_conformance": false,
-        "make_verify": false
+        "go_test": true,
+        "sdk_go_test": true,
+        "validate_docs": true,
+        "make_verify": true
       },
-      "notes": "Create a provider-free nested Go module for runner protocol types, JSON-RPC JSONL stdio helpers, output-candidate helpers, redaction helpers, and adapter test helpers."
+      "notes": "Adds provider-free sdk/go nested module with runner protocol types, stdio JSON-RPC server helpers, output-candidate helpers, redaction helpers, go.work, and make verify SDK coverage."
     },
     {
       "id": "FBT-RUNNER-016",

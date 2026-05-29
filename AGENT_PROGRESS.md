@@ -272,6 +272,12 @@ The structured backlog now includes the official adapter implementation path:
 Claude Code adapters. Provider SDKs and agent runtimes must stay out of fbt
 core while those tasks are implemented.
 
+`FBT-RUNNER-015` is done. `sdk/go` is a provider-free nested Go module with
+runner protocol types, JSONL stdio JSON-RPC server helpers, output-candidate
+helpers, and redaction helpers. `go.work` includes the root module and
+`sdk/go`, and `make verify` runs `sdk-go-test` in addition to the root Go
+tests.
+
 ## Verification
 
 Required gate before calling work done:
