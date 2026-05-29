@@ -3513,7 +3513,7 @@
       "id": "FBT-STATE-003",
       "title": "Validate retention guidance with a high-volume fixture",
       "priority": "P2",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-STATE-002",
@@ -3525,19 +3525,22 @@
         "internal/cli/",
         "scripts/",
         "docs/",
+        "docs/examples/high-volume-retention.md",
         "apps/docs/src/content/docs/",
+        "Makefile",
+        "scripts/smoke-retention-high-volume.sh",
         "docs/exec-plans/active/FBT-STATE-003-plan.md",
         "docs/exec-plans/feature-list.json",
         "docs/QUALITY_SCORE.md",
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "high_volume_retention_fixture": false,
-        "artifact_retention_docs_scan": false,
-        "go_test_state_cli": false,
-        "make_verify": false
+        "high_volume_retention_fixture": true,
+        "artifact_retention_docs_scan": true,
+        "go_test_state_cli": true,
+        "make_verify": true
       },
-      "notes": "The read-only retention command exists, but long-running daily projects need fixture-backed guidance showing growth, archive boundaries, and safe inspection behavior under many sources/artifact versions."
+      "notes": "Added `retention-high-volume-smoke`, which creates eight artifact versions, verifies current/historical retention counts, checks JSON archive roots, and confirms the read-only archive guidance for `.fbt/state` plus `.fbt/artifacts`."
     },
     {
       "id": "FBT-PDCA-001",

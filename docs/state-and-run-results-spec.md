@@ -48,6 +48,15 @@ The read-only retention inspection command is:
 fbt artifact retention
 ```
 
+High-volume fixture coverage is provided by:
+
+```sh
+make retention-high-volume-smoke
+```
+
+The fixture creates multiple artifact versions, verifies current and historical
+version counts, checks JSON archive roots, and confirms no files are removed.
+
 It reports human-readable state size, immutable artifact size, run-record
 count, artifact version count, current-version count, historical-version count,
 and missing storage references. The command removes no files.

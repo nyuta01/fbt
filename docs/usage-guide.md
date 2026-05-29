@@ -180,6 +180,15 @@ artifacts for retention windows. fbt does not expose a destructive prune command
 in MVP because deleting history must preserve current pointers, lineage, eval
 results, policy decisions, and run receipts.
 
+The high-volume fixture is:
+
+```sh
+make retention-high-volume-smoke
+```
+
+It creates eight artifact versions, checks the read-only report, and verifies
+that `.fbt/state/` and `.fbt/artifacts/` are the archive roots.
+
 ## 7. Existing Tool Composition
 
 Use `type: command` transforms when an existing CLI already does the work.

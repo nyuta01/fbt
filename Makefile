@@ -121,6 +121,10 @@ daily-ops-smoke: ## Verify daily growing-source operations with multiple artifac
 semantic-eval-boundary-smoke: ## Verify external semantic/evidence quality checks stay outside core.
 	@bash scripts/smoke-semantic-eval-boundary.sh
 
+.PHONY: retention-high-volume-smoke
+retention-high-volume-smoke: ## Verify retention inspection under many artifact versions.
+	@bash scripts/smoke-retention-high-volume.sh
+
 .PHONY: real-llm-smoke
 real-llm-smoke: build ## Run opt-in smoke against an external real LLM runner.
 	@FBT_BIN="$(CURDIR)/bin/fbt" bash scripts/smoke-real-llm.sh
@@ -158,5 +162,5 @@ dist-check: ## Build and smoke the local release binary.
 	@VERSION="$(VERSION)" COMMIT="$(COMMIT)" BUILD_DATE="$(BUILD_DATE)" bash scripts/dist-check.sh
 
 .PHONY: verify
-verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
+verify: harness-check drift-check validate-docs fmt-check go-test sdk-go-test adapter-command-test adapter-command-conformance adapter-openai-test adapter-openai-conformance adapter-codex-cli-test adapter-codex-cli-conformance adapter-claude-code-test adapter-claude-code-conformance cli-smoke e2e-smoke practical-examples-smoke own-files-smoke daily-ops-smoke semantic-eval-boundary-smoke retention-high-volume-smoke docs-site-build runner-conformance runner-scaffold-conformance conformance dist-check ## Run the current single verification gate.
 	@echo "verify: ok"

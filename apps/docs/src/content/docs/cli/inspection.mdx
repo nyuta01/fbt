@@ -36,6 +36,11 @@ records, current versions, historical versions, and missing storage references.
 fbt keeps all versions by default; archive `.fbt/state` and `.fbt/artifacts`
 together when an external retention process is needed.
 
+For high-volume guidance, run `make retention-high-volume-smoke` from a source
+checkout or read `docs/examples/high-volume-retention.md`. The fixture creates
+multiple artifact versions and verifies that retention inspection removes no
+files.
+
 ## Inspect generated files
 
 ```sh

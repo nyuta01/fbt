@@ -142,6 +142,12 @@ checksum verification, source builds, separately installed official adapters,
 adapter version pinning expectations, and source/installed/live verification
 commands.
 
+`FBT-STATE-003` is done. `make verify` includes
+`retention-high-volume-smoke`, which creates eight artifact versions, verifies
+current/historical counts, checks JSON archive roots, and confirms retention
+inspection is read-only. `docs/examples/high-volume-retention.md` documents
+the archive boundary for `.fbt/state/` plus `.fbt/artifacts/`.
+
 `FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
 regular-file byte size, so `limits.max_output_bytes` applies to
 `directory`/`markdown_directory` artifacts as well as file artifacts. Build
