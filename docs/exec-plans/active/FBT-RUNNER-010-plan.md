@@ -1,6 +1,6 @@
 # FBT-RUNNER-010 Harden CLI-Agent Adapter Safety Contract
 
-Status: todo
+Status: done
 Owner: agent
 Updated: 2026-05-29
 
@@ -25,13 +25,20 @@ state/source writes.
 
 ## Permanent Fix
 
-Pending. Expected permanent fix:
+The runner conformance harness now has an opt-in `--agent-adapter` safety
+profile. It injects a redaction marker into source and asset files, creates
+guard files at the source path, logical artifact path, and `.fbt/state`, and
+fails if a runner leaks the marker or modifies those guarded locations.
 
-- Extend runner conformance or add adapter conformance scenarios for
-  staging-workspace and direct-write denial expectations.
-- Update runner authoring docs with concrete adapter patterns.
-- Keep OS-level sandboxing out of base core unless a future spec chooses it
-  deliberately.
+The safety profile also requires a CLI-agent adapter to report a staging
+workspace under `work.root` but outside `work.outputs`, and to report
+fail-closed policy mapping through structured `fbt/event` attributes. The
+copyable scaffold emits those markers and `make verify` runs it through the
+agent-adapter profile.
+
+Runner authoring, adapter packaging, scaffold, conformance, and security docs
+now describe the concrete contract. OS-level sandboxing remains out of base
+core unless a future spec chooses it deliberately.
 
 ## Next Check
 
@@ -41,5 +48,6 @@ Run:
 make verify
 ```
 
-Expected result: recommended CLI-agent adapters have a repeatable safety check
-that preserves fbt's commit boundary.
+Latest result: `make runner-conformance runner-scaffold-conformance` passed.
+Expected final gate: `make verify` passes with the scaffold using
+`--strict --agent-adapter`.

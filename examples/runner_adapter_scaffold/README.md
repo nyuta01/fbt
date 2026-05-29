@@ -22,8 +22,10 @@ Replace `render_candidate()` with the provider, agent, or tool call you need.
 Keep the rest of the boundary:
 
 - read inputs and assets from the paths fbt sends
+- run external CLI agents from a staging workspace under `work.root`
 - write only under `work.outputs`
 - emit redacted events only
+- fail closed when fbt policy cannot be mapped safely
 - return declared output candidates
 - keep credentials in the runner environment, not fbt state
 
@@ -34,7 +36,8 @@ From the repository root:
 ```sh
 python3 tests/runner-conformance/run.py \
   --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
-  --strict
+  --strict \
+  --agent-adapter
 ```
 
 Expected output:

@@ -11,6 +11,9 @@ runners. It starts a runner process over stdio JSON-RPC/JSONL, sends
 - candidate paths exist and stay under `work.outputs`
 - strict mode emits at least one `fbt/event` and one `fbt/outputCandidate`
   notification
+- protocol responses and events do not leak the injected redaction marker
+- source, logical artifact, and `.fbt/state` guard files are not modified by the
+  runner
 
 Run the default fixture against the source fake runner:
 
@@ -35,8 +38,15 @@ Run the copyable adapter scaffold:
 ```sh
 python3 tests/runner-conformance/run.py \
   --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
-  --strict
+  --strict \
+  --agent-adapter
 ```
+
+Use `--agent-adapter` for adapters that wrap Codex CLI, Claude Code, Gemini CLI,
+or similar external agents. It additionally requires an `fbt/event` attribute
+named `fbt.adapter.staging_workspace` under `work.root` but outside
+`work.outputs`, plus fail-closed policy mapping through
+`fbt.adapter.policy_mode=fail_closed` or `fbt.adapter.policy_fail_closed=true`.
 
 The JSON fixtures in `fixtures/` show the canonical minimal request shapes. The
 harness generates temporary absolute work paths at runtime, so fixture paths are

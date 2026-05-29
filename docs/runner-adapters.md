@@ -42,7 +42,8 @@ real provider, agent, converter, or service call.
 ```sh
 python3 tests/runner-conformance/run.py \
   --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
-  --strict
+  --strict \
+  --agent-adapter
 ```
 
 ## 3. Package Naming
@@ -176,6 +177,20 @@ external agent CLI. They must follow the safe adapter contract:
 See [Runner Protocol Spec](runner-protocol-spec.md) and
 [Security and Conformance Spec](security-and-conformance-spec.md).
 
+Adapters recommended for agent CLIs should pass the stricter safety profile:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command 'fbt-runner-codex-cli' \
+  --strict \
+  --agent-adapter
+```
+
+The `--agent-adapter` profile checks that protocol messages are redacted, the
+temporary source/logical artifact/state guard files are unchanged, the adapter
+reports a staging workspace under `work.root` but outside `work.outputs`, and
+policy mapping is explicitly fail-closed.
+
 ## 9. Versioning
 
 Adapter packages should use semantic versioning. Breaking changes include:
@@ -207,6 +222,9 @@ Before documenting an adapter as fbt-compatible:
 6. Confirm no raw credentials or raw prompts are persisted in state,
    OpenLineage, or OTel exports.
 7. Confirm failed or denied runs do not update official artifact paths.
+
+For CLI-agent adapters, also run `tests/runner-conformance/run.py` with
+`--strict --agent-adapter` before recommending the package.
 
 Adapters that require real provider accounts should keep provider smoke tests
 behind explicit opt-in commands, not `make verify`.

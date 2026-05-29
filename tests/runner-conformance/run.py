@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="require a progress event and fbt/outputCandidate notification, not only response outputs",
     )
+    parser.add_argument(
+        "--agent-adapter",
+        action="store_true",
+        help="require CLI-agent adapter safety markers and direct-write boundary checks",
+    )
     return parser.parse_args()
 
 
@@ -140,7 +145,7 @@ def within(parent: Path, child: Path) -> bool:
         return False
 
 
-def build_run_params(tmp: Path, args: argparse.Namespace) -> dict:
+def build_run_params(tmp: Path, args: argparse.Namespace) -> tuple[dict, dict[str, str | Path]]:
     project = tmp / "project"
     source_dir = project / "inputs"
     asset_dir = project / "assets"
@@ -148,15 +153,27 @@ def build_run_params(tmp: Path, args: argparse.Namespace) -> dict:
     asset_dir.mkdir(parents=True)
     source_path = source_dir / "source.md"
     asset_path = asset_dir / "prompt.md"
-    source_path.write_text("# Source\n\nA short fixture input.\n")
-    asset_path.write_text("# Prompt\n\nWrite a short fixture output.\n")
+    redaction_marker = "FBT_RUNNER_CONFORMANCE_SECRET_DO_NOT_EXPORT"
+    source_text = f"# Source\n\nA short fixture input.\n\nsecret={redaction_marker}\n"
+    asset_text = f"# Prompt\n\nWrite a short fixture output. Do not leak {redaction_marker}.\n"
+    source_path.write_text(source_text)
+    asset_path.write_text(asset_text)
 
     work = project / ".fbt" / "work" / "runner-conformance"
     outputs = work / "outputs"
     (work / "tmp").mkdir(parents=True)
     outputs.mkdir(parents=True)
 
-    return {
+    logical_output = project / "target" / "artifacts" / "output.md"
+    logical_output.parent.mkdir(parents=True)
+    logical_output_text = "official output must not be touched by runner\n"
+    logical_output.write_text(logical_output_text)
+    state_path = project / ".fbt" / "state" / "state.json"
+    state_path.parent.mkdir(parents=True)
+    state_text = '{"guard":"state must not be touched by runner"}\n'
+    state_path.write_text(state_text)
+
+    params = {
         "mode": "run",
         "invocation_id": "invocation.runner_conformance",
         "transform_run_id": "transform_run.runner_conformance",
@@ -218,6 +235,17 @@ def build_run_params(tmp: Path, args: argparse.Namespace) -> dict:
             "outputs": str(outputs),
         },
     }
+    guards: dict[str, str | Path] = {
+        "project": project,
+        "source_path": source_path,
+        "source_text": source_text,
+        "logical_output": logical_output,
+        "logical_output_text": logical_output_text,
+        "state_path": state_path,
+        "state_text": state_text,
+        "redaction_marker": redaction_marker,
+    }
+    return params, guards
 
 
 def validate_initialize(response: dict, args: argparse.Namespace, stderr_path: Path) -> None:
@@ -256,6 +284,7 @@ def validate_run(
     notifications: list[dict],
     params: dict,
     args: argparse.Namespace,
+    guards: dict[str, str | Path],
     stderr_path: Path,
 ) -> None:
     result = response["result"]
@@ -305,6 +334,70 @@ def validate_run(
         require(path.exists(), f"candidate path does not exist: {path}", stderr_path)
         require(within(output_root, path), f"candidate path outside work.outputs: {path}", stderr_path)
 
+    validate_redaction(response, notifications, guards, stderr_path)
+    validate_direct_write_guards(guards, stderr_path)
+    if args.agent_adapter:
+        validate_agent_adapter_markers(notifications, params, stderr_path)
+
+
+def validate_redaction(
+    response: dict,
+    notifications: list[dict],
+    guards: dict[str, str | Path],
+    stderr_path: Path,
+) -> None:
+    marker = str(guards["redaction_marker"])
+    structured = json.dumps({"response": response, "notifications": notifications}, sort_keys=True)
+    require(marker not in structured, "runner leaked source/asset redaction marker", stderr_path)
+
+
+def validate_direct_write_guards(guards: dict[str, str | Path], stderr_path: Path) -> None:
+    source_path = Path(guards["source_path"])
+    logical_output = Path(guards["logical_output"])
+    state_path = Path(guards["state_path"])
+    require(source_path.read_text() == guards["source_text"], "runner modified source input", stderr_path)
+    require(
+        logical_output.read_text() == guards["logical_output_text"],
+        "runner modified official artifact path directly",
+        stderr_path,
+    )
+    require(state_path.read_text() == guards["state_text"], "runner modified .fbt/state directly", stderr_path)
+
+
+def validate_agent_adapter_markers(
+    notifications: list[dict],
+    params: dict,
+    stderr_path: Path,
+) -> None:
+    staging_paths: list[Path] = []
+    policy_fail_closed = False
+    for message in notifications:
+        if message.get("method") != "fbt/event":
+            continue
+        attrs = message.get("params", {}).get("attributes", {})
+        if not isinstance(attrs, dict):
+            continue
+        staging = attrs.get("fbt.adapter.staging_workspace")
+        if isinstance(staging, str) and staging:
+            staging_paths.append(Path(staging).resolve())
+        if attrs.get("fbt.adapter.policy_mode") == "fail_closed":
+            policy_fail_closed = True
+        if attrs.get("fbt.adapter.policy_fail_closed") is True:
+            policy_fail_closed = True
+
+    work_root = Path(params["work"]["root"]).resolve()
+    output_root = Path(params["work"]["outputs"]).resolve()
+    require(staging_paths, "agent adapter must report fbt.adapter.staging_workspace", stderr_path)
+    for staging in staging_paths:
+        require(staging.exists(), f"reported staging workspace does not exist: {staging}", stderr_path)
+        require(within(work_root, staging), f"staging workspace must be under work.root: {staging}", stderr_path)
+        require(
+            not within(output_root, staging),
+            f"staging workspace must be separate from work.outputs: {staging}",
+            stderr_path,
+        )
+    require(policy_fail_closed, "agent adapter must report fail-closed policy mapping", stderr_path)
+
 
 def main() -> None:
     args = parse_args()
@@ -317,7 +410,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="fbt-runner-conformance-") as tmpdir:
         tmp = Path(tmpdir)
         stderr_path = tmp / "runner.stderr"
-        params = build_run_params(tmp, args)
+        params, guards = build_run_params(tmp, args)
         env = os.environ.copy()
         with stderr_path.open("w+") as stderr_file:
             proc = subprocess.Popen(
@@ -382,7 +475,7 @@ def main() -> None:
                 run_response, notifications = read_until_response(
                     proc, stdout_queue, "run_001", deadline, stderr_path
                 )
-                validate_run(run_response, notifications, params, args, stderr_path)
+                validate_run(run_response, notifications, params, args, guards, stderr_path)
             finally:
                 if proc.stdin is not None:
                     try:

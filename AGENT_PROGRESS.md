@@ -70,8 +70,8 @@ visualization; those remain outside core. The new high-priority tasks focus on
 build-tool reliability: one-invocation dependency-ordered builds
 (`FBT-BUILD-001`, now done), failed-run receipts (`FBT-BUILD-002`, now done),
 inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
-(`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`), and
-stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
+(`FBT-CONFIG-002`, now done), CLI-agent adapter safety (`FBT-RUNNER-010`, now
+done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`).
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform
@@ -103,6 +103,14 @@ top-level, runner, source, transform, policy, and eval fields. Documented
 project aliases and free-form `meta`, `contract`, runner `config`, policy
 `tools`/`limits`, eval `config`, and model parameter objects remain allowed.
 
+`FBT-RUNNER-010` hardened the recommended CLI-agent adapter boundary. Runner
+conformance now has an opt-in `--agent-adapter` profile that injects a secret
+marker, guards the source path, logical artifact path, and `.fbt/state`, and
+requires redacted protocol messages, a staging workspace under `work.root` but
+outside `work.outputs`, and fail-closed policy mapping. The copyable runner
+adapter scaffold emits those markers and `make verify` runs it through the
+strict agent-adapter profile.
+
 `fbt artifact explain` is the primary single-artifact reasoning surface. It
 prints the decision, current version, previous run, dependency fingerprints,
 upstream artifact state, dirty or blocked reasons, and next command.
@@ -123,7 +131,7 @@ remain outside core.
 
 `examples/runner_adapter_scaffold` provides a dependency-free Python stdio
 JSON-RPC runner skeleton plus `fbt_plugin.yml`. `make verify` now includes a
-strict conformance check for that scaffold.
+strict CLI-agent adapter conformance check for that scaffold.
 
 Graph selection now supports `+target`, `target+`, and `+target+` for
 upstream, downstream, and bidirectional transform expansion. Both `plan` and
@@ -188,10 +196,12 @@ conformance, product conformance, and distribution smoke checks.
 
 ## Next Steps
 
-1. Harden external-agent usage through `FBT-RUNNER-010` while keeping provider
-   SDKs and agent runtimes outside base core.
-2. Define local state/artifact retention hygiene through `FBT-STATE-002`.
-4. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
+1. Remove stale current-state docs references through `FBT-DOCS-DRIFT-001`.
+2. Add opt-in real runner adapter smoke coverage through `FBT-RUNNER-009`.
+3. Define local state/artifact retention hygiene through `FBT-STATE-002`.
+4. Add opt-in standard backend visualization verification through
+   `FBT-STD-007`.
+5. Keep approval, publishing, scheduling, catalog-specific ingestion, and custom
    visualization outside core unless implemented as external tooling.
 
 ## Notes For Next Agent

@@ -150,6 +150,9 @@ scenario classes.
 | `CONF-STD-001` | standard export | OpenLineage export is generated from a support loop | events contain jobs, runs, datasets, fbt facets, schema URL, and UUID-shaped run IDs |
 | `CONF-STD-002` | standard export | OTel export is generated from run results | OTLP/JSON contains resource spans, invocation/transform spans, GenAI usage attributes, and runner span events |
 | `CONF-STD-003` | redaction | standard exports run on inputs/assets containing a marker secret | exported OpenLineage and OTel payloads do not contain raw source content or the marker secret |
+| `CONF-ADAPTER-001` | runner adapter | CLI-agent adapter reports staging workspace and fail-closed policy mapping | strict runner conformance passes only when the staging workspace is under `work.root`, outside `work.outputs`, and policy mapping is fail-closed |
+| `CONF-ADAPTER-002` | runner adapter | CLI-agent adapter receives guarded source, logical artifact, and `.fbt/state` files | strict runner conformance fails if the adapter modifies any guarded file directly |
+| `CONF-ADAPTER-003` | redaction | CLI-agent adapter receives source and asset files containing a marker secret | strict runner conformance fails if protocol responses or events leak the marker |
 
 ## 10. Verification Target
 
@@ -173,6 +176,10 @@ Current executable coverage:
   source content
 - OTel export contains OTLP/JSON resource spans, transform attributes, usage
   attributes, and runner span events without raw source content
+- runner conformance checks candidate containment, redaction, and direct-write
+  guards for all runners
+- scaffold runner conformance uses the CLI-agent adapter safety profile to
+  require staging-workspace and fail-closed policy markers
 
 LLM and agent scenarios should use fake runners for conformance. Real provider
 smoke tests belong behind explicit opt-in commands and must not be required for

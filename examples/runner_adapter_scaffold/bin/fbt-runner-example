@@ -77,6 +77,13 @@ def run_transform(request_id: str | None, params: dict[str, Any]) -> None:
 
     output_root = Path(output_root_value)
     output_root.mkdir(parents=True, exist_ok=True)
+    temp_root = Path(work.get("temp") or output_root.parent / "tmp")
+    staging_root = temp_root / "agent-staging"
+    staging_root.mkdir(parents=True, exist_ok=True)
+    (staging_root / "README.txt").write_text(
+        "External CLI agents should run from this staging workspace, not the project root.\n",
+        encoding="utf-8",
+    )
     declared_outputs = params.get("outputs") or [
         {"name": "output", "artifact_type": "markdown", "declared_path": "target/artifacts/output.md"}
     ]
@@ -89,6 +96,10 @@ def run_transform(request_id: str | None, params: dict[str, Any]) -> None:
             "event_type": "progress",
             "level": "info",
             "message": "runner adapter scaffold generating outputs",
+            "attributes": {
+                "fbt.adapter.staging_workspace": str(staging_root),
+                "fbt.adapter.policy_mode": "fail_closed",
+            },
         },
     )
 

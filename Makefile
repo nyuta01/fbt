@@ -80,7 +80,7 @@ runner-conformance: ## Run the minimal external runner protocol conformance fixt
 
 .PHONY: runner-scaffold-conformance
 runner-scaffold-conformance: ## Run conformance against the copyable runner scaffold.
-	@$(PYTHON) tests/runner-conformance/run.py --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example --strict
+	@$(PYTHON) tests/runner-conformance/run.py --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example --strict --agent-adapter
 
 .PHONY: conformance
 conformance: build ## Run deterministic MVP conformance scenarios.

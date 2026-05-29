@@ -48,7 +48,8 @@ Check the scaffold with:
 ```sh
 python3 tests/runner-conformance/run.py \
   --runner-command examples/runner_adapter_scaffold/bin/fbt-runner-example \
-  --strict
+  --strict \
+  --agent-adapter
 ```
 
 Keep stdout reserved for JSON-RPC messages. Put human debug logs on stderr, and
@@ -149,6 +150,27 @@ The adapter should:
 - copy final files into `work.outputs`
 - emit only redacted events and declared output candidates
 
+Recommended adapters should also emit a redacted `fbt/event` that proves the
+boundary used for this run:
+
+```json
+{
+  "method": "fbt/event",
+  "params": {
+    "event_type": "progress",
+    "attributes": {
+      "fbt.adapter.staging_workspace": "/.../.fbt/work/<run>/tmp/agent-staging",
+      "fbt.adapter.policy_mode": "fail_closed"
+    }
+  }
+}
+```
+
+The staging workspace must be under `params.work.root`, separate from
+`params.work.outputs`, and safe to discard. If the adapter cannot map fbt's
+policy into the external agent safely, it must return a JSON-RPC error instead
+of running with broader permissions.
+
 The external agent should not write directly to logical artifact paths,
 immutable artifact storage, `.fbt/state`, or source paths during the normal fbt
 build path.
@@ -215,6 +237,24 @@ The harness starts the runner, verifies `initialize`, sends a minimal
 `fbt/runTransform`, and checks that declared candidate paths exist under
 `work.outputs`. `--strict` also requires at least one progress event and one
 `fbt/outputCandidate` notification.
+
+For CLI-agent adapters, add `--agent-adapter`:
+
+```sh
+python3 tests/runner-conformance/run.py \
+  --runner-command 'my-agent-adapter' \
+  --strict \
+  --agent-adapter
+```
+
+This mode injects a redaction marker into the temporary source and asset files,
+creates guard files at the source path, logical artifact path, and `.fbt/state`,
+then verifies that:
+
+- protocol responses and events do not leak the marker
+- the runner did not modify sources, official artifact paths, or `.fbt/state`
+- a staging workspace was reported under `work.root` but outside `work.outputs`
+- the adapter reported fail-closed policy mapping
 
 ## 11. Discovery Packaging
 
