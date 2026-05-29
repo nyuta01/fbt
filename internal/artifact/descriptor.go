@@ -83,6 +83,7 @@ func describeFile(path, descriptorType string) (Descriptor, error) {
 
 func describeDirectory(root, descriptorType string) (Descriptor, error) {
 	entries := []directoryEntry{}
+	var totalSize int64
 	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -121,6 +122,7 @@ func describeDirectory(root, descriptorType string) (Descriptor, error) {
 			Size:   size,
 			Digest: digest,
 		})
+		totalSize += size
 		return nil
 	})
 	if err != nil {
@@ -137,7 +139,7 @@ func describeDirectory(root, descriptorType string) (Descriptor, error) {
 	return Descriptor{
 		MediaType:    "inode/directory",
 		Digest:       "sha256:" + hex.EncodeToString(sum[:]),
-		Size:         nil,
+		Size:         &totalSize,
 		ArtifactType: descriptorType,
 		FileCount:    len(entries),
 	}, nil

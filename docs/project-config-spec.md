@@ -271,6 +271,8 @@ of the fbt project config.
 ## 8. Policies
 
 Policies define security, tool, network, cost, and write-scope constraints.
+`limits.max_output_bytes` applies to file artifacts and to the aggregate byte
+size of all regular files inside directory artifacts.
 
 ```yaml
 policies:

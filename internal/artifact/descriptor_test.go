@@ -51,8 +51,8 @@ func TestDescribeDirectoryCanonicalizesContent(t *testing.T) {
 	if firstDescriptor.FileCount != 2 {
 		t.Fatalf("unexpected file count: %d", firstDescriptor.FileCount)
 	}
-	if firstDescriptor.Size != nil {
-		t.Fatalf("directory size should be null, got %+v", firstDescriptor.Size)
+	if firstDescriptor.Size == nil || *firstDescriptor.Size != int64(len("one\n")+len("two\n")) {
+		t.Fatalf("unexpected directory size: %+v", firstDescriptor.Size)
 	}
 }
 

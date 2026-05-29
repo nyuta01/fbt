@@ -74,12 +74,18 @@ inert config cleanup (`FBT-CONFIG-001`, now done), strict YAML diagnostics
 done), and stale current-state docs cleanup (`FBT-DOCS-DRIFT-001`, now done).
 
 The latest full review added a new post-MVP hardening backlog. The highest
-priority open tasks are directory output-size enforcement (`FBT-POLICY-001`),
-remote-installable official adapters (`FBT-RUNNER-021`), and real CLI-agent
-policy enforcement (`FBT-RUNNER-022`). Follow-up runner robustness tasks cover
-large JSON-RPC JSONL messages (`FBT-RUNNER-023`), visible staged-input
-truncation failures (`FBT-RUNNER-024`), and bounded stderr/exit diagnostics for
-runner protocol failures (`FBT-RUNNER-025`).
+priority open tasks are remote-installable official adapters
+(`FBT-RUNNER-021`) and real CLI-agent policy enforcement (`FBT-RUNNER-022`).
+Follow-up runner robustness tasks cover large JSON-RPC JSONL messages
+(`FBT-RUNNER-023`), visible staged-input truncation failures
+(`FBT-RUNNER-024`), and bounded stderr/exit diagnostics for runner protocol
+failures (`FBT-RUNNER-025`).
+
+`FBT-POLICY-001` is done. Directory artifact descriptors now record aggregate
+regular-file byte size, so `limits.max_output_bytes` applies to
+`directory`/`markdown_directory` artifacts as well as file artifacts. Build
+regressions cover denied oversized directory outputs and verify they do not
+advance current artifact pointers.
 
 `FBT-BUILD-001` changed planning/build execution for selected graphs. Selected
 transforms are ordered by artifact dependencies. A downstream selected transform

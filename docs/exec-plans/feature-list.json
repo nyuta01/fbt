@@ -3068,7 +3068,7 @@
       "id": "FBT-POLICY-001",
       "title": "Enforce output-size limits for directory artifacts",
       "priority": "P0",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-MVP-006"
@@ -3087,11 +3087,12 @@
         "AGENT_PROGRESS.md"
       ],
       "verification": {
-        "go_test_policy": false,
-        "go_test_build": false,
-        "make_verify": false
+        "go_test_artifact": true,
+        "go_test_policy": true,
+        "go_test_build": true,
+        "make_verify": true
       },
-      "notes": "Directory descriptors currently have no total size, so policy max_output_bytes only protects file artifacts. Compute and check aggregate directory bytes so markdown_directory and directory artifacts cannot bypass output-size policy."
+      "notes": "Directory descriptors now record aggregate regular-file bytes. max_output_bytes applies to file and directory artifacts, and build regressions prove denied directory outputs do not advance current artifact pointers."
     },
     {
       "id": "FBT-RUNNER-021",

@@ -209,9 +209,10 @@ policies:
 ```
 
 Core enforces path normalization, scoped work directories, output-size limits
-where possible, official commit boundaries, and state safety. Runners are still
-responsible for respecting network and tool policy. The MVP security boundary
-and deterministic conformance scenarios are defined in
+for file artifacts and aggregate directory artifact bytes, official commit
+boundaries, and state safety. Runners are still responsible for respecting
+network and tool policy. The MVP security boundary and deterministic conformance
+scenarios are defined in
 [Security and Conformance Spec](security-and-conformance-spec.md).
 
 ## 9. Evals and Confidence

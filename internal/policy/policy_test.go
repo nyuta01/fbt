@@ -40,6 +40,19 @@ func TestEvaluateCommitDeniesSizeLimit(t *testing.T) {
 	}
 }
 
+func TestEvaluateCommitDeniesDirectorySizeLimit(t *testing.T) {
+	size := int64(12)
+	policyResource := manifest.PolicyResource{Limits: map[string]any{"max_output_bytes": 5}}
+	decision := EvaluateCommit(t.TempDir(), "target/artifacts", &policyResource, manifest.TransformOutput{
+		Name:         "report",
+		ArtifactType: "markdown_directory",
+		DeclaredPath: "target/artifacts/report",
+	}, artifact.Descriptor{Size: &size, FileCount: 2})
+	if decision.Status != "denied" {
+		t.Fatalf("expected directory size denial, got %+v", decision)
+	}
+}
+
 func TestTimeoutAndRedaction(t *testing.T) {
 	policyResource := manifest.PolicyResource{Limits: map[string]any{"timeout_seconds": 12}}
 	if got := Timeout(policyResource).Seconds(); got != 12 {

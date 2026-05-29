@@ -142,6 +142,37 @@ func TestRunBuildPolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
 	}
 }
 
+func TestRunBuildDirectorySizePolicyDenialDoesNotUpdateCurrentState(t *testing.T) {
+	root := writeBuildProject(t)
+	writeFile(t, root, "policies/support.yml", `policies:
+  - name: support_agent_scope
+    read: ["data/support/"]
+    write: [".fbt/work/", "target/artifacts/support/"]
+    network: true
+    limits:
+      max_output_bytes: 5
+`)
+	_, err := RunBuild(context.Background(), Options{ProjectDir: root, FBTVersion: "test"})
+	if err == nil || !strings.Contains(err.Error(), "output size") {
+		t.Fatalf("expected directory size policy denial, got %v", err)
+	}
+	if _, statErr := os.Stat(filepath.Join(root, "target", "artifacts", "support", "case_summaries", "index.md")); !os.IsNotExist(statErr) {
+		t.Fatalf("official output should not be committed, stat err=%v", statErr)
+	}
+	store := state.Open(filepath.Join(root, ".fbt", "state"))
+	snapshot, readErr := store.ReadState()
+	if readErr != nil {
+		t.Fatalf("read state: %v", readErr)
+	}
+	if _, ok := snapshot.CurrentArtifacts["artifact.knowledge_ops.case_summaries"]; ok {
+		t.Fatalf("directory size denial must not update current artifact pointers: %+v", snapshot.CurrentArtifacts)
+	}
+	records := readRunRecords(t, root)
+	if !hasRunRecord(records, "transform_run", "policy_denied", "policy_denied") {
+		t.Fatalf("expected policy_denied transform receipt, got %+v", records)
+	}
+}
+
 func TestRunBuildRejectsIncompatibleRunnerCapabilities(t *testing.T) {
 	root := writeBuildProject(t)
 	repoRoot := repoRoot(t)

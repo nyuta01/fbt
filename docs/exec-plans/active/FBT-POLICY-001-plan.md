@@ -15,10 +15,11 @@ existing digest and file-count semantics.
 
 ## Permanent Fix
 
-Add descriptor and policy tests for a directory artifact whose total byte count
-exceeds `max_output_bytes`. Add a build-level regression so denied directory
-outputs do not advance current artifact pointers or immutable versions.
+Directory descriptors now carry aggregate byte size while preserving file-count
+and digest semantics. Policy and build regressions cover directory artifacts
+that exceed `max_output_bytes`, including the invariant that denied outputs do
+not update current artifact pointers or immutable versions.
 
 ## Next Check
 
-Run targeted artifact/policy/build tests, then `make verify`.
+Done. Targeted artifact, policy, and build tests pass, and `make verify` passes.
