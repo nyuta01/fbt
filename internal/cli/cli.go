@@ -74,6 +74,8 @@ func newRootCommand(stdout io.Writer, stderr io.Writer) *cobra.Command {
 		Use:   "fbt",
 		Short: "fbt - file build tool",
 		Long: "fbt builds versioned filesystem artifacts from declared source files through external runners.\n\n" +
+			"A runner is an external command that speaks the fbt runner protocol; it can\n" +
+			"wrap OpenAI, Claude Code, Codex, Gemini, a script, or an internal service.\n\n" +
 			"Typical flow:\n" +
 			"  fbt doctor\n" +
 			"  fbt plan --select TARGET\n" +

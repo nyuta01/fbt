@@ -3,7 +3,9 @@ title: Authoring contract
 description: Contract external runner authors must satisfy.
 ---
 
-An fbt runner is an external process that speaks the stdio JSON-RPC protocol.
+An fbt runner is an external command that speaks the stdio JSON-RPC protocol.
+The command may wrap a provider SDK, CLI agent, document converter, shell
+script, or internal service.
 
 The smallest copyable starting point is
 `examples/runner_adapter_scaffold/bin/fbt-runner-example`. It uses only the

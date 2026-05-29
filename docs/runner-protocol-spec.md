@@ -12,6 +12,11 @@ state. Runners execute transforms.
 
 The initial runner protocol is **JSON-RPC 2.0 compatible messages over stdio**. Runners may be implemented in Go, Python, TypeScript, Rust, shell, or internal binaries.
 
+User-facing shorthand: a runner is an external command that speaks this
+protocol. It may wrap a provider SDK, an agent CLI, a converter, a script, or
+an internal service. The rest of this document is the author-facing contract for
+that command.
+
 For implementer workflow and the reusable black-box conformance harness, see
 [Runner Authoring Guide](runner-authoring-guide.md).
 

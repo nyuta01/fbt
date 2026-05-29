@@ -26,6 +26,11 @@ fbt diff case_summaries --against previous
 fbt export openlineage
 ```
 
+Runner terminology in CLI output is intentionally narrow: a runner is the
+external command configured for a transform. That command may wrap OpenAI,
+Claude Code, Codex, Gemini, a converter, a script, or an internal service, but
+fbt only invokes it through the runner protocol.
+
 ## 2. Global Flags
 
 | Flag | Meaning |

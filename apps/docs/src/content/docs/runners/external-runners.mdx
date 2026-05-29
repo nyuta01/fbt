@@ -6,11 +6,15 @@ description: How fbt delegates execution outside core.
 fbt core is not an LLM provider, document converter, or agent runtime. It
 delegates execution to external runners.
 
+The user-facing model is one sentence: a runner is an external command that
+speaks the fbt runner protocol. That command can wrap OpenAI, Claude Code,
+Codex, Gemini, a shell script, a converter, or an internal service.
+
 ## Runner examples
 
 - deterministic demo runners for local smoke tests
 - command runner for shell-backed transforms
-- copyable scaffold in `examples/runner_adapter_scaffold`
+- copyable runner-command scaffold in `examples/runner_adapter_scaffold`
 - optional OpenAI Responses runner under `runners/openai`
 - adapter packages such as `fbt-runner-claude-code`, `fbt-runner-codex-cli`,
   `fbt-runner-anthropic`, or `fbt-runner-gemini`
@@ -34,7 +38,7 @@ doctor/build.
 ## Opt-in smoke matrix
 
 Real provider and CLI-agent checks stay outside `make verify`. To validate
-installed adapters, pass matrix rows to `make runner-adapter-smoke`:
+installed runner commands, pass matrix rows to `make runner-adapter-smoke`:
 
 ```sh
 FBT_RUNNER_ADAPTER_SMOKE_MATRIX='openai.responses|llm|markdown|fbt-runner-openai responses|OPENAI_API_KEY|false

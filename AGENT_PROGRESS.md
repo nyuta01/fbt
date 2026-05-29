@@ -153,12 +153,14 @@ paths (`FBT-UX-012`) is done: successful builds now print each committed
 artifact path, version, and contextual `artifact show` command. Scannable
 artifact/retention output (`FBT-UX-013`) is done: human output summarizes
 semantic descriptors and reports retention sizes with human-readable units
-while JSON remains complete. The remaining backlog focuses on state/artifact
-directory semantics (`FBT-CONFIG-003`) is done: only `state.backend: local` is
-accepted, `state.path` must remain project-relative, and docs clarify that
-`--state-dir` affects receipts/state only, not `.fbt/artifacts` or
-`artifact_path`. The remaining backlog focuses on runner terminology
-(`FBT-RUNNER-011`), standard export command UX (`FBT-STD-008`), and grouped
+while JSON remains complete. State/artifact directory semantics
+(`FBT-CONFIG-003`) is done: only `state.backend: local` is accepted,
+`state.path` must remain project-relative, and docs clarify that `--state-dir`
+affects receipts/state only, not `.fbt/artifacts` or `artifact_path`. Runner
+terminology (`FBT-RUNNER-011`) is done: user-facing docs now describe every
+integration as an external command that speaks the fbt runner protocol, while
+adapter/protocol/conformance language remains for authors. The remaining
+backlog focuses on standard export command UX (`FBT-STD-008`) and grouped
 doctor diagnostics (`FBT-UX-014`). These are polish tasks on the existing
 Unix-style core, not new core surfaces.
 

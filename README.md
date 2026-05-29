@@ -23,8 +23,8 @@ sources + instructions + runner -> artifact + build receipt
   docs, reference manuals.
 - `instructions` say what to create: prompt, required format, style guide,
   checks, and write policy.
-- `runner` is the external worker: OpenAI, Claude Code, Codex, Gemini, a script,
-  or an internal command.
+- `runner` is an external command that speaks fbt's protocol; it can wrap
+  OpenAI, Claude Code, Codex, Gemini, a script, or an internal service.
 - `artifact` is the generated file under `target/artifacts`.
 - `build receipt` is fbt's local record of the exact inputs, runner, output
   version, checks, and lineage.

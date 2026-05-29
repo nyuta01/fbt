@@ -39,6 +39,7 @@ func TestRunHelpDescribesCommandOutputs(t *testing.T) {
 			args: []string{"--help"},
 			expected: []string{
 				"builds versioned filesystem artifacts",
+				"A runner is an external command",
 				"Select transforms for plan/build",
 				"immutable artifact storage stays under .fbt/artifacts",
 			},

@@ -11,6 +11,12 @@ Codex CLI, Claude Code, local model servers, document converters, SaaS
 connectors, and internal agents belong in optional out-of-process runner
 packages.
 
+For users, the mental model is simple: a runner is an external command that
+speaks the fbt runner protocol. The command may call a model provider, start an
+agent CLI, run a converter, or invoke an internal service. fbt only cares that
+the command advertises capabilities, reads the fbt request, writes output
+candidates under `work.outputs`, and returns protocol messages.
+
 An adapter package is responsible for:
 
 - shipping one or more executable runner commands
@@ -26,7 +32,8 @@ state, policy/eval checks, descriptors, and official commits.
 
 ## 2. Minimal Scaffold
 
-Start from `examples/runner_adapter_scaffold` when building a new adapter. It
+Adapter is the authoring/package word for a runner command plus its dependency
+and setup wrapper. Start from `examples/runner_adapter_scaffold` when building a new adapter. It
 contains:
 
 ```text

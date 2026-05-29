@@ -2662,13 +2662,13 @@
       "id": "FBT-RUNNER-011",
       "title": "Simplify runner terminology and onboarding",
       "priority": "P1",
-      "status": "todo",
+      "status": "done",
       "owner": "agent",
       "depends": [
         "FBT-RUNNER-006",
         "FBT-RUNNER-010"
       ],
-      "plan_url": null,
+      "plan_url": "docs/exec-plans/active/FBT-RUNNER-011-plan.md",
       "paths": [
         "README.md",
         "docs/runner-adapters.md",
@@ -2684,7 +2684,7 @@
         "validate_docs": true,
         "make_verify": true
       },
-      "notes": "Present OpenAI, Claude Code, Codex, Gemini, scripts, and internal tools through one external-command runner mental model. Keep adapter, protocol, conformance, and smoke terminology available for authors without overwhelming first-time users."
+      "notes": "OpenAI, Claude Code, Codex, Gemini, scripts, converters, and internal tools are now presented through one external-command runner mental model. Adapter, protocol, conformance, and smoke terminology remains available for authors."
     },
     {
       "id": "FBT-STD-008",
